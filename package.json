@@ -15,9 +15,13 @@
     "build:ext": "npm run build -w extension",
     "dev": "npm run dev -w frontend",
     "test": "npm test -w shared/dub-engine && npm test -w frontend --if-present && npm test -w extension --if-present",
-    "package:ext": "npm run package -w extension"
+    "package:ext": "npm run package -w extension",
+    "icons": "node scripts/render-icons.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }

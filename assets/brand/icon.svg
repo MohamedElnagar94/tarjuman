@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>Tarjuman</title>
+  <defs>
+    <linearGradient id="tile" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#3550D6"/>
+      <stop offset="0.55" stop-color="#1F2E8C"/>
+      <stop offset="1" stop-color="#121A57"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD27A"/>
+      <stop offset="1" stop-color="#F0922B"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.28" cy="0.14" r="0.8">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Lapis tile, like the grounds of illuminated manuscripts -->
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#tile)"/>
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#glow)"/>
+  <rect x="4.75" y="4.75" width="118.5" height="118.5" rx="29.25" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="1.5"/>
+  <!-- A play mark: this is about video -->
+  <path d="M27 24 L49 37 L27 50 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
+  <!-- The letter ت (taa), written as one tapered pen stroke: the head on the right, the tail on the left -->
+  <path d="M104 46 C 110 52, 108 76, 96 88 C 86 98, 72 102, 58 101 C 40 100, 26 92, 19 76
+           C 30 84, 44 88, 58 88 C 74 88, 87 82, 93 70 C 97 62, 97 54, 95 50 Z"
+        fill="url(#ink)" stroke="url(#ink)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Its two dots, staggered as a pen leaves them -->
+  <rect x="50" y="52" width="14" height="14" rx="2.5" transform="rotate(45 57 59)" fill="#FFD27A"/>
+  <rect x="69" y="45" width="14" height="14" rx="2.5" transform="rotate(45 76 52)" fill="#FFFFFF"/>
+</svg>
