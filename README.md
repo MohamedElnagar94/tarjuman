@@ -138,7 +138,7 @@ docs/        plan, specification, implementation notes, translated READMEs, scre
 
 ```sh
 # backend tests (offline)
-cd backend && ../.venv/Scripts/python -m pytest      # macOS/Linux: ../.venv/bin/python
+cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
 
 # dub engine tests
 npm test

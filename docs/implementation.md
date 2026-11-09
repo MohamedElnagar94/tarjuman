@@ -100,7 +100,7 @@ The server binds to `0.0.0.0` so a phone on the same Wi-Fi can use the app, whic
 
 | Suite | Run | Covers |
 |---|---|---|
-| Backend | `cd backend && ../.venv/Scripts/python -m pytest` | caption repair, formats, security, pacing, grouping, speakers, API (offline fakes) |
+| Backend | `cd backend && ../.venv/bin/python -m pytest` | caption repair, formats, security, pacing, grouping, speakers, API (offline fakes) |
 | Dub engine | `npm test` (repo root) | the engine with a fake clock and fake audio |
 | Web app | `npm --prefix frontend test` | helpers and player adapters |
 | Extension | `npm --prefix extension test` | helpers |

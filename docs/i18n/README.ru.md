@@ -1,0 +1,168 @@
+<p align="center">
+  <img src="../../assets/brand/icon-256.png" width="128" height="128" alt="Значок Tarjuman: арабская буква «та» под знаком воспроизведения">
+</p>
+
+<h1 align="center">Tarjuman · ترجمان</h1>
+
+<p align="center">
+  <strong>Смотрите любое видео на арабском.</strong><br>
+  Синхронный перевод, естественный дубляж в реальном времени, дублированные MP4 и расширение для браузера. Всё работает на вашем компьютере.
+</p>
+
+<p align="center">
+  <a href="../../LICENSE"><img alt="Лицензия MIT" src="https://img.shields.io/badge/license-MIT-3550D6"></a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1F2E8C">
+  <img alt="Vue 3" src="https://img.shields.io/badge/vue-3-1F2E8C">
+  <img alt="Chrome MV3" src="https://img.shields.io/badge/chrome-MV3-F0922B">
+</p>
+
+<p align="center">
+  <a href="../../README.md">English</a> ·
+  <a href="README.ar.md">العربية</a> ·
+  <a href="README.fr.md">Français</a> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.de.md">Deutsch</a> ·
+  <a href="README.it.md">Italiano</a> ·
+  <a href="README.pt.md">Português</a> ·
+  <a href="README.tr.md">Türkçe</a> ·
+  <b>Русский</b> ·
+  <a href="README.ur.md">اردو</a> ·
+  <a href="README.fa.md">فارسی</a> ·
+  <a href="README.hi.md">हिन्दी</a> ·
+  <a href="README.id.md">Bahasa Indonesia</a> ·
+  <a href="README.zh.md">中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
+
+<p align="center">
+  <img src="../screenshots/watch.png" alt="Tarjuman воспроизводит видео с YouTube с арабскими субтитрами и открытой панелью дубляжа" width="900">
+</p>
+
+## Что он умеет
+
+Вставьте ссылку на YouTube, загрузите видео со своего компьютера или дайте ссылку почти с любого сайта.
+
+- **Синхронные субтитры.** Арабские субтитры появляются на видео строка за строкой, при желании — с оригиналом под ними. Автоматические субтитры перед переводом собираются в цельные предложения.
+- **Живой дубляж, похожий на человеческую речь.** Нейросетевой арабский голос произносит каждое предложение в такт с говорящим — на египетском, саудовском, эмиратском, сирийском, иорданском, ливанском, марокканском или иракском диалекте арабского. Ни одно предложение не обрывается и не пропускается, а видео ставится на паузу, только если дубляж заметно отстаёт.
+- **Дублированный MP4.** Экспортируйте видео с арабской озвучкой. Можно убрать голос исходного диктора, сохранив музыку и эффекты, дать каждому говорящему подходящий мужской или женский голос, а также встроить или вшить субтитры.
+- **Нет субтитров? Не беда.** Whisper расшифровывает звук на вашем компьютере, после чего расшифровка переводится.
+- **Файлы субтитров.** Скачивайте SRT, VTT или простой текст — на арабском или на двух языках, — либо MP4 с субтитрами, готовый к отправке.
+- **Целые плейлисты.** Дайте ссылку на плейлист или канал, чтобы получить субтитры, видео с субтитрами или дублированные видео для каждого ролика в нём.
+- **Спросите видео** (ИИ по желанию). Получите краткое содержание, ключевые мысли, кликабельные главы и ответы, которые переносят к моменту, где в видео разбирается ваш вопрос. Работает с Claude или любым OpenAI-совместимым провайдером (Gemini, Groq, OpenRouter, Ollama).
+- **Учите английский.** Нажмите на любое слово, чтобы увидеть его значение, сохраните его вместе с предложением, повторите позже и экспортируйте в Anki. Также можно повторить предложение, ставить паузу после каждой строки или размыть субтитры, чтобы проверить себя.
+- **Расширение для браузера.** Используйте те же субтитры и дубляж прямо на YouTube, на сайтах, где у плеера есть субтитры (Coursera, Udemy и другие), или на любом другом сайте, слушая звук вкладки.
+
+Работают и другие языки: французский, испанский, немецкий, турецкий и английский встроены как целевые.
+
+## Быстрый старт
+
+Нужны **Python 3.11+** и **Node.js 20+**.
+
+**Windows:** дважды щёлкните `start.cmd`.
+
+**macOS / Linux:**
+
+```sh
+./start.sh
+```
+
+Первый запуск устанавливает всё: пакеты Python, офлайн-голос для арабского и сборку веб-приложения. Затем приложение открывается по адресу `http://127.0.0.1:4318`. В дальнейшем оно запускается за пару секунд. Чтобы пользоваться им с телефона, откройте адрес, который оно выводит для вашей сети Wi-Fi.
+
+<details>
+<summary>Ручная установка</summary>
+
+```sh
+python -m venv .venv
+.venv/bin/pip install -r backend/requirements.txt        # Windows: .venv\Scripts\pip
+npm --prefix frontend install && npm --prefix frontend run build
+PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONPATH=backend
+```
+
+</details>
+
+### Команды
+
+| Команда | Что делает |
+|---|---|
+| `python -m tarjuman` | Запускает приложение (`--port`, `--host 127.0.0.1` — только для этого компьютера, `--no-open`) |
+| `python -m tarjuman subs <link>` | Записывает файлы субтитров в `data/output` (`--lang`, `--format srt,vtt,txt`) |
+| `python -m tarjuman setup` | Устанавливает или чинит всё |
+| `python -m tarjuman update` | Обновляет yt-dlp и голосовой клиент, если перестали работать загрузки или голоса |
+| `python -m tarjuman doctor` | Проверяет все компоненты |
+
+## Расширение для браузера
+
+<p align="center">
+  <img src="../screenshots/extension-popup.png" alt="Всплывающее окно расширения Tarjuman" width="320">
+</p>
+
+1. Соберите его один раз: `npm --prefix extension install && npm --prefix extension run build`.
+2. Откройте `chrome://extensions` (или `edge://extensions`), включите **Режим разработчика**, нажмите **Загрузить распакованное расширение** и выберите `extension/dist`.
+3. Не закрывайте приложение, откройте видео и нажмите на значок Tarjuman или нажмите <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
+
+Расширение общается только с приложением на вашем компьютере. Его комплект для Chrome Web Store (текст страницы, обоснование разрешений, политика конфиденциальности, рекламные изображения) лежит в [`extension/store`](../../extension/store).
+
+## Как дубляж остаётся синхронным
+
+Строки субтитров объединяются в цельные предложения, а слова-паразиты удаляются. Затем скорость каждого предложения выбирается по окну упреждения примерно в 12 секунд: свободное предложение «одалживает» время плотному, а скорость меняется плавно, без скачков. Прежде чем браузер что-либо воспроизведёт, сервер синтезирует и измеряет каждое предложение, поэтому план строится на реальных длительностях, а не на догадках. Если дубляж всё же отстаёт, следующие предложения звучат чуть быстрее; видео ставится на паузу, только когда разрыв превышает примерно две секунды. При перемотке в любое место дубляж продолжается точно с этой точки.
+
+Полное описание устройства — в [docs/implementation.md](../implementation.md).
+
+## Конфиденциальность
+
+Tarjuman работает прежде всего локально. Ваши видео, субтитры, сохранённые слова, настройки и API-ключ остаются в папке `data/` на вашем компьютере. Приложение обращается к YouTube (субтитры и загрузки), Google Translate и MyMemory (перевод), голосовому сервису Edge от Microsoft (синтез речи) и — только если вы это включите — к выбранному вами ИИ-провайдеру. Никаких аккаунтов, аналитики и слежки. API отклоняет запросы с других сайтов, а настройки ИИ можно изменить только с компьютера, на котором запущено приложение.
+
+## Настройка
+
+| Переменная окружения | По умолчанию | Значение |
+|---|---|---|
+| `TARJUMAN_HOME` | папка проекта | Где хранится `data/` |
+| `TARJUMAN_PORT` | `4318` | Первый порт для попытки (если занят, берётся следующий; расширение подстраивается) |
+| `TARJUMAN_HOST` | `0.0.0.0` | Укажите `127.0.0.1`, чтобы приложение не было доступно из Wi-Fi |
+| `TARJUMAN_WHISPER_MODEL` | `base` | `small` или `medium` для более точной (но более медленной) расшифровки |
+| `ANTHROPIC_API_KEY` | – | Используется для Claude, если в настройках не сохранён ключ |
+
+## Структура проекта
+
+```
+backend/     Python package `tarjuman` (FastAPI): captions, translation, voices, dubbing, AI, jobs
+frontend/    Vue 3 + Vite + TypeScript web app
+extension/   Chrome / Edge extension (Manifest V3, Vue + Vite) and its store kit
+shared/      the live dub engine used by both the web app and the extension
+assets/      brand (icon source and renders)
+docs/        plan, specification, implementation notes, translated READMEs, screenshots
+```
+
+## Разработка
+
+```sh
+# backend tests (offline)
+cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
+
+# dub engine tests
+npm test
+
+# web app with hot reload (proxies the API to 127.0.0.1:4318)
+npm --prefix frontend run dev
+
+# extension: build, test, package a store zip
+npm --prefix extension run build && npm --prefix extension test && npm --prefix extension run package
+```
+
+Прочитайте [docs/specs.md](../specs.md), прежде чем менять маршрут API: от него зависят и веб-приложение, и расширение.
+
+## Создано с помощью
+
+[faster-whisper](https://github.com/SYSTRAN/faster-whisper) ·
+[edge-tts](https://github.com/rany2/edge-tts) ·
+[Piper](https://github.com/rhasspy/piper) ·
+[yt-dlp](https://github.com/yt-dlp/yt-dlp) ·
+[модели MDX-Net из Ultimate Vocal Remover](https://github.com/TRvlvr/model_repo) ·
+[FastAPI](https://fastapi.tiangolo.com) ·
+[Vue](https://vuejs.org) ·
+[Claude](https://www.anthropic.com/claude)
+
+## Лицензия
+
+[MIT](../../LICENSE). Загрузка видео и субтитров регулируется условиями каждого сайта. Используйте Tarjuman для контента, который вам разрешено смотреть и адаптировать.

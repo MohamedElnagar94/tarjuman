@@ -1,0 +1,168 @@
+<p align="center">
+  <img src="../../assets/brand/icon-256.png" width="128" height="128" alt="Icono de Tarjuman: la letra árabe taa bajo un símbolo de reproducción">
+</p>
+
+<h1 align="center">Tarjuman · ترجمان</h1>
+
+<p align="center">
+  <strong>Mira cualquier vídeo en árabe.</strong><br>
+  Traducción sincronizada, doblaje en directo natural, MP4 doblados y una extensión de navegador. Todo se ejecuta en tu propio ordenador.
+</p>
+
+<p align="center">
+  <a href="../../LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/license-MIT-3550D6"></a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1F2E8C">
+  <img alt="Vue 3" src="https://img.shields.io/badge/vue-3-1F2E8C">
+  <img alt="Chrome MV3" src="https://img.shields.io/badge/chrome-MV3-F0922B">
+</p>
+
+<p align="center">
+  <a href="../../README.md">English</a> ·
+  <a href="README.ar.md">العربية</a> ·
+  <a href="README.fr.md">Français</a> ·
+  <b>Español</b> ·
+  <a href="README.de.md">Deutsch</a> ·
+  <a href="README.it.md">Italiano</a> ·
+  <a href="README.pt.md">Português</a> ·
+  <a href="README.tr.md">Türkçe</a> ·
+  <a href="README.ru.md">Русский</a> ·
+  <a href="README.ur.md">اردو</a> ·
+  <a href="README.fa.md">فارسی</a> ·
+  <a href="README.hi.md">हिन्दी</a> ·
+  <a href="README.id.md">Bahasa Indonesia</a> ·
+  <a href="README.zh.md">中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
+
+<p align="center">
+  <img src="../screenshots/watch.png" alt="Tarjuman reproduciendo un vídeo de YouTube con subtítulos en árabe y el panel de doblaje abierto" width="900">
+</p>
+
+## Qué hace
+
+Pega un enlace de YouTube, sube un vídeo desde tu ordenador o dale un enlace de casi cualquier sitio.
+
+- **Subtítulos sincronizados.** Los subtítulos en árabe aparecen sobre el vídeo línea a línea, con el idioma original debajo si lo quieres. Los subtítulos generados automáticamente se reconstruyen en frases completas antes de traducirse.
+- **Doblaje en directo que suena a persona.** Una voz árabe neuronal pronuncia cada frase al ritmo del orador, en árabe egipcio, saudí, emiratí, sirio, jordano, libanés, marroquí o iraquí. Ninguna frase se corta ni se salta, y el vídeo solo se pausa cuando el doblaje se queda bastante atrás.
+- **MP4 doblado.** Exporta el vídeo con la locución en árabe. Puede eliminar la voz del orador original conservando la música y los efectos, asignar a cada orador una voz masculina o femenina acorde, e incrustar o grabar los subtítulos en la imagen.
+- **¿Sin subtítulos? No pasa nada.** Whisper transcribe el audio en tu ordenador y después se traduce la transcripción.
+- **Archivos de subtítulos.** Descarga SRT, VTT o texto plano, en árabe o bilingüe, o un MP4 subtitulado listo para compartir.
+- **Listas de reproducción completas.** Dale el enlace de una lista o de un canal para crear subtítulos, vídeos subtitulados o vídeos doblados de todos sus vídeos.
+- **Pregúntale al vídeo** (IA opcional). Obtén un resumen, los puntos clave, capítulos en los que hacer clic y respuestas que saltan al momento en que el vídeo trata tu pregunta. Funciona con Claude o con cualquier proveedor compatible con OpenAI (Gemini, Groq, OpenRouter, Ollama).
+- **Aprende inglés.** Toca cualquier palabra para ver su significado, guárdala con su frase, repásala más tarde y expórtala a Anki. También puedes repetir una frase, pausar tras cada línea o difuminar los subtítulos para ponerte a prueba.
+- **Extensión de navegador.** Usa los mismos subtítulos y el mismo doblaje en el propio YouTube, en sitios cuyo reproductor tiene subtítulos (Coursera, Udemy y otros) o en cualquier otro sitio escuchando el audio de la pestaña.
+
+También funcionan otros idiomas: francés, español, alemán, turco e inglés vienen integrados como idiomas de destino.
+
+## Inicio rápido
+
+Necesitas **Python 3.11+** y **Node.js 20+**.
+
+**Windows:** haz doble clic en `start.cmd`.
+
+**macOS / Linux:**
+
+```sh
+./start.sh
+```
+
+La primera ejecución lo instala todo: los paquetes de Python, la voz árabe sin conexión y una compilación de la aplicación web. Después, la aplicación se abre en `http://127.0.0.1:4318`. En las siguientes ejecuciones arranca en un par de segundos. Para usarla desde el móvil, abre la dirección que muestra para tu Wi-Fi.
+
+<details>
+<summary>Instalación manual</summary>
+
+```sh
+python -m venv .venv
+.venv/bin/pip install -r backend/requirements.txt        # Windows: .venv\Scripts\pip
+npm --prefix frontend install && npm --prefix frontend run build
+PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONPATH=backend
+```
+
+</details>
+
+### Comandos
+
+| Comando | Qué hace |
+|---|---|
+| `python -m tarjuman` | Inicia la aplicación (`--port`, `--host 127.0.0.1` solo para este ordenador, `--no-open`) |
+| `python -m tarjuman subs <link>` | Escribe archivos de subtítulos en `data/output` (`--lang`, `--format srt,vtt,txt`) |
+| `python -m tarjuman setup` | Instala o repara todo |
+| `python -m tarjuman update` | Actualiza yt-dlp y el cliente de voz, si las descargas o las voces dejan de funcionar |
+| `python -m tarjuman doctor` | Comprueba cada componente |
+
+## La extensión de navegador
+
+<p align="center">
+  <img src="../screenshots/extension-popup.png" alt="La ventana emergente de la extensión Tarjuman" width="320">
+</p>
+
+1. Compílala una vez: `npm --prefix extension install && npm --prefix extension run build`.
+2. Abre `chrome://extensions` (o `edge://extensions`), activa el **Modo de desarrollador**, haz clic en **Cargar descomprimida** y elige `extension/dist`.
+3. Deja la aplicación en marcha, abre un vídeo y haz clic en el icono de Tarjuman, o pulsa <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
+
+La extensión solo se comunica con la aplicación de tu ordenador. Su kit para Chrome Web Store (texto de la ficha, justificación de permisos, política de privacidad, imágenes promocionales) está en [`extension/store`](../../extension/store).
+
+## Cómo se mantiene sincronizado el doblaje
+
+Las líneas de subtítulos se unen en frases completas y se eliminan las muletillas. Después, la velocidad de cada frase se elige a partir de una ventana de anticipación de unos 12 segundos, de modo que una frase holgada le presta tiempo a una apretada y la velocidad cambia de forma gradual en lugar de dar saltos. Antes de que el navegador reproduzca nada, el servidor sintetiza y mide cada frase, así que el plan se basa en duraciones reales y no en estimaciones. Si aun así el doblaje se retrasa, las frases siguientes suenan un poco más rápido; el vídeo solo se pausa cuando el desfase supera unos dos segundos. Si saltas a cualquier punto, el doblaje se reanuda exactamente ahí.
+
+El diseño completo está en [docs/implementation.md](../implementation.md).
+
+## Privacidad
+
+Tarjuman funciona en local primero. Tus vídeos, subtítulos, palabras guardadas, ajustes y clave de API se quedan en la carpeta `data/` de tu ordenador. La aplicación contacta con YouTube (subtítulos y descargas), Google Translate y MyMemory (traducción), el servicio de voz de Edge de Microsoft (voz) y, solo si lo activas, el proveedor de IA que elijas. No hay cuentas, analíticas ni rastreo. La API rechaza las peticiones de otros sitios web, y los ajustes de IA solo se pueden cambiar desde el ordenador que ejecuta la aplicación.
+
+## Configuración
+
+| Variable de entorno | Valor predeterminado | Significado |
+|---|---|---|
+| `TARJUMAN_HOME` | carpeta del proyecto | Dónde se guarda `data/` |
+| `TARJUMAN_PORT` | `4318` | Primer puerto que se prueba (sube al siguiente si está ocupado; la extensión lo sigue) |
+| `TARJUMAN_HOST` | `0.0.0.0` | Usa `127.0.0.1` para que la aplicación no sea accesible desde tu Wi-Fi |
+| `TARJUMAN_WHISPER_MODEL` | `base` | `small` o `medium` para una transcripción más precisa (más lenta) |
+| `ANTHROPIC_API_KEY` | – | Se usa para Claude cuando no hay ninguna clave guardada en los ajustes |
+
+## Estructura del proyecto
+
+```
+backend/     Python package `tarjuman` (FastAPI): captions, translation, voices, dubbing, AI, jobs
+frontend/    Vue 3 + Vite + TypeScript web app
+extension/   Chrome / Edge extension (Manifest V3, Vue + Vite) and its store kit
+shared/      the live dub engine used by both the web app and the extension
+assets/      brand (icon source and renders)
+docs/        plan, specification, implementation notes, translated READMEs, screenshots
+```
+
+## Desarrollo
+
+```sh
+# backend tests (offline)
+cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
+
+# dub engine tests
+npm test
+
+# web app with hot reload (proxies the API to 127.0.0.1:4318)
+npm --prefix frontend run dev
+
+# extension: build, test, package a store zip
+npm --prefix extension run build && npm --prefix extension test && npm --prefix extension run package
+```
+
+Lee [docs/specs.md](../specs.md) antes de cambiar una ruta de la API: tanto la aplicación web como la extensión dependen de ella.
+
+## Hecho con
+
+[faster-whisper](https://github.com/SYSTRAN/faster-whisper) ·
+[edge-tts](https://github.com/rany2/edge-tts) ·
+[Piper](https://github.com/rhasspy/piper) ·
+[yt-dlp](https://github.com/yt-dlp/yt-dlp) ·
+[los modelos MDX-Net de Ultimate Vocal Remover](https://github.com/TRvlvr/model_repo) ·
+[FastAPI](https://fastapi.tiangolo.com) ·
+[Vue](https://vuejs.org) ·
+[Claude](https://www.anthropic.com/claude)
+
+## Licencia
+
+[MIT](../../LICENSE). La descarga de vídeos y subtítulos está sujeta a las condiciones de cada sitio. Usa Tarjuman con contenido que tengas permiso para ver y adaptar.
