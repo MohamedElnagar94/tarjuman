@@ -1,0 +1,134 @@
+/* Tarjuman design tokens.
+   Lapis is the ground, saffron is the ink: saffron is the only accent (actions, the line being spoken,
+   focus). Neutrals are cool and lapis-tinted so both themes read as the same manuscript, by night and by day. */
+
+:root {
+  --font-ui: "Readex Pro Variable", "Readex Pro", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --font-display: "Reem Kufi Variable", "Reem Kufi", var(--font-ui);
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --lapis-500: #3550d6;
+  --lapis-700: #1f2e8c;
+  --lapis-900: #121a57;
+  --saffron-300: #ffd27a;
+  --saffron-500: #f0922b;
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  --fs-xs: 12.5px;
+  --fs-sm: 13.5px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 21px;
+  --fs-2xl: 28px;
+  --fs-3xl: clamp(32px, 4.4vw, 52px);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 180ms;
+
+  --z-sticky: 10;
+  --z-nav: 20;
+  --z-overlay: 40;
+  --z-dialog: 50;
+  --z-popover: 60;
+  --z-toast: 70;
+
+  --header-h: 64px;
+  --bottom-nav-h: 0px;
+}
+
+/* Night: deep lapis ink. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0e26;
+  --bg-deep: #070a1c;
+  --surface-1: #10153a;
+  --surface-2: #171d4a;
+  --surface-3: #212a60;
+  --line: rgba(196, 206, 255, 0.1);
+  --line-2: rgba(196, 206, 255, 0.2);
+  --text: #eef0fb;
+  --text-2: #aab1d6;
+  --text-3: #8189b5;
+
+  --accent: var(--saffron-300);
+  --accent-strong: var(--saffron-500);
+  --accent-ink: var(--saffron-300); /* saffron used as text */
+  --accent-soft: rgba(255, 210, 122, 0.12);
+  --accent-line: rgba(255, 210, 122, 0.38);
+  --on-accent: var(--lapis-900);
+
+  --lapis: #6f86ff; /* lapis readable on night surfaces */
+  --lapis-soft: rgba(53, 80, 214, 0.22);
+
+  --ok: #7fdcb0;
+  --ok-soft: rgba(127, 220, 176, 0.12);
+  --danger: #ff9a9a;
+  --danger-soft: rgba(255, 154, 154, 0.1);
+  --danger-line: rgba(255, 154, 154, 0.32);
+
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px -12px rgba(3, 5, 20, 0.7);
+  --shadow-2: 0 24px 60px -24px rgba(3, 5, 20, 0.85);
+  --scrim: rgba(4, 6, 20, 0.62);
+  --player-ground: #05071a;
+  --tile-pattern-opacity: 0.07;
+}
+
+/* Day: cool paper with lapis ink. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f5fb;
+  --bg-deep: #e9ecf7;
+  --surface-1: #ffffff;
+  --surface-2: #eef1f9;
+  --surface-3: #e1e6f4;
+  --line: rgba(18, 26, 87, 0.1);
+  --line-2: rgba(18, 26, 87, 0.2);
+  --text: #10143a;
+  --text-2: #464d7c;
+  --text-3: #5f6691;
+
+  --accent: #ffc865;
+  --accent-strong: #e5841f;
+  --accent-ink: #9a4a06;
+  --accent-soft: rgba(240, 146, 43, 0.12);
+  --accent-line: rgba(229, 132, 31, 0.45);
+  --on-accent: var(--lapis-900);
+
+  --lapis: var(--lapis-500);
+  --lapis-soft: rgba(53, 80, 214, 0.1);
+
+  --ok: #13795b;
+  --ok-soft: rgba(19, 121, 91, 0.1);
+  --danger: #b42318;
+  --danger-soft: rgba(180, 35, 24, 0.06);
+  --danger-line: rgba(180, 35, 24, 0.28);
+
+  --shadow-1: 0 1px 2px rgba(18, 26, 87, 0.06), 0 8px 24px -14px rgba(18, 26, 87, 0.22);
+  --shadow-2: 0 24px 60px -28px rgba(18, 26, 87, 0.4);
+  --scrim: rgba(16, 20, 58, 0.42);
+  --player-ground: #0a0e26;
+  --tile-pattern-opacity: 0.09;
+}
+
+@media (max-width: 759px) {
+  :root {
+    --header-h: 56px;
+    --bottom-nav-h: 64px;
+  }
+}

@@ -1,0 +1,47 @@
+/* Shared layout for the task panels on the watch page. */
+.task-stack {
+  display: grid;
+  gap: var(--s-6);
+}
+.task__title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  margin-bottom: var(--s-1);
+}
+.task__lead {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  margin-bottom: var(--s-2);
+  max-width: 60ch;
+}
+.task + .task {
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+.task-actions,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.job {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+.result {
+  margin-top: var(--s-3);
+  display: grid;
+  gap: var(--s-2);
+}
+.result video {
+  width: 100%;
+  border-radius: var(--r-md);
+  background: var(--player-ground);
+}
+.result__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}

@@ -1,0 +1,614 @@
+{
+  "app": {
+    "name": "Tarjuman",
+    "tagline": "Watch any video in Arabic"
+  },
+  "a11y": {
+    "skip": "Skip to content"
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "retry": "Try again",
+    "save": "Save",
+    "saving": "Saving…",
+    "open": "Open",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete",
+    "download": "Download",
+    "copied": "Copied",
+    "copyCommand": "Copy command",
+    "listSep": ", "
+  },
+  "units": {
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "nav": {
+    "aria": "Main navigation",
+    "homeAria": "Tarjuman, home",
+    "home": "Home",
+    "library": "Library",
+    "words": "Words",
+    "settings": "Settings"
+  },
+  "appearance": {
+    "switchLang": "التبديل إلى العربية",
+    "toLight": "Light mode",
+    "toDark": "Dark mode",
+    "theme": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "language": "Interface language"
+  },
+  "langs": {
+    "ar": "Arabic",
+    "en": "English",
+    "fr": "French",
+    "es": "Spanish",
+    "de": "German",
+    "tr": "Turkish",
+    "it": "Italian",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "ru": "Russian",
+    "hi": "Hindi",
+    "pt": "Portuguese",
+    "zh": "Chinese",
+    "auto": "an unknown language"
+  },
+  "intake": {
+    "label": "Video link",
+    "placeholder": "https://www.youtube.com/watch?v=…",
+    "open": "Open video",
+    "help": "YouTube, a playlist or channel, or a link from any other site. Or drop a file here.",
+    "upload": "Upload a video",
+    "quickLabel": "Open another video",
+    "quickPlaceholder": "Another video link…",
+    "invalid": "That doesn't look like a video link. Copy it from the browser's address bar and try again.",
+    "empty": "Paste a video link first.",
+    "fetching": "Downloading the video from the site… {pct}%",
+    "fetchFailed": "Couldn't download the video from that site.",
+    "uploading": "Uploading “{name}”… {pct}%",
+    "dropTitle": "Drop the file here",
+    "dropHint": "It goes to your local server and opens right away"
+  },
+  "home": {
+    "title": "Any video, in Arabic, right on time.",
+    "lead": "Line-by-line synced translation and natural dubbing, running on your computer.",
+    "preview": {
+      "badge": "Dubbing on",
+      "line": "يحوّل ترجمان كل جملة إلى لغتك، في وقتها تمامًا."
+    },
+    "recent": {
+      "title": "Continue watching",
+      "allMedia": "All your videos",
+      "at": "Stopped at {time}",
+      "transcribed": "Transcribed",
+      "onDevice": "On this computer",
+      "forget": "Remove “{title}” from the list",
+      "emptyTitle": "Nothing watched yet",
+      "emptyBody": "Videos you open show up here so you can pick up where you left off."
+    },
+    "can": {
+      "title": "What you can do",
+      "subs": {
+        "title": "Synced subtitles on the video",
+        "body": "The translation appears on the picture as it is spoken, with the full transcript to search and jump around in. No captions? Whisper transcribes the speech on your computer."
+      },
+      "dub": {
+        "title": "Live dubbing",
+        "body": "A natural voice speaks over the speaker, paced to each sentence."
+      },
+      "export": {
+        "title": "Files to take with you",
+        "body": "An SRT or VTT subtitle file, or an MP4 with subtitles or dubbed."
+      },
+      "ask": {
+        "title": "Ask about the video",
+        "body": "A summary and chapters, and answers that take you to the right moment."
+      },
+      "learn": {
+        "title": "Learn English from it",
+        "body": "Tap any word for its meaning and save it with its sentence."
+      }
+    }
+  },
+  "status": {
+    "title": "Your computer",
+    "recheck": "Check again",
+    "up": "The local server runs on port {port}, version {version}.",
+    "ready": "Ready",
+    "notReady": "Not installed",
+    "optional": "Optional",
+    "down": {
+      "title": "The local server is not running",
+      "body": "Tarjuman runs on your computer. Start it from the app folder with this command, then reload:"
+    },
+    "dot": {
+      "up": "Server running",
+      "partial": "Running, some parts missing",
+      "down": "Server stopped",
+      "unknown": "Checking"
+    },
+    "translate": {
+      "title": "Translation",
+      "ok": "Working.",
+      "cooling": "Google is paused for a while; using the fallback."
+    },
+    "whisper": {
+      "title": "Whisper speech-to-text",
+      "ok": "Installed (model {model}). For videos without captions.",
+      "missing": "Not installed. Videos without captions can't be transcribed."
+    },
+    "voices": {
+      "title": "Dubbing voices",
+      "ok": "Installed on this computer.",
+      "missing": "Not installed. Only online voices will be used."
+    },
+    "ffmpeg": {
+      "title": "FFmpeg for MP4 files",
+      "ok": "Ready to make dubbed and subtitled videos.",
+      "missing": "Not found. MP4 files won't work."
+    },
+    "ai": {
+      "title": "AI",
+      "ok": "On ({model}).",
+      "off": "Off. Optional: for summaries, questions and more natural dubbing.",
+      "setup": "Turn it on in Settings",
+      "change": "Change"
+    }
+  },
+  "watch": {
+    "player": "Video",
+    "toolbar": "Playback tools",
+    "tasks": "Tasks",
+    "loading": "Preparing the subtitles…",
+    "play": "Play",
+    "pause": "Pause",
+    "prevLine": "Previous line",
+    "nextLine": "Next line",
+    "repeatLine": "Repeat line",
+    "fullscreen": "Full screen",
+    "resumed": "Picked up where you left off ({time})",
+    "fromStart": "From the start",
+    "embedBlocked": "The owner doesn't allow this video to play outside YouTube. Subtitles, downloads and files still work from the panel below.",
+    "playerError": "The player couldn't play this video (code {code}).",
+    "ytFailed": {
+      "title": "Couldn't load the YouTube player",
+      "body": "The YouTube player needs an internet connection. Check it and try again."
+    },
+    "error": {
+      "title": "We couldn't open this video",
+      "other": "Open another video"
+    },
+    "whisper": {
+      "title": "This video has no captions on YouTube",
+      "body": "We can download the audio and transcribe it with Whisper on your computer, without uploading it anywhere, then translate it.",
+      "titleLocal": "Let's transcribe this video",
+      "bodyLocal": "Whisper transcribes the speech on your computer and we translate it; then the video opens.",
+      "start": "Transcribe and translate",
+      "starting": "Starting…",
+      "working": "Working",
+      "missing": "Whisper isn't installed yet. Install it with this command, then try again:",
+      "note": "Whisper takes about ten seconds per minute of audio."
+    },
+    "chip": {
+      "ytHuman": "YouTube's own translation",
+      "ytAuto": "YouTube's machine translation",
+      "whisper": "Transcribed by Whisper, machine translated",
+      "asr": "Translated from auto-captions",
+      "machine": "Machine translated from {lang}",
+      "lines": "{n} lines"
+    },
+    "translate": {
+      "progress": "Translating {pct}%",
+      "missing": "{n} lines not translated",
+      "unavailable": "The translation service isn't answering. We'll try again later."
+    },
+    "edit": {
+      "saved": "Saved. It will show in the subtitles, downloads and dubbing.",
+      "failed": "Couldn't save the correction."
+    },
+    "tb": {
+      "subs": "Subtitles",
+      "bilingual": "Original"
+    },
+    "tab": {
+      "transcript": "Transcript",
+      "watch": "Watch & dub",
+      "export": "Export",
+      "ask": "Ask",
+      "learn": "Learn"
+    },
+    "opts": {
+      "title": "Subtitles on screen",
+      "tl": "Translate to",
+      "show": "Show subtitles on the video",
+      "showHint": "Shortcut C",
+      "bilingual": "Original text above",
+      "bilingualHint": "Tap any word for its meaning. Shortcut B",
+      "position": "Position",
+      "bottom": "Bottom",
+      "top": "Top",
+      "size": "Text size",
+      "smaller": "Smaller text",
+      "bigger": "Bigger text",
+      "background": "Background behind text",
+      "speed": "Video speed"
+    }
+  },
+  "transcript": {
+    "title": "Transcript",
+    "search": "Search the transcript",
+    "searchPlaceholder": "Search for a word… ( / )",
+    "matches": "{n} lines",
+    "follow": "Follow",
+    "followHint": "Transcript scrolls with the video",
+    "empty": "This video has no transcript.",
+    "noMatch": "“{q}” isn't in the transcript.",
+    "seek": "Go to {time}",
+    "edit": "Correct the translation",
+    "editLabel": "Corrected translation",
+    "editHint": "Enter to save, Esc to cancel",
+    "edited": "edited"
+  },
+  "dub": {
+    "voice": "Voice",
+    "voiceAuto": "Automatic",
+    "voicesFailed": "Couldn't load the voices.",
+    "listen": "Hear the voice",
+    "wait": "Wait for the dub when it falls behind",
+    "waitHint": "The video pauses for a moment instead of cutting a sentence",
+    "dictionary": "Pronunciation",
+    "bg": {
+      "label": "Original audio in the background",
+      "level": "{pct}%, light music and effects",
+      "muted": "Muted, dub voice only"
+    },
+    "live": {
+      "title": "Live dubbing",
+      "lead": "A real voice speaks over the speaker while you watch. The video holds for a moment at the start until the first sentence is ready.",
+      "start": "Watch dubbed",
+      "stop": "Stop dubbing",
+      "toggle": "Start or stop dubbing",
+      "on": "Dubbing on",
+      "needPlayer": "Wait until the video is ready."
+    },
+    "state": {
+      "speaking": "Dubbing",
+      "catching-up": "Catching up",
+      "waiting": "Waiting for the sentence to end",
+      "buffering": "Preparing the next sentence",
+      "error": "Dubbing problem",
+      "ready": "Dub ready"
+    }
+  },
+  "export": {
+    "working": "Working",
+    "cancelled": "Cancelled.",
+    "downloadMp4": "Download MP4",
+    "quality": "Quality",
+    "qualityHint": "Lower is faster and smaller",
+    "mode": {
+      "label": "Text",
+      "ar": "Translation",
+      "bi": "Both",
+      "src": "Original"
+    },
+    "fmt": {
+      "label": "Format",
+      "hint": "SRT for most players, VTT for the web",
+      "txt": "Text"
+    },
+    "subs": {
+      "title": "Subtitle file",
+      "download": "Download file",
+      "preparing": "Preparing the file…",
+      "copy": "Copy text",
+      "done": "Downloaded, with a copy in your Library.",
+      "copied": "Text copied.",
+      "copyBlocked": "The browser blocked copying."
+    },
+    "mp4": {
+      "title": "MP4 video",
+      "lead": "One file to watch anywhere or send to someone. It runs in the background; you can close this page."
+    },
+    "subvideo": {
+      "title": "With subtitles on the picture",
+      "lead": "Original audio with the subtitles drawn on the picture, using the “Text” choice above.",
+      "start": "Make subtitled video",
+      "ready": "The subtitled video is ready, and in your Library."
+    },
+    "dub": {
+      "title": "Dubbed with an Arabic voice",
+      "lead": "Slower than live dubbing, but the timing is more precise.",
+      "embed": "Put the subtitles inside the file",
+      "embedHint": "Turned on and off in the player",
+      "remove": "Remove the original speaker's voice",
+      "removeHint": "Music and effects stay. Takes about one and a half times the video length",
+      "burn": "Burn the subtitles onto the picture",
+      "burnHint": "Shows in any player, but takes longer",
+      "start": "Make dubbed video",
+      "ready": "The dubbed video is ready.",
+      "sentences": "{n} sentences",
+      "voice": "voice: {name}",
+      "refit": "{n} sentences sped up to fit their time",
+      "voiceRemoved": "original speaker removed",
+      "multiSpeaker": "a matching voice for each speaker"
+    }
+  },
+  "ask": {
+    "setup": {
+      "title": "Turn on AI first",
+      "body": "Summaries and questions need an AI provider: Claude, a free one like Gemini or Groq, or Ollama on your computer.",
+      "cta": "Open AI settings"
+    },
+    "summary": {
+      "title": "Summary and chapters",
+      "lead": "The idea of the video in a paragraph, the key points, and chapters you can jump to.",
+      "start": "Summarize and split into chapters",
+      "busy": "Summarizing… the first time takes a while",
+      "chapters": "Chapters"
+    },
+    "ask": {
+      "title": "Ask about the video",
+      "label": "Your question about the video",
+      "placeholder": "For example: what steps did they explain?",
+      "send": "Ask",
+      "busy": "Thinking…",
+      "goTo": "Go to this moment"
+    }
+  },
+  "learn": {
+    "modes": "Learning modes",
+    "learn": "Learning mode",
+    "learnHint": "The video pauses after every sentence so you can read it. Shortcut L",
+    "learnOn": "Learning mode: pauses after every sentence",
+    "learnOff": "Learning mode off",
+    "loop": "Repeat sentence",
+    "loopHint": "The same sentence repeats until you turn it off. Shortcut O",
+    "loopOn": "Repeat sentence: on",
+    "loopOff": "Repeat sentence: off",
+    "quiz": "Hide the translation",
+    "quizHint": "It shows when you hover it. Test yourself",
+    "wordsTitle": "Your words from this video",
+    "emptyTitle": "No words saved from this video",
+    "emptyBody": "Tap any English word in the transcript or the subtitles to see its meaning and save it.",
+    "allWords": "All your words"
+  },
+  "lookup": {
+    "title": "Meaning of “{word}”",
+    "save": "Save to Words",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "duplicate": "Already saved",
+    "saveFailed": "Couldn't save, try again",
+    "listen": "Listen",
+    "none": "No translation for this word.",
+    "failed": "Couldn't translate it.",
+    "noAudio": "Audio isn't available right now."
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "play": "Play or pause",
+    "next": "Next line",
+    "prev": "Previous line",
+    "repeat": "Repeat the current line",
+    "subs": "Show or hide subtitles",
+    "bilingual": "Original text above the translation",
+    "dub": "Start or stop dubbing",
+    "learn": "Learning mode (pause after each sentence)",
+    "loop": "Repeat the current sentence",
+    "bigger": "Bigger text",
+    "smaller": "Smaller text",
+    "fullscreen": "Full screen",
+    "search": "Search the transcript",
+    "help": "This list",
+    "close": "Close the dialog"
+  },
+  "library": {
+    "title": "Library",
+    "lead": "Running jobs, playlists, your videos and the files you've made. Everything stays on your computer.",
+    "sections": "Page sections",
+    "deleted": "Deleted.",
+    "jobs": {
+      "title": "Jobs",
+      "emptyTitle": "No jobs right now",
+      "emptyBody": "When you make a dubbed or subtitled video or start a playlist, its progress shows here.",
+      "queued": "Queued",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "playlist": "Playlist",
+      "type": {
+        "whisper": "Whisper transcription",
+        "dub": "Dubbed video",
+        "subvideo": "Subtitled video",
+        "batch": "Batch",
+        "fetch": "Download from a site"
+      }
+    },
+    "batch": {
+      "title": "A whole playlist or channel",
+      "lead": "Paste the link and let it work through the videos one by one. You can leave it running overnight.",
+      "fromPlaylist": "That's a playlist. Choose what to make, then press Start.",
+      "fromChannel": "That's a channel. Choose what to make for its videos, then press Start.",
+      "url": "Playlist or channel link",
+      "needUrl": "Paste a playlist or channel link.",
+      "what": "Make",
+      "subs": "Subtitle files",
+      "subvideo": "Subtitled videos",
+      "dub": "Dubbed videos",
+      "limit": "Maximum number of videos",
+      "uses": "In {lang} at {quality}p, from your settings.",
+      "start": "Start",
+      "started": "The batch started. You can close the page; the work continues on your computer."
+    },
+    "media": {
+      "title": "My videos",
+      "add": "Add a video",
+      "emptyTitle": "No uploaded videos yet",
+      "emptyBody": "Upload a file from the home page, or paste a link from any site.",
+      "transcribed": "Transcribed",
+      "notTranscribed": "Not transcribed yet"
+    },
+    "files": {
+      "title": "Files",
+      "dubbed": "Dubbed and subtitled videos",
+      "dubbedEmpty": "No videos made yet. Open a video and use Export.",
+      "subs": "Subtitle files",
+      "subsEmpty": "Subtitle files you download are kept here too.",
+      "play": "Play"
+    }
+  },
+  "words": {
+    "title": "Words",
+    "lead": "The words you saved, each with the sentence it came from.",
+    "export": "Export for Anki (CSV)",
+    "search": "Search your words",
+    "count": "{n} words",
+    "video": "Video",
+    "noMatch": "No words match.",
+    "emptyTitle": "No saved words yet",
+    "emptyBody": "While watching, tap any English word in the transcript to see its meaning, then “Save to Words”.",
+    "emptyCta": "Open a video"
+  },
+  "settings": {
+    "title": "Settings",
+    "lead": "These settings are kept on this device.",
+    "sections": "Settings sections",
+    "s": {
+      "ai": "AI",
+      "pronounce": "Pronunciation",
+      "defaults": "Defaults",
+      "appearance": "Appearance",
+      "shortcuts": "Shortcuts"
+    },
+    "defaultsLead": "Used when you open a new video and when making files.",
+    "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
+    "sample": "هكذا ستظهر الترجمة على الفيديو.",
+    "shortcutsLead": "They work on the watch page, with Arabic keyboard layouts too."
+  },
+  "ai": {
+    "lead": "Plain machine translation can come out formal and long. With this on, an AI model writes the dub script in natural speech, fitted to the time of each sentence, and enables summaries and questions.",
+    "enabled": "Turn on the dub writer",
+    "enabledHint": "Used for dubbing, summaries and questions",
+    "style": {
+      "label": "Style",
+      "msa": "Simple Modern Standard",
+      "egyptian": "Egyptian"
+    },
+    "provider": {
+      "label": "Provider",
+      "other": "Other provider"
+    },
+    "base": {
+      "label": "Server address",
+      "presets": "Ready-made addresses"
+    },
+    "preset": {
+      "gemini": "Gemini",
+      "groq": "Groq",
+      "openrouter": "OpenRouter",
+      "ollama": "Ollama on this computer",
+      "free": "free tier"
+    },
+    "key": {
+      "label": "API key",
+      "saved": "Saved ({hint}). Type a new key to replace it",
+      "optional": "Optional for Ollama",
+      "helpClaude": "From console.anthropic.com. Kept on this computer only and never shown again.",
+      "helpOther": "Kept on this computer only and never shown again. Ollama needs no key.",
+      "willReset": "Changing the provider or address removes the saved key, so it is never sent to a server it wasn't entered for. Enter the new key.",
+      "clear": "Remove the saved key"
+    },
+    "model": {
+      "label": "Model",
+      "placeholder": "Model name",
+      "helpClaude": "Default {model}. A two-hour video costs roughly two or three dollars, and every sentence is cached so you never pay twice.",
+      "helpOther": "Model names change. If this one no longer exists, use the current name from the provider's site."
+    },
+    "test": "Try a sentence",
+    "testing": "Trying…",
+    "testOk": "“{text}” in {secs} s ({model})",
+    "saved": {
+      "on": "Saved. The next dub will use the dub writer.",
+      "off": "Saved. The dub writer is off.",
+      "needKey": "Saved, but it still needs an API key.",
+      "needServer": "Saved, but it still needs the server address and model name."
+    },
+    "localOnly": {
+      "title": "Open this page on the computer itself",
+      "body": "AI settings hold a secret key, so they can only be changed from the computer Tarjuman runs on, not from a phone or another device on the network."
+    }
+  },
+  "pronounce": {
+    "lead": "A word the voice says wrong? Write it and how to say it. This only changes the voice; the written subtitles stay as they are. Example: “UE5” is said “أنريل إنجن فايف”.",
+    "word": "Word",
+    "say": "Say it as",
+    "wordN": "Word {n}",
+    "sayN": "Pronunciation of word {n}",
+    "wordPh": "Word",
+    "sayPh": "How to say it",
+    "remove": "Remove line {n}",
+    "add": "Add a word",
+    "saved": "Dictionary saved. It applies to the next sentences.",
+    "try": "Try a sentence",
+    "tryPh": "Type a sentence with the word…",
+    "listen": "Listen",
+    "heard": "Will be said: {text}"
+  },
+  "missing": {
+    "title": "This page doesn't exist",
+    "body": "The link may have changed. Start from the home page.",
+    "home": "Home"
+  },
+  "errors": {
+    "generic": "Something went wrong: {detail}",
+    "UNKNOWN": "Something unexpected happened. Try again.",
+    "NO_SERVER": "The local server isn't running. Start it with python -m tarjuman, then reload.",
+    "BAD_URL": "That isn't a video link we can open. Copy it from the address bar and try again.",
+    "NO_CAPTIONS": "This video has no captions.",
+    "UNPLAYABLE": "YouTube won't give out this video's data. It may be private, need a sign-in, or be blocked in your country.",
+    "CAPTIONS_EMPTY": "YouTube returned an empty caption file for this video. Try again in a bit.",
+    "NO_MEDIA": "This video is no longer on your computer; it may have been deleted.",
+    "NO_SPEECH": "Whisper found no speech in this video.",
+    "NO_JOB": "The server lost this job, maybe it restarted. Start it again.",
+    "NO_FILE": "The file doesn't exist.",
+    "NO_TEXT": "There is no text.",
+    "NO_CUES": "This video has no subtitle lines.",
+    "NO_AUDIO": "This file has no audio.",
+    "NO_WORD": "No word was given.",
+    "NO_QUESTION": "Type your question first.",
+    "EMPTY_FILE": "The file is empty.",
+    "BAD_JSON": "The server sent a reply we couldn't read.",
+    "BODY_TOO_LARGE": "The file is too large.",
+    "CANCELLED": "Cancelled.",
+    "PY_NOT_INSTALLED": "This needs the Python environment. Run python -m tarjuman setup.",
+    "WHISPER_NOT_INSTALLED": "Whisper isn't installed. Run python -m tarjuman setup.",
+    "WHISPER_FAILED": "Whisper transcription failed.",
+    "TTS_ERROR": "Couldn't generate the voice.",
+    "TTS_FAILED": "Couldn't generate the voice. Check the internet connection or install the local voices.",
+    "TRANSLATE_FAILED": "The translation service isn't answering.",
+    "FFMPEG_NOT_FOUND": "FFmpeg is missing. Run python -m tarjuman setup.",
+    "YTDLP_FAILED": "Downloading the video failed. If it keeps happening, run python -m tarjuman update.",
+    "DOWNLOAD_FAILED": "The download failed.",
+    "MIX_FAILED": "Mixing the audio into the video failed.",
+    "BURN_FAILED": "Burning the subtitles onto the picture failed.",
+    "PLAYLIST_FAILED": "Couldn't read the playlist.",
+    "PLAYLIST_EMPTY": "The playlist is empty.",
+    "AI_NOT_READY": "AI is off. Turn it on in Settings.",
+    "AI_AUTH": "The provider rejected the API key. Check it in Settings.",
+    "AI_RATE_LIMIT": "You hit the provider's rate limit. Wait a little and try again.",
+    "AI_HTTP": "The AI provider returned an error.",
+    "AI_NETWORK": "Couldn't reach the AI provider.",
+    "AI_REFUSED": "The model refused this request.",
+    "AI_TRUNCATED": "The model's reply was cut off.",
+    "AI_SDK_MISSING": "The provider's library isn't installed. Run python -m tarjuman setup.",
+    "LOCAL_ONLY": "This setting is only available on the computer Tarjuman runs on.",
+    "FORBIDDEN_ORIGIN": "The server refused this request for security reasons.",
+    "YT_API": "Couldn't load the YouTube player."
+  }
+}
