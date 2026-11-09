@@ -46,7 +46,7 @@ class AiClient:
         try:
             import anthropic
         except ImportError as e:
-            raise AppError("AI_SDK_MISSING", "مكتبة Claude مش متسطّبة — شغّل: python -m tarjuman setup") from e
+            raise AppError("AI_SDK_MISSING", "مكتبة Claude غير مثبّتة. شغّل: python -m tarjuman setup") from e
 
         model = self.settings.model
         params: dict[str, Any] = {
@@ -73,9 +73,9 @@ class AiClient:
             else:
                 res = await client.messages.create(**params)
         except anthropic.AuthenticationError as e:
-            raise AppError("AI_AUTH", "مفتاح Claude غلط أو مش موجود") from e
+            raise AppError("AI_AUTH", "مفتاح Claude غير صحيح أو غير موجود") from e
         except anthropic.RateLimitError as e:
-            raise AppError("AI_RATE_LIMIT", "Claude: وصلت للحد المسموح — استنى شوية") from e
+            raise AppError("AI_RATE_LIMIT", "Claude: بلغتَ الحد المسموح من الطلبات. انتظر قليلًا ثم أعد المحاولة") from e
         except anthropic.APIStatusError as e:
             raise AppError("AI_HTTP", f"Claude {e.status_code}: {e.message}"[:300]) from e
         except anthropic.APIError as e:
@@ -86,7 +86,7 @@ class AiClient:
         if res.stop_reason == "refusal":
             raise AppError("AI_REFUSED", "الموديل رفض الطلب")
         if res.stop_reason == "max_tokens":
-            raise AppError("AI_TRUNCATED", "الرد اتقطع")
+            raise AppError("AI_TRUNCATED", "انقطع الرد قبل اكتماله")
         text = "".join(b.text for b in res.content if b.type == "text")
         return json.loads(text)
 

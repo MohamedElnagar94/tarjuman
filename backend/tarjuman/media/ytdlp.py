@@ -75,7 +75,7 @@ async def fetch_any(job: Job, link: str, out_dir: Path, base: str, on_progress: 
     except Cancelled:
         raise
     except ProcError as e:
-        raise AppError("YTDLP_FAILED", "مقدرتش أنزّل الفيديو من اللينك ده: " + _tail(e)[:200]) from e
+        raise AppError("YTDLP_FAILED", "تعذّر تنزيل الفيديو من هذا الرابط: " + _tail(e)[:200]) from e
     title = next((x.strip() for x in out.splitlines() if x.strip() and not x.strip().startswith("[")), "")
     files = [f for f in out_dir.iterdir() if f.name.startswith(base + ".") and is_final(f.name)]
     if not files:
@@ -89,7 +89,7 @@ async def list_playlist(job: Job, link: str, limit: int) -> tuple[str, list[dict
     try:
         out = await run_proc(job, args)
     except ProcError as e:
-        raise AppError("PLAYLIST_FAILED", "مقدرتش أقرا القايمة: " + _tail(e)[:200]) from e
+        raise AppError("PLAYLIST_FAILED", "تعذّرت قراءة القائمة: " + _tail(e)[:200]) from e
     j = json.loads(out)
     entries = [
         {"id": e.get("id"), "title": e.get("title") or e.get("id")}

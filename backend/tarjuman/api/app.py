@@ -62,7 +62,7 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
                 return fail("FORBIDDEN_ORIGIN", status=403)
             # The settings hold an API key: only from this computer, not from others on the Wi-Fi.
             if path in LOCAL_ONLY and not is_loopback(request.client.host if request.client else None):
-                return fail("LOCAL_ONLY", "الإعدادات دي من الكمبيوتر نفسه بس", status=403)
+                return fail("LOCAL_ONLY", "لا يمكن تعديل هذه الإعدادات إلا من الحاسوب نفسه", status=403)
             if request.method == "POST" and not post_allowed(path, request.headers.get("content-type")):
                 return fail("JSON_REQUIRED", status=415)
         return await call_next(request)

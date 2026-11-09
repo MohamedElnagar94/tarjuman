@@ -12,7 +12,7 @@ class AppError(Exception):
 
 class Cancelled(AppError):
     def __init__(self) -> None:
-        super().__init__("CANCELLED", "اتلغت")
+        super().__init__("CANCELLED", "أُلغيت")
 
 
 def error_code(e: BaseException) -> str:

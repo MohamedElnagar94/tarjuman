@@ -39,7 +39,7 @@ ANSWER_SHAPE = '{"answer":"...","moments":[12.5]}'
 
 
 def reply_lang(tl: str) -> str:
-    return "Egyptian-friendly simple Modern Standard Arabic" if tl == "ar" else LANG_LABEL.get(tl, tl)
+    return "clear, simple Modern Standard Arabic (فصحى)" if tl == "ar" else LANG_LABEL.get(tl, tl)
 
 
 def transcript_context(data: VideoCues) -> str:
@@ -57,7 +57,7 @@ class Insights:
 
     def _need_ready(self) -> None:
         if not self.settings.ready:
-            raise AppError("AI_NOT_READY", "فعّل الذكاء الاصطناعي وحط المفتاح الأول")
+            raise AppError("AI_NOT_READY", "فعّل الذكاء الاصطناعي وأدخل المفتاح أولًا")
 
     async def summary(self, data: VideoCues, tl: str) -> dict:
         self._need_ready()

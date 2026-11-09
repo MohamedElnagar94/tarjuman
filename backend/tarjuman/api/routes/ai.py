@@ -31,7 +31,7 @@ async def ai_test(request: Request):
     """A quick check of the settings: one sentence."""
     s = services(request)
     if not s.ai.ready:
-        raise AppError("AI_NOT_READY", "فعّل الخاصية وحط المفتاح الأول")
+        raise AppError("AI_NOT_READY", "فعّل الخاصية وأدخل المفتاح أولًا")
     t0 = time.time()
     text = await s.writer.test()
     return ok(text=text, ms=round((time.time() - t0) * 1000), model=s.ai.model)

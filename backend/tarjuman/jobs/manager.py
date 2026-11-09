@@ -129,7 +129,7 @@ class JobManager:
             except ProcessLookupError:
                 pass
         job.status = "cancelled"
-        job.phase = "اتلغت"
+        job.phase = "أُلغيت"
         return True
 
     def cancel_all(self) -> None:

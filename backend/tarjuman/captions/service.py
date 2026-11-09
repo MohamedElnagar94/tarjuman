@@ -103,7 +103,7 @@ class CaptionService:
     def _media_cues(self, link: str, tl: str) -> VideoCues:
         m = self.media.get(media_id_of(link))
         if not m or not m.path.exists():
-            raise AppError("NO_MEDIA", "الفيديو ده مش موجود على الجهاز")
+            raise AppError("NO_MEDIA", "هذا الفيديو غير موجود على الجهاز")
         if not m.segments:
             raise AppError("NO_CAPTIONS")
         key = f"{link}|{norm_lang(tl)}"

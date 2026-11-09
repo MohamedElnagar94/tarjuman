@@ -51,7 +51,7 @@ def _fresh_dir(path: Path) -> Path:
 def _media_file(s: "Services", link: str) -> Path:
     m = s.media.get(media_id_of(link))
     if not m or not m.path.exists():
-        raise AppError("NO_MEDIA", "الفيديو ده مش موجود على الجهاز")
+        raise AppError("NO_MEDIA", "هذا الفيديو غير موجود على الجهاز")
     return m.path
 
 
@@ -66,7 +66,7 @@ def _need_python_tools() -> None:
     try:
         import yt_dlp  # noqa: F401
     except ImportError as e:
-        raise AppError("PY_NOT_INSTALLED", "محتاج مكوّنات Python — شغّل: python -m tarjuman setup") from e
+        raise AppError("PY_NOT_INSTALLED", "مكوّنات Python غير مثبّتة. شغّل: python -m tarjuman setup") from e
 
 
 async def _download_video(s: "Services", job: Job, link: str, work: Path, quality: int, scale: float, base: float) -> Path:
@@ -103,7 +103,7 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
         if media:
             audio = _media_file(s, link)  # Whisper decodes any video/audio file directly
         else:
-            job.phase = "تحميل الصوت من يوتيوب"
+            job.phase = "تنزيل الصوت من يوتيوب"
             audio = await ytdlp.download(
                 job, link, tmp, "audio", "bestaudio/best",
                 on_progress=lambda pct: setattr(job, "progress", max(1, round(pct * 0.3))),
@@ -118,7 +118,7 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
         job.check()
         segments, lang = res["segments"], res["lang"]
         if not segments:
-            raise AppError("NO_SPEECH", "مفيش كلام مفهوم في الفيديو")
+            raise AppError("NO_SPEECH", "لا يوجد كلام مفهوم في الفيديو")
         job.progress = 80
 
         job.phase = "ترجمة النص"
@@ -142,7 +142,7 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
         job.title = title
         job.extra.update(cues=[c.to_dict() for c in cues], srcLang=lang or "", tl=tl)
         job.progress = 100
-        job.phase = "خلصت"
+        job.phase = "اكتمل"
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -181,7 +181,7 @@ def dub_options(o: dict) -> dict:
 async def _ensure_separation_model(job: Job) -> None:
     if config.SEP_MODEL.exists():
         return
-    job.extra["note"] = "بحمّل موديل فصل الصوت (~65 ميجا) — مرة واحدة بس"
+    job.extra["note"] = "جارٍ تنزيل نموذج فصل الصوت (نحو 65 ميغابايت) لمرة واحدة فقط"
     await http.download(config.SEP_MODEL_URL, config.SEP_MODEL)
     job.extra["note"] = ""
 
@@ -264,14 +264,14 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
         job.check()
         job.title = (plan.data.title if plan.data else "") or job.videoId
         if not plan.blocks:
-            raise AppError("NO_SPEECH", "مفيش كلام يتدبلج")
+            raise AppError("NO_SPEECH", "لا يوجد كلام يمكن دبلجته")
         job.progress = 35
 
         # Voice: "auto" = male or female from the speaker's pitch; a clear second speaker gets their own.
         voice = o["voice"]
         per_sentence: dict[int, Voice] = {}
         if voice == "auto":
-            job.phase = "بسمع صوت المتحدثين"
+            job.phase = "تحليل أصوات المتحدثين"
             f0s = await _sentence_pitches(job, video, work, plan.blocks)
             split = split_speakers([b.i for b in plan.blocks], f0s)
             voice = split.primary
@@ -287,7 +287,7 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
         job.phase = "ترجمة الجمل"
         blocks = await s.live.blocks(plan, 0, math.inf, voice, o["lang"])
         if not blocks:
-            raise AppError("TRANSLATE_FAILED", "الترجمة فشلت — جرّب تاني بعد شوية")
+            raise AppError("TRANSLATE_FAILED", "فشلت الترجمة. أعد المحاولة بعد قليل")
         job.check()
         job.progress = 45
 
@@ -326,7 +326,7 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
 
         await map_limit(blocks, concurrency, natural_one)
         if not natural:
-            raise AppError("TTS_FAILED", "مقدرتش أولّد أي صوت")
+            raise AppError("TTS_FAILED", "تعذّر توليد أي صوت")
         job.check()
 
         job.phase = "ضبط إيقاع الفقرات"
@@ -383,10 +383,10 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
 
         clean_bg = None
         if sep_task:
-            job.phase = "بشيل صوت المتحدث الأصلي"
+            job.phase = "إزالة صوت المتحدث الأصلي"
             while not sep_task.done():
                 if job.extra.get("sepProgress") is not None:
-                    job.phase = f"بشيل صوت المتحدث الأصلي · {job.extra['sepProgress']}%"
+                    job.phase = f"إزالة صوت المتحدث الأصلي · {job.extra['sepProgress']}%"
                 await asyncio.sleep(1)
             clean_bg = sep_task.result()
 
@@ -416,12 +416,12 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
             srt.write_text(to_srt(cues, "ar"), encoding="utf-8")
             args += ["--subs", str(srt), "--sub-lang", o["lang"]]
             if o["burnSubs"]:
-                job.phase = "دمج الصوت وحرق الترجمة على الصورة"
+                job.phase = "دمج الصوت والترجمة في الفيديو"
                 args.append("--burn-subs")
         try:
             out = await run_proc(job, args)
         except ProcError as e:
-            raise AppError("MIX_FAILED", "الدمج فشل: " + e.stderr[-300:]) from e
+            raise AppError("MIX_FAILED", "فشل الدمج: " + e.stderr[-300:]) from e
         try:
             info = json.loads(out.strip().splitlines()[-1])
         except (ValueError, IndexError):
@@ -438,7 +438,7 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
             "fallbacks": fallbacks,
         }
         job.progress = 100
-        job.phase = "خلصت"
+        job.phase = "اكتمل"
         job.mp4 = mp4
         job.fileName = out_name
         job.size = mp4.stat().st_size
@@ -482,7 +482,7 @@ async def run_subvideo(s: "Services", job: Job, link: str) -> None:
         video = await _download_video(s, job, link, work, o["quality"], 0.4, 10)
         job.check()
 
-        job.phase = "حرق الترجمة على الصورة"
+        job.phase = "دمج الترجمة في الصورة"
         job.progress = 50
         out_name = f"{safe_name(job.title)}.{o['lang']}.subtitled.mp4"
         mp4 = config.DUBBED / out_name
@@ -505,9 +505,9 @@ async def run_subvideo(s: "Services", job: Job, link: str) -> None:
                 cwd=work, on_line=on_line,
             )
         except ProcError as e:
-            raise AppError("BURN_FAILED", "حرق الترجمة فشل: " + e.stderr[-300:]) from e
+            raise AppError("BURN_FAILED", "فشل دمج الترجمة في الصورة: " + e.stderr[-300:]) from e
         job.progress = 100
-        job.phase = "خلصت"
+        job.phase = "اكتمل"
         job.mp4 = mp4
         job.fileName = out_name
         job.size = mp4.stat().st_size
@@ -538,11 +538,11 @@ def start_batch(s: "Services", link: str, opts: dict) -> str:
 
 async def run_batch(s: "Services", job: Job) -> None:
     o = job.opts
-    job.phase = "بقرا القايمة"
+    job.phase = "قراءة القائمة"
     title, entries = await ytdlp.list_playlist(job, o["link"], o["limit"])
     if not entries:
-        raise AppError("PLAYLIST_EMPTY", "القايمة فاضية أو مش قايمة تشغيل")
-    job.title = title or "قايمة تشغيل"
+        raise AppError("PLAYLIST_EMPTY", "القائمة فارغة أو ليست قائمة تشغيل")
+    job.title = title or "قائمة تشغيل"
     items = job.extra["items"] = [{**e, "status": "queued", "message": ""} for e in entries]
 
     for k, item in enumerate(items):
@@ -579,12 +579,12 @@ async def run_batch(s: "Services", job: Job) -> None:
                 job.current.status = "error"
                 job.current.message = str(getattr(e, "message", None) or e)[:300]
             item["status"] = "error"
-            item["message"] = "مالوش ترجمة" if getattr(e, "code", "") == "NO_CAPTIONS" else str(getattr(e, "message", None) or e)[:160]
+            item["message"] = "لا توجد له ترجمة" if getattr(e, "code", "") == "NO_CAPTIONS" else str(getattr(e, "message", None) or e)[:160]
         finally:
             job.current = None
         job.progress = round((k + 1) / len(items) * 100)
     failed = sum(1 for x in items if x["status"] == "error")
-    job.phase = f"خلصت — {failed} فيديو متعملش" if failed else "خلصت"
+    job.phase = f"اكتمل، وتعذّر إنجاز {failed} من الفيديوهات" if failed else "اكتمل"
 
 
 # ------------------------------------------------------------------ download from any site
@@ -614,6 +614,6 @@ async def run_fetch(s: "Services", job: Job, link: str) -> None:
     job.title = item.title
     job.extra["media"] = item.public()
     job.progress = 100
-    job.phase = "خلصت"
+    job.phase = "اكتمل"
 
 
