@@ -55,6 +55,28 @@ Paste a YouTube link, upload a video from your computer, or give it a link from 
 
 Other languages work too: French, Spanish, German, Turkish and English are built in as targets.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/home.png" alt="Home: paste a link, upload a video, recent videos and the computer's status"></td>
+    <td width="50%"><img src="docs/screenshots/watch-en.png" alt="Watching a video with synced subtitles and the transcript, in English and the light theme"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/library.png" alt="My files: jobs, a playlist batch, uploaded videos and finished files"></td>
+    <td><img src="docs/screenshots/settings.png" alt="Settings: AI provider, pronunciation dictionary, defaults and appearance"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/extension-overlay.png" alt="The extension showing Arabic subtitles on YouTube"></td>
+    <td><img src="docs/screenshots/extension-welcome.png" alt="The extension's welcome page, connected to the app"></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/phone-home.png" alt="Home on a phone" width="260">
+  <img src="docs/screenshots/phone-watch.png" alt="Watching on a phone" width="260">
+</p>
+
 ## Quick start
 
 You need **Python 3.11+** and **Node.js 20+**.
