@@ -1,0 +1,442 @@
+{
+  "extName": {
+    "message": "Tarjuman — Arabic subtitles & dubbing for any video",
+    "description": "Store name (max 75 chars)"
+  },
+  "extShortName": {
+    "message": "Tarjuman"
+  },
+  "extDescription": {
+    "message": "Synced Arabic subtitles and natural live dubbing on YouTube and any video site, powered by the Tarjuman app on your own computer.",
+    "description": "Max 132 chars"
+  },
+  "cmdToggle": {
+    "message": "Turn translation on or off in this tab"
+  },
+  "tagline": {
+    "message": "Arabic subtitles & dubbing for any video"
+  },
+  "tbSubs": {
+    "message": "Show or hide subtitles"
+  },
+  "tbBilingual": {
+    "message": "Original text above the translation"
+  },
+  "tbSmaller": {
+    "message": "Smaller text"
+  },
+  "tbLarger": {
+    "message": "Larger text"
+  },
+  "tbPosition": {
+    "message": "Move subtitles up or down"
+  },
+  "tbDub": {
+    "message": "Voice dubbing"
+  },
+  "tbStop": {
+    "message": "Stop translating"
+  },
+  "errNoServerShort": {
+    "message": "The Tarjuman app isn't running"
+  },
+  "errUnplayable": {
+    "message": "YouTube isn't sharing this video's data"
+  },
+  "errWhisper": {
+    "message": "Live translation needs Whisper. Run: python -m tarjuman setup"
+  },
+  "errTimeout": {
+    "message": "The app took too long to answer. Try again."
+  },
+  "errGeneric": {
+    "message": "Something went wrong with the translation"
+  },
+  "pillOpenVideo": {
+    "message": "Open any video and translation starts"
+  },
+  "pillPreparing": {
+    "message": "Preparing subtitles…"
+  },
+  "pillNativeReady": {
+    "message": "Using the video's own translation"
+  },
+  "pillRunning": {
+    "message": "Translation is on"
+  },
+  "pillTranslateDown": {
+    "message": "The translation service isn't answering. Try again soon."
+  },
+  "pillNoCaptions": {
+    "message": "This video has no captions on YouTube"
+  },
+  "btnWhisper": {
+    "message": "Transcribe the audio with Whisper"
+  },
+  "btnWhisperStarting": {
+    "message": "Starting…"
+  },
+  "btnRetry": {
+    "message": "Try again"
+  },
+  "pillWhisperDone": {
+    "message": "Transcription finished"
+  },
+  "pillWorking": {
+    "message": "Working"
+  },
+  "pillListening": {
+    "message": "Listening to the tab…"
+  },
+  "pillDubWaiting": {
+    "message": "Waiting for the sentence to finish"
+  },
+  "pillDubBuffering": {
+    "message": "Preparing the dub…"
+  },
+  "pillDubError": {
+    "message": "Dubbing problem — check that the app is running"
+  },
+  "pillNoSiteCaptions": {
+    "message": "This player has no captions"
+  },
+  "pillReadingSiteCaptions": {
+    "message": "Reading the site's captions…"
+  },
+  "pillSiteCaptionsEmpty": {
+    "message": "The site's captions are empty"
+  },
+  "pillSiteCaptionsRunning": {
+    "message": "Translating the site's captions"
+  },
+  "pillServerDown": {
+    "message": "The Tarjuman app stopped"
+  },
+  "pillLiveError": {
+    "message": "Transcription error"
+  },
+  "errNoServer": {
+    "message": "The Tarjuman app isn't running. Start it, then try again."
+  },
+  "errProtected": {
+    "message": "The browser doesn't let extensions run on this page."
+  },
+  "errNoAccess": {
+    "message": "Tarjuman can't reach this page. Reload it and try again."
+  },
+  "errCapture": {
+    "message": "Couldn't capture this tab's audio. Some sites block it."
+  },
+  "errNoTab": {
+    "message": "No tab is open"
+  },
+  "errStart": {
+    "message": "Couldn't start the translation"
+  },
+  "errVoice": {
+    "message": "That voice isn't available right now. Check the app and your connection."
+  },
+  "errBadAddress": {
+    "message": "Use an address on this computer, like 127.0.0.1:4318"
+  },
+  "connSearching": {
+    "message": "Looking…"
+  },
+  "connOnline": {
+    "message": "Connected"
+  },
+  "connOffline": {
+    "message": "Not running"
+  },
+  "offlineTitle": {
+    "message": "Start the Tarjuman app"
+  },
+  "offlineBody": {
+    "message": "Tarjuman translates on your own computer, so the app needs to be running. Start it, then open this window again."
+  },
+  "btnHowToStart": {
+    "message": "How to start it"
+  },
+  "offlineHint": {
+    "message": "First time? The guide takes two minutes."
+  },
+  "modeProtectedShort": {
+    "message": "Not available here"
+  },
+  "modeYouTube": {
+    "message": "YouTube"
+  },
+  "modeCaptions": {
+    "message": "Site captions"
+  },
+  "modeLive": {
+    "message": "Tab audio"
+  },
+  "modeSite": {
+    "message": "This site"
+  },
+  "hintProtected": {
+    "message": "Browser pages and extension stores can't be translated."
+  },
+  "hintYouTube": {
+    "message": "Captions from YouTube, translated and synced to the video."
+  },
+  "hintCaptions": {
+    "message": "The player's own captions, translated and perfectly timed."
+  },
+  "hintLive": {
+    "message": "Live from the tab's audio, a few seconds behind the speaker."
+  },
+  "hintSite": {
+    "message": "Uses the player's captions when it has them, otherwise the tab's audio."
+  },
+  "sessionOnly": {
+    "message": "This works until the page reloads."
+  },
+  "btnAllowSite": {
+    "message": "Keep it on for this site"
+  },
+  "btnStarting": {
+    "message": "Starting…"
+  },
+  "btnStop": {
+    "message": "Stop translating"
+  },
+  "btnStart": {
+    "message": "Translate this video"
+  },
+  "secDub": {
+    "message": "Voice dubbing"
+  },
+  "secSubs": {
+    "message": "Subtitles"
+  },
+  "lblDub": {
+    "message": "Voice dubbing"
+  },
+  "lblDubHint": {
+    "message": "The speaker talks in your language"
+  },
+  "lblVoice": {
+    "message": "Voice"
+  },
+  "lblWait": {
+    "message": "Wait for each sentence"
+  },
+  "lblWaitHint": {
+    "message": "Pauses the video a moment instead of cutting speech"
+  },
+  "lblDuck": {
+    "message": "Original volume"
+  },
+  "lblLang": {
+    "message": "Translate to"
+  },
+  "lblBilingual": {
+    "message": "Original text above"
+  },
+  "lblPosition": {
+    "message": "Position"
+  },
+  "lblSize": {
+    "message": "Text size"
+  },
+  "lblBackground": {
+    "message": "Background"
+  },
+  "posBottom": {
+    "message": "Bottom"
+  },
+  "posTop": {
+    "message": "Top"
+  },
+  "btnSettings": {
+    "message": "Settings"
+  },
+  "btnOpenApp": {
+    "message": "Open the app"
+  },
+  "voiceDefault": {
+    "message": "Default voice"
+  },
+  "btnPreviewVoice": {
+    "message": "Hear this voice"
+  },
+  "previewLabel": {
+    "message": "Preview"
+  },
+  "optionsTitle": {
+    "message": "Settings"
+  },
+  "optionsDocTitle": {
+    "message": "Tarjuman settings"
+  },
+  "optionsIntro": {
+    "message": "Changes apply right away, including to a video that is already being translated."
+  },
+  "secSites": {
+    "message": "Sites"
+  },
+  "secConnection": {
+    "message": "Connection"
+  },
+  "secShortcut": {
+    "message": "Keyboard shortcut"
+  },
+  "secAbout": {
+    "message": "About"
+  },
+  "btnReset": {
+    "message": "Reset"
+  },
+  "lblVoiceHint": {
+    "message": "Voices come from the app on your computer"
+  },
+  "lblVoiceOffline": {
+    "message": "Start the app to choose a voice"
+  },
+  "lblDuckHint": {
+    "message": "How loud the video stays under the dub"
+  },
+  "sitesIntro": {
+    "message": "Tarjuman always works on YouTube. On other sites it asks once per site, so translation keeps running when the page reloads. Without that, it still works until a reload."
+  },
+  "lblAllSites": {
+    "message": "Allow on all sites"
+  },
+  "lblAllSitesHint": {
+    "message": "Skip the per-site question"
+  },
+  "sitesGranted": {
+    "message": "Allowed sites"
+  },
+  "btnRemove": {
+    "message": "Remove"
+  },
+  "sitesNone": {
+    "message": "None yet."
+  },
+  "connOnlineLong": {
+    "message": "Connected to Tarjuman $1"
+  },
+  "connOfflineLong": {
+    "message": "The Tarjuman app isn't running"
+  },
+  "connOfflineHint": {
+    "message": "Start it on this computer; the extension finds it by itself."
+  },
+  "advanced": {
+    "message": "Advanced"
+  },
+  "lblServerAddress": {
+    "message": "Server address"
+  },
+  "lblServerAddressHint": {
+    "message": "Leave empty to find the app automatically on ports $1. Only addresses on this computer are allowed."
+  },
+  "addrPlaceholder": {
+    "message": "Automatic"
+  },
+  "btnTest": {
+    "message": "Test connection"
+  },
+  "btnSave": {
+    "message": "Save"
+  },
+  "saved": {
+    "message": "Saved"
+  },
+  "btnAuto": {
+    "message": "Use automatic"
+  },
+  "testOk": {
+    "message": "Tarjuman $1 answered at $2"
+  },
+  "testFail": {
+    "message": "Nothing answered. Is the app running?"
+  },
+  "lblShortcut": {
+    "message": "Turn translation on or off"
+  },
+  "lblShortcutHint": {
+    "message": "Works without opening the popup"
+  },
+  "shortcutNone": {
+    "message": "Not set"
+  },
+  "btnChange": {
+    "message": "Change"
+  },
+  "aboutBody": {
+    "message": "Tarjuman is free and open source. Everything is processed by the app on your own computer; the extension sends nothing anywhere else."
+  },
+  "linkGitHub": {
+    "message": "Source on GitHub"
+  },
+  "linkWelcome": {
+    "message": "Setup guide"
+  },
+  "linkPrivacy": {
+    "message": "Privacy policy"
+  },
+  "welcomeDocTitle": {
+    "message": "Welcome to Tarjuman"
+  },
+  "welcomeEyebrow": {
+    "message": "Welcome"
+  },
+  "welcomeTitle": {
+    "message": "Watch any video in Arabic"
+  },
+  "welcomeLede": {
+    "message": "Synced subtitles and a natural Arabic voice, on YouTube and almost any site. The work happens in the Tarjuman app on your computer, so it needs one minute of setup."
+  },
+  "welcomeFound": {
+    "message": "Found Tarjuman $1 at $2 — you're ready"
+  },
+  "welcomeWaiting": {
+    "message": "Waiting for the Tarjuman app…"
+  },
+  "step1Title": {
+    "message": "Get the app"
+  },
+  "step1Body": {
+    "message": "Tarjuman is free and runs on your own computer. Download it and follow the short install note."
+  },
+  "step1Cta": {
+    "message": "Get Tarjuman on GitHub"
+  },
+  "step2Title": {
+    "message": "Start it"
+  },
+  "step2Body": {
+    "message": "Run the start script that comes with it, or this command:"
+  },
+  "step2Note": {
+    "message": "The extension finds it on its own. This page turns green when it does."
+  },
+  "copied": {
+    "message": "Copied"
+  },
+  "btnCopy": {
+    "message": "Copy"
+  },
+  "step3Title": {
+    "message": "Watch"
+  },
+  "step3Body": {
+    "message": "Open a video and click the Tarjuman icon in the toolbar, then “Translate this video”."
+  },
+  "step3Keys": {
+    "message": "does the same from the keyboard"
+  },
+  "modesTitle": {
+    "message": "It picks the best source by itself"
+  },
+  "welcomePrivacy": {
+    "message": "Your videos and audio go only to your own computer. No account, no analytics."
+  },
+  "taglineShort": {
+    "message": "Subtitles & dubbing for any video"
+  }
+}

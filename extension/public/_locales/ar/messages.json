@@ -1,0 +1,440 @@
+{
+  "extName": {
+    "message": "ترجمان — ترجمة ودبلجة عربية لأي فيديو"
+  },
+  "extShortName": {
+    "message": "ترجمان"
+  },
+  "extDescription": {
+    "message": "ترجمة عربية متزامنة ودبلجة صوتية طبيعية على يوتيوب وأي موقع فيديو، بتطبيق ترجمان الذي يعمل على جهازك أنت."
+  },
+  "cmdToggle": {
+    "message": "تشغيل الترجمة أو إيقافها في هذا التبويب"
+  },
+  "tagline": {
+    "message": "ترجمة ودبلجة عربية لأي فيديو"
+  },
+  "tbSubs": {
+    "message": "إظهار الترجمة أو إخفاؤها"
+  },
+  "tbBilingual": {
+    "message": "النص الأصلي فوق الترجمة"
+  },
+  "tbSmaller": {
+    "message": "تصغير الخط"
+  },
+  "tbLarger": {
+    "message": "تكبير الخط"
+  },
+  "tbPosition": {
+    "message": "نقل الترجمة لأعلى أو لأسفل"
+  },
+  "tbDub": {
+    "message": "الدبلجة الصوتية"
+  },
+  "tbStop": {
+    "message": "إيقاف الترجمة"
+  },
+  "errNoServerShort": {
+    "message": "تطبيق ترجمان لا يعمل"
+  },
+  "errUnplayable": {
+    "message": "يوتيوب لا يتيح بيانات هذا الفيديو"
+  },
+  "errWhisper": {
+    "message": "الترجمة المباشرة تحتاج Whisper. شغّل: python -m tarjuman setup"
+  },
+  "errTimeout": {
+    "message": "تأخر التطبيق في الرد. حاول مرة أخرى."
+  },
+  "errGeneric": {
+    "message": "حدثت مشكلة في الترجمة"
+  },
+  "pillOpenVideo": {
+    "message": "افتح أي فيديو وستبدأ الترجمة"
+  },
+  "pillPreparing": {
+    "message": "جارٍ تجهيز الترجمة…"
+  },
+  "pillNativeReady": {
+    "message": "تُعرض الترجمة الأصلية للفيديو"
+  },
+  "pillRunning": {
+    "message": "الترجمة تعمل"
+  },
+  "pillTranslateDown": {
+    "message": "خدمة الترجمة لا ترد. حاول بعد قليل."
+  },
+  "pillNoCaptions": {
+    "message": "هذا الفيديو بلا ترجمة على يوتيوب"
+  },
+  "btnWhisper": {
+    "message": "فرّغ الصوت باستخدام Whisper"
+  },
+  "btnWhisperStarting": {
+    "message": "جارٍ البدء…"
+  },
+  "btnRetry": {
+    "message": "أعد المحاولة"
+  },
+  "pillWhisperDone": {
+    "message": "انتهى التفريغ"
+  },
+  "pillWorking": {
+    "message": "جارٍ العمل"
+  },
+  "pillListening": {
+    "message": "أستمع إلى صوت التبويب…"
+  },
+  "pillDubWaiting": {
+    "message": "بانتظار انتهاء الجملة"
+  },
+  "pillDubBuffering": {
+    "message": "جارٍ تجهيز الدبلجة…"
+  },
+  "pillDubError": {
+    "message": "مشكلة في الدبلجة — تأكد أن التطبيق يعمل"
+  },
+  "pillNoSiteCaptions": {
+    "message": "لا توجد ترجمة في هذا المشغّل"
+  },
+  "pillReadingSiteCaptions": {
+    "message": "جارٍ قراءة ترجمة الموقع…"
+  },
+  "pillSiteCaptionsEmpty": {
+    "message": "ترجمة الموقع فارغة"
+  },
+  "pillSiteCaptionsRunning": {
+    "message": "تُترجم ترجمة الموقع نفسه"
+  },
+  "pillServerDown": {
+    "message": "توقف تطبيق ترجمان"
+  },
+  "pillLiveError": {
+    "message": "خطأ في التفريغ"
+  },
+  "errNoServer": {
+    "message": "تطبيق ترجمان لا يعمل. شغّله ثم حاول مرة أخرى."
+  },
+  "errProtected": {
+    "message": "المتصفح لا يسمح للإضافات بالعمل في هذه الصفحة."
+  },
+  "errNoAccess": {
+    "message": "لا يستطيع ترجمان الوصول إلى هذه الصفحة. أعد تحميلها وحاول مرة أخرى."
+  },
+  "errCapture": {
+    "message": "تعذر التقاط صوت هذا التبويب. بعض المواقع تمنع ذلك."
+  },
+  "errNoTab": {
+    "message": "لا يوجد تبويب مفتوح"
+  },
+  "errStart": {
+    "message": "تعذر بدء الترجمة"
+  },
+  "errVoice": {
+    "message": "هذا الصوت غير متاح الآن. تأكد من التطبيق والاتصال بالإنترنت."
+  },
+  "errBadAddress": {
+    "message": "استخدم عنوانًا على هذا الجهاز، مثل 127.0.0.1:4318"
+  },
+  "connSearching": {
+    "message": "جارٍ البحث…"
+  },
+  "connOnline": {
+    "message": "متصل"
+  },
+  "connOffline": {
+    "message": "غير متصل"
+  },
+  "offlineTitle": {
+    "message": "شغّل تطبيق ترجمان"
+  },
+  "offlineBody": {
+    "message": "ترجمان يترجم على جهازك أنت، لذلك يجب أن يكون التطبيق شغالًا. شغّله ثم افتح هذه النافذة مرة أخرى."
+  },
+  "btnHowToStart": {
+    "message": "طريقة التشغيل"
+  },
+  "offlineHint": {
+    "message": "أول مرة؟ الدليل يستغرق دقيقتين."
+  },
+  "modeProtectedShort": {
+    "message": "غير متاح هنا"
+  },
+  "modeYouTube": {
+    "message": "يوتيوب"
+  },
+  "modeCaptions": {
+    "message": "ترجمة الموقع"
+  },
+  "modeLive": {
+    "message": "صوت التبويب"
+  },
+  "modeSite": {
+    "message": "هذا الموقع"
+  },
+  "hintProtected": {
+    "message": "لا يمكن ترجمة صفحات المتصفح ومتاجر الإضافات."
+  },
+  "hintYouTube": {
+    "message": "ترجمة يوتيوب نفسها، مترجمة ومتزامنة مع الفيديو."
+  },
+  "hintCaptions": {
+    "message": "ترجمة المشغّل نفسه، مترجمة وبتوقيت مضبوط."
+  },
+  "hintLive": {
+    "message": "مباشرة من صوت التبويب، متأخرة عن المتحدث بثوانٍ قليلة."
+  },
+  "hintSite": {
+    "message": "يستخدم ترجمة المشغّل إن وُجدت، وإلا صوت التبويب."
+  },
+  "sessionOnly": {
+    "message": "ستعمل الترجمة حتى إعادة تحميل الصفحة."
+  },
+  "btnAllowSite": {
+    "message": "اسمح بها دائمًا لهذا الموقع"
+  },
+  "btnStarting": {
+    "message": "جارٍ التشغيل…"
+  },
+  "btnStop": {
+    "message": "إيقاف الترجمة"
+  },
+  "btnStart": {
+    "message": "ترجم هذا الفيديو"
+  },
+  "secDub": {
+    "message": "الدبلجة الصوتية"
+  },
+  "secSubs": {
+    "message": "الترجمة"
+  },
+  "lblDub": {
+    "message": "الدبلجة الصوتية"
+  },
+  "lblDubHint": {
+    "message": "المتحدث يتكلم بلغتك"
+  },
+  "lblVoice": {
+    "message": "الصوت"
+  },
+  "lblWait": {
+    "message": "انتظر اكتمال الجملة"
+  },
+  "lblWaitHint": {
+    "message": "يوقف الفيديو لحظة بدلًا من قطع الكلام"
+  },
+  "lblDuck": {
+    "message": "صوت الفيديو الأصلي"
+  },
+  "lblLang": {
+    "message": "الترجمة إلى"
+  },
+  "lblBilingual": {
+    "message": "النص الأصلي فوق الترجمة"
+  },
+  "lblPosition": {
+    "message": "المكان"
+  },
+  "lblSize": {
+    "message": "حجم الخط"
+  },
+  "lblBackground": {
+    "message": "الخلفية"
+  },
+  "posBottom": {
+    "message": "أسفل"
+  },
+  "posTop": {
+    "message": "أعلى"
+  },
+  "btnSettings": {
+    "message": "الإعدادات"
+  },
+  "btnOpenApp": {
+    "message": "افتح التطبيق"
+  },
+  "voiceDefault": {
+    "message": "الصوت الافتراضي"
+  },
+  "btnPreviewVoice": {
+    "message": "اسمع هذا الصوت"
+  },
+  "previewLabel": {
+    "message": "معاينة"
+  },
+  "optionsTitle": {
+    "message": "الإعدادات"
+  },
+  "optionsDocTitle": {
+    "message": "إعدادات ترجمان"
+  },
+  "optionsIntro": {
+    "message": "التغييرات تُطبَّق فورًا، حتى على فيديو تُترجمه الآن."
+  },
+  "secSites": {
+    "message": "المواقع"
+  },
+  "secConnection": {
+    "message": "الاتصال"
+  },
+  "secShortcut": {
+    "message": "اختصار لوحة المفاتيح"
+  },
+  "secAbout": {
+    "message": "عن ترجمان"
+  },
+  "btnReset": {
+    "message": "استعادة الافتراضي"
+  },
+  "lblVoiceHint": {
+    "message": "الأصوات من التطبيق على جهازك"
+  },
+  "lblVoiceOffline": {
+    "message": "شغّل التطبيق لاختيار صوت"
+  },
+  "lblDuckHint": {
+    "message": "مستوى صوت الفيديو تحت الدبلجة"
+  },
+  "sitesIntro": {
+    "message": "ترجمان يعمل دائمًا على يوتيوب. في المواقع الأخرى يطلب الإذن مرة واحدة لكل موقع، لتستمر الترجمة بعد إعادة تحميل الصفحة. ومن دونه تعمل حتى إعادة التحميل فقط."
+  },
+  "lblAllSites": {
+    "message": "السماح على كل المواقع"
+  },
+  "lblAllSitesHint": {
+    "message": "تخطَّ السؤال لكل موقع"
+  },
+  "sitesGranted": {
+    "message": "المواقع المسموح بها"
+  },
+  "btnRemove": {
+    "message": "إزالة"
+  },
+  "sitesNone": {
+    "message": "لا يوجد بعد."
+  },
+  "connOnlineLong": {
+    "message": "متصل بترجمان $1"
+  },
+  "connOfflineLong": {
+    "message": "تطبيق ترجمان لا يعمل"
+  },
+  "connOfflineHint": {
+    "message": "شغّله على هذا الجهاز، والإضافة ستجده وحدها."
+  },
+  "advanced": {
+    "message": "متقدم"
+  },
+  "lblServerAddress": {
+    "message": "عنوان السيرفر"
+  },
+  "lblServerAddressHint": {
+    "message": "اتركه فارغًا ليجد التطبيق تلقائيًا على المنافذ $1. يُسمح فقط بعناوين على هذا الجهاز."
+  },
+  "addrPlaceholder": {
+    "message": "تلقائي"
+  },
+  "btnTest": {
+    "message": "اختبر الاتصال"
+  },
+  "btnSave": {
+    "message": "حفظ"
+  },
+  "saved": {
+    "message": "تم الحفظ"
+  },
+  "btnAuto": {
+    "message": "استخدم التلقائي"
+  },
+  "testOk": {
+    "message": "ردّ ترجمان $1 على $2"
+  },
+  "testFail": {
+    "message": "لم يرد أحد. هل التطبيق يعمل؟"
+  },
+  "lblShortcut": {
+    "message": "تشغيل الترجمة أو إيقافها"
+  },
+  "lblShortcutHint": {
+    "message": "يعمل دون فتح النافذة"
+  },
+  "shortcutNone": {
+    "message": "غير محدد"
+  },
+  "btnChange": {
+    "message": "تغيير"
+  },
+  "aboutBody": {
+    "message": "ترجمان مجاني ومفتوح المصدر. كل المعالجة تتم في التطبيق على جهازك، والإضافة لا ترسل شيئًا لأي مكان آخر."
+  },
+  "linkGitHub": {
+    "message": "الكود على GitHub"
+  },
+  "linkWelcome": {
+    "message": "دليل التشغيل"
+  },
+  "linkPrivacy": {
+    "message": "سياسة الخصوصية"
+  },
+  "welcomeDocTitle": {
+    "message": "مرحبًا بك في ترجمان"
+  },
+  "welcomeEyebrow": {
+    "message": "أهلًا بك"
+  },
+  "welcomeTitle": {
+    "message": "شاهد أي فيديو بالعربية"
+  },
+  "welcomeLede": {
+    "message": "ترجمة متزامنة وصوت عربي طبيعي، على يوتيوب وأغلب المواقع. العمل يتم في تطبيق ترجمان على جهازك، لذلك يحتاج دقيقة واحدة للإعداد."
+  },
+  "welcomeFound": {
+    "message": "تم العثور على ترجمان $1 على $2 — كل شيء جاهز"
+  },
+  "welcomeWaiting": {
+    "message": "بانتظار تطبيق ترجمان…"
+  },
+  "step1Title": {
+    "message": "حمّل التطبيق"
+  },
+  "step1Body": {
+    "message": "ترجمان مجاني ويعمل على جهازك. حمّله واتبع خطوات التثبيت القصيرة."
+  },
+  "step1Cta": {
+    "message": "حمّل ترجمان من GitHub"
+  },
+  "step2Title": {
+    "message": "شغّله"
+  },
+  "step2Body": {
+    "message": "شغّل ملف التشغيل المرفق معه، أو هذا الأمر:"
+  },
+  "step2Note": {
+    "message": "الإضافة تجده وحدها، وستتحول هذه الصفحة للأخضر عندها."
+  },
+  "copied": {
+    "message": "تم النسخ"
+  },
+  "btnCopy": {
+    "message": "نسخ"
+  },
+  "step3Title": {
+    "message": "شاهد"
+  },
+  "step3Body": {
+    "message": "افتح فيديو واضغط أيقونة ترجمان في شريط الأدوات، ثم «ترجم هذا الفيديو»."
+  },
+  "step3Keys": {
+    "message": "يفعل الشيء نفسه من لوحة المفاتيح"
+  },
+  "modesTitle": {
+    "message": "يختار أفضل مصدر وحده"
+  },
+  "welcomePrivacy": {
+    "message": "فيديوهاتك وصوتك لا تذهب إلا إلى جهازك. بلا حساب وبلا تتبع."
+  },
+  "taglineShort": {
+    "message": "ترجمة ودبلجة لأي فيديو"
+  }
+}
