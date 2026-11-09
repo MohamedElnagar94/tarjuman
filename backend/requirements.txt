@@ -9,5 +9,5 @@ piper-tts>=1.2
 yt-dlp
 imageio-ffmpeg
 numpy
-av
+av>=12,<19  # faster-whisper 1.2 passes metadata_errors to av.open (removed in PyAV 19)
 onnxruntime

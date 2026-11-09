@@ -20,7 +20,7 @@ dependencies = [
   "yt-dlp",
   "imageio-ffmpeg",
   "numpy",
-  "av",
+  "av>=12,<19",
   "onnxruntime",
 ]
 
