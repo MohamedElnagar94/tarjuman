@@ -1,0 +1,168 @@
+"""Translate many lines with a disk cache. User corrections always win over machine translation."""
+
+from __future__ import annotations
+
+import asyncio
+from pathlib import Path
+from typing import Callable, Iterable
+
+from ..captions.models import Cue
+from ..core.store import Debounced, read_json, write_json
+from ..core.text import norm_lang
+from .providers import Google, MyMemory
+
+BATCH_CHARS = 1400
+BATCH_ITEMS = 24
+
+
+def chunk_texts(texts: Iterable[str]) -> list[list[str]]:
+    chunks: list[list[str]] = []
+    cur: list[str] = []
+    size = 0
+    for t in texts:
+        if cur and (size + len(t) + 1 > BATCH_CHARS or len(cur) >= BATCH_ITEMS):
+            chunks.append(cur)
+            cur, size = [], 0
+        cur.append(t)
+        size += len(t) + 1
+    if cur:
+        chunks.append(cur)
+    return chunks
+
+
+async def map_limit(items: list, limit: int, fn) -> list:
+    """Run ``fn`` over items with at most ``limit`` in flight, keeping order."""
+    out = [None] * len(items)
+    it = iter(enumerate(items))
+
+    async def worker() -> None:
+        for i, x in it:
+            out[i] = await fn(x)
+
+    await asyncio.gather(*(worker() for _ in range(min(limit, len(items)))))
+    return out
+
+
+class Translator:
+    def __init__(self, cache_file: Path, edits_file: Path):
+        self.cache_file = cache_file
+        self.edits_file = edits_file
+        self.cache: dict[str, str] = {}
+        self.edits: dict[str, str] = {}
+        self.google = Google()
+        self.mymemory = MyMemory()
+        self.stats = {"google": 0, "mymemory": 0, "failed": 0, "batches": 0, "lastProvider": ""}
+        self._save = Debounced(self._write_cache, 1.2)
+        self.edit_listeners: list[Callable[[str, str, str], None]] = []
+
+    def load(self) -> None:
+        self.cache = {k: v for k, v in read_json(self.cache_file, {}).items() if isinstance(v, str) and v}
+        self.edits = {k: v for k, v in read_json(self.edits_file, {}).items() if isinstance(v, str) and v}
+
+    def _write_cache(self) -> None:
+        write_json(self.cache_file, self.cache)
+
+    def flush(self) -> None:
+        self._save.flush()
+
+    def has_edit(self, tl: str, src: str) -> bool:
+        return f"{norm_lang(tl)}|{src}" in self.edits
+
+    def lookup(self, tl: str, text: str) -> str | None:
+        tl = norm_lang(tl)
+        return self.edits.get(f"{tl}|{text}") or self.cache.get(f"{tl}|{text}")
+
+    def set_edit(self, tl: str, src: str, ar: str) -> None:
+        key = f"{norm_lang(tl)}|{src}"
+        if ar:
+            self.edits[key] = ar
+        else:
+            self.edits.pop(key, None)
+        write_json(self.edits_file, self.edits, indent=1)
+        for fn in self.edit_listeners:
+            fn(norm_lang(tl), src, ar or self.cache.get(f"{norm_lang(tl)}|{src}", ""))
+
+    async def translate_text(self, text: str, sl: str, tl: str) -> str:
+        if not text.strip():
+            return ""
+        if not self.google.cooling:
+            try:
+                out = await self.google.translate(text, sl, tl)
+                self.stats["google"] += 1
+                self.stats["lastProvider"] = "google"
+                return out
+            except Exception:  # noqa: BLE001 — fall through to MyMemory
+                pass
+        try:
+            out = await self.mymemory.translate(text, sl, tl)
+            self.stats["mymemory"] += 1
+            self.stats["lastProvider"] = "mymemory"
+            return out
+        except Exception:  # noqa: BLE001
+            self.stats["failed"] += 1
+        return ""
+
+    async def translate_many(
+        self,
+        texts: Iterable[str],
+        *,
+        sl: str = "auto",
+        tl: str = "ar",
+        concurrency: int = 3,
+        on_progress: Callable[[int, int], None] | None = None,
+    ) -> dict[str, str]:
+        """Returns {text: translation}. Texts that failed are left out so the caller can retry."""
+        tl = norm_lang(tl) or "ar"
+        unique = list(dict.fromkeys(t for t in texts if isinstance(t, str) and t.strip()))
+        out: dict[str, str] = {}
+        todo: list[str] = []
+        for t in unique:
+            hit = self.lookup(tl, t)
+            if hit:
+                out[t] = hit
+            else:
+                todo.append(t)
+        done = len(out)
+        if on_progress:
+            on_progress(done, len(unique))
+
+        def put(t: str, tr: str) -> None:
+            if tr:
+                out[t] = tr
+                self.cache[f"{tl}|{t}"] = tr
+
+        async def run(chunk: list[str]) -> None:
+            nonlocal done
+            res = None
+            if not self.google.cooling:
+                try:
+                    res = await self.google.translate_batch(chunk, sl, tl)
+                    if res:
+                        self.stats["google"] += len(chunk)
+                        self.stats["batches"] += 1
+                        self.stats["lastProvider"] = "google"
+                except Exception:  # noqa: BLE001
+                    res = None
+            if res:
+                for t, tr in zip(chunk, res):
+                    put(t, tr)
+            else:
+                for t in chunk:
+                    put(t, await self.translate_text(t, sl, tl))
+            done += len(chunk)
+            if on_progress:
+                on_progress(done, len(unique))
+
+        await map_limit(chunk_texts(todo), concurrency, run)
+        if todo:
+            self._save.touch()
+        return out
+
+    async def translate_cues(
+        self, cues: list[Cue], *, sl: str = "en", tl: str = "ar", on_progress=None
+    ) -> list[Cue]:
+        found = await self.translate_many((c.src for c in cues), sl=sl, tl=tl, on_progress=on_progress)
+        for c in cues:
+            if c.src:
+                c.ar = found.get(c.src) or c.ar or ""
+        return cues
