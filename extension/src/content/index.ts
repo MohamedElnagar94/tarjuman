@@ -361,22 +361,27 @@ declare global {
     try {
       while (S.active && isSynced() && gen === S.gen) {
         const now = S.video ? S.video.currentTime : 0;
+        const pending = (i: number) => !S.tr.has(i) && !!S.cues[i].src && (S.tries.get(i) || 0) < 3;
         const todo: number[] = [];
         for (let i = 0; i < S.cues.length; i++) {
-          if (!S.tr.has(i) && S.cues[i].src && (S.tries.get(i) || 0) < 3) todo.push(i);
+          // Only a window around the playhead: translating a whole long video at once exhausts the free
+          // translators' limits, and then the dub (which needs them too) goes silent.
+          if (pending(i) && S.cues[i].start <= now + 300 && S.cues[i].end >= now - 30) todo.push(i);
         }
-        if (!todo.length) break;
+        if (!todo.length) {
+          if (!S.cues.some((_, i) => pending(i))) break;
+          await sleep(4000);
+          continue;
+        }
         // What is about to be shown first.
         todo.sort((a, b) => Math.abs(S.cues[a].start - now) - Math.abs(S.cues[b].start - now));
         const batch = todo.slice(0, 40);
         const r = await bg("translate", { texts: batch.map((i) => S.cues[i].src), sl, tl: S.settings.lang });
         if (gen !== S.gen) return;
-        if (!r || !r.ok) {
-          if (++failStreak >= 5) {
-            setPill(t("pillTranslateDown"), { err: true, hideAfter: 5000 });
-            break;
-          }
-          await sleep(800 * failStreak);
+        // Nothing at all came back: the translators are pausing after a rate limit; back off and retry.
+        if (!r || !r.ok || !r.map || !Object.keys(r.map).length) {
+          if (++failStreak === 5) setPill(t("pillTranslateDown"), { err: true, hideAfter: 5000 });
+          await sleep(Math.min(30000, 800 * 2 ** failStreak));
           continue;
         }
         failStreak = 0;

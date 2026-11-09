@@ -407,6 +407,17 @@ export class DubEngine {
       }
     }
 
+    // Playback reached the end of the prepared part while the next part is still on its way: wait for
+    // it instead of letting the video run on with no dub.
+    const c = this.covered;
+    if (this.opts.wait && c && t > c[1] && t < this.planEnd && this.loading && !(next && next.start <= t + 0.05)) {
+      if (!this.holding && !paused) {
+        this.hold();
+        this.emit("buffering");
+      }
+      return;
+    }
+
     if (!next) return this.covered ? this.release() : undefined;
     if (next.start > t + 0.05) return this.release();
 

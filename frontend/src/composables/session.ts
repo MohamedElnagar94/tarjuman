@@ -192,16 +192,33 @@ function stopWhisper(): void {
 
 /* ---------------- translation ---------------- */
 
+/** Lines from this far behind to this far ahead of the playhead are translated; the window moves with
+ *  playback. Translating a whole multi-hour video up front exhausts the free translators' limits, and
+ *  then the live dub, which needs the same translators, goes silent. */
+const WINDOW_BEHIND = 30;
+const WINDOW_AHEAD = 300;
+
 /** Translates the lines nearest the playhead first, 40 at a time, three tries per line. */
 async function translateLoop(): Promise<void> {
   if (session.translating) return;
   const my = gen;
   session.translating = true;
   let failStreak = 0;
+  let warned = false;
   try {
     while (my === gen) {
-      const batch = translationOrder(cues.value, (i) => !!tr.value[i] || (tries[i] || 0) >= 3, now());
-      if (!batch.length) break;
+      const done = (i: number) => !!tr.value[i] || (tries[i] || 0) >= 3;
+      const t0 = now();
+      const batch = translationOrder(
+        cues.value,
+        (i) => done(i) || cues.value[i]!.start > t0 + WINDOW_AHEAD || cues.value[i]!.end < t0 - WINDOW_BEHIND,
+        t0,
+      );
+      if (!batch.length) {
+        if (cues.value.every((_, i) => done(i))) break;
+        await sleep(4000); // wait for playback to move the window
+        continue;
+      }
       let map: Record<string, string> | null = null;
       try {
         map = (await api.translate(batch.map((i) => cues.value[i]!.src), session.tl, session.srcLang || "auto")).map;
@@ -209,14 +226,17 @@ async function translateLoop(): Promise<void> {
         map = null;
       }
       if (my !== gen) return;
-      if (!map) {
-        if (++failStreak >= 4) {
+      // Nothing came back at all: the translators are pausing after a rate limit. Back off and retry
+      // instead of counting it against each line.
+      if (!map || !Object.keys(map).length) {
+        if (++failStreak >= 4 && !warned) {
+          warned = true;
           toast(t("watch.translate.unavailable"), { tone: "danger" });
-          break;
         }
-        await sleep(900 * failStreak);
+        await sleep(Math.min(30000, 900 * 2 ** failStreak));
         continue;
       }
+      warned = false;
       failStreak = 0;
       for (const i of batch) {
         const text = map[cues.value[i]!.src];

@@ -225,3 +225,46 @@ test("seeking back before where dubbing started: video waits briefly, never play
   assert.ok(spokenAfterSeek, "dub resumed near the new position");
   assert.ok(silentPlay < 0.5, "video played " + silentPlay.toFixed(1) + "s with no dub after seeking back");
 });
+
+test("a slow next part of the plan holds the video instead of playing on without the dub", async () => {
+  // Windows arrive slowly (like a busy voice service): the first after 1 s, each later one after 6 s.
+  FakeAudio.all = [];
+  const all = Array.from({ length: 30 }, (_, i) => ({ i, start: i * 3, slot: 3, text: "x", rate: 0 }));
+  FakeAudio.durations = Object.fromEntries(all.map((b) => ["u" + b.i, 2]));
+  clock = 0;
+  const pending = [];
+  let calls = 0;
+  const media = fakeMedia({ t: 0 });
+  const engine = new DubEngine({
+    media,
+    loadPlan: (from, to) =>
+      new Promise((resolve) =>
+        pending.push({
+          at: clock + (calls++ === 0 ? 1000 : 6000),
+          resolve: () => resolve({ blocks: all.filter((b) => b.start + b.slot >= from && b.start <= to), end: 90 }),
+        })
+      ),
+    synth: async (b) => ({ url: "u" + b.i, duration: 2 }),
+    options: { wait: true },
+    ...fakes,
+  });
+  engine.start();
+  clearInterval(engine.timer);
+  let silent = 0; // video seconds that passed a sentence's start without it being spoken
+  for (let k = 0; k < 400; k++) {
+    for (const p of pending.splice(0)) clock >= p.at ? p.resolve() : pending.push(p);
+    await new Promise((r) => setImmediate(r));
+    engine.tick();
+    clock += 100;
+    if (!media.isPaused) media.t += 0.1;
+    FakeAudio.all.forEach((a) => a.advance(0.1));
+    const due = all.filter((b) => b.start < media.t - 1.5 && media.t < 60);
+    if (!media.isPaused && due.some((b) => !FakeAudio.all.some((a) => a.url === "u" + b.i))) silent += 0.1;
+  }
+  engine.stop();
+  const spoken = new Set(FakeAudio.all.map((a) => a.url));
+  const passed = all.filter((b) => b.start < media.t - 3);
+  assert.ok(passed.length >= 8, "video moved on (t=" + media.t.toFixed(1) + ")");
+  for (const b of passed) assert.ok(spoken.has("u" + b.i), "sentence " + b.i + " spoken");
+  assert.ok(silent < 1, "video ran " + silent.toFixed(1) + "s past unspoken sentences");
+});
