@@ -1,0 +1,30 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Node
+node_modules/
+frontend/dist/
+extension/dist/
+extension/*.zip
+*.tsbuildinfo
+
+# Runtime data (translations cache, voices, models, your files, API keys)
+data/
+models/
+
+# Tooling
+.playwright-mcp/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
