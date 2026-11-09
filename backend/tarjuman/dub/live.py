@@ -11,12 +11,13 @@ from dataclasses import dataclass, field
 
 from ..ai.script import ScriptWriter
 from ..ai.settings import AiSettings
-from ..captions.models import Cue, VideoCues
+from ..captions.models import Cue, Line, VideoCues
+from ..captions.repair import align_source
 from ..captions.service import CaptionService
 from ..core.text import norm_lang
 from ..translate.service import Translator, map_limit
 from ..voice.catalog import resolve_voice
-from ..voice.gate import NEXT, URGENT, WARM
+from ..voice.gate import NEXT, PLAY, URGENT, WARM
 from ..voice.service import TtsService
 from .planner import Block, group_dub_blocks, pace_blocks
 
@@ -27,6 +28,16 @@ class Plan:
     cues_already_translated: bool
     src_lang: str
     blocks: list[Block] = field(default_factory=list)
+    yt_text: list[str] | None = None  # YouTube's translation spread over the blocks (fallback)
+    prepared: set[int] = field(default_factory=set)  # windows already being prepared in the background
+
+
+# Only sentences this close to the start of a requested window are measured before answering. The
+# voice service can take seconds per sentence; measuring a whole 45 s window first made the player wait
+# (and play on silently). Later sentences use estimates now and are made when the player prefetches them.
+MEASURE_SPAN = 20.0
+# After answering, the next stretch is translated and measured in the background at the lowest priority.
+PREPARE_SPAN = 30.0
 
 
 class LivePlanner:
@@ -92,7 +103,7 @@ class LivePlanner:
                 self._cue_plans.popitem(last=False)
         return p
 
-    async def _fill_texts(self, plan: Plan, need: list[Block], voice: str, tl: str) -> None:
+    async def _fill_texts(self, plan: Plan, need: list[Block], voice: str, tl: str, priority: int = 2) -> None:
         l = norm_lang(tl)
 
         def edited(b: Block) -> bool:
@@ -127,7 +138,10 @@ class LivePlanner:
         whole = [b for b in need if b.text is None and not edited(b)]
         per_line = [b for b in need if b.text is None and edited(b)]
         found = await self.translator.translate_many(
-            [b.src for b in whole] + [p for b in per_line for p in b.parts], sl=plan.src_lang or "auto", tl=tl
+            [b.src for b in whole] + [p for b in per_line for p in b.parts],
+            sl=plan.src_lang or "auto",
+            tl=tl,
+            priority=priority,
         )
         for b in whole:
             if found.get(b.src):
@@ -137,16 +151,38 @@ class LivePlanner:
             if all(parts):
                 b.text = " ".join(parts)  # type: ignore[arg-type]
 
+        # The translators refused (rate limit, used-up quota): rather than going silent, speak YouTube's
+        # own translation of the same captions, mapped onto the sentences by time.
+        missing = [b for b in need if b.text is None]
+        if missing and plan.data and not plan.data.media:
+            if plan.yt_text is None:
+                lines = await self.captions.youtube_translation(plan.data.videoId, l)
+                if lines:
+                    plan.yt_text = align_source([Line(b.start, b.end, "") for b in plan.blocks], lines)
+            if plan.yt_text:
+                for b in missing:
+                    if plan.yt_text[b.i]:
+                        b.text = plan.yt_text[b.i]
+
     async def blocks(
-        self, plan: Plan, start: float, end: float, voice: str, tl: str, *, measure: bool = False, urgent: bool = False
+        self,
+        plan: Plan,
+        start: float,
+        end: float,
+        voice: str,
+        tl: str,
+        *,
+        measure: bool = False,
+        urgent: bool = False,
+        background: bool = False,
     ) -> list[dict]:
-        """Sentences between ``start`` and ``end``, paced. With ``measure``, every sentence is synthesized
-        once at its estimated rate and measured first, so the pace comes from real durations and the
-        browser finds the audio already cached."""
+        """Sentences between ``start`` and ``end``, paced. With ``measure``, the sentences near the start
+        are synthesized once at their estimated rate and measured first, so the pace comes from real
+        durations and the browser finds the audio already cached."""
         sel = [b for b in plan.blocks if b.start + b.slot >= start and b.start <= end]
         need = [b for b in sel if b.text is None]
         if need:
-            await self._fill_texts(plan, need, voice, tl)
+            await self._fill_texts(plan, need, voice, tl, NEXT if background else URGENT if urgent else PLAY)
 
         v = resolve_voice(voice, tl)
         ready = [b for b in sel if b.text]
@@ -172,7 +208,8 @@ class LivePlanner:
                 if nat_key(p) in self.natural:
                     return
                 try:
-                    r = await self.tts.speak(p["text"], tl, voice, p["rate"], priority=URGENT if urgent else NEXT)
+                    prio = WARM if background else URGENT if urgent else NEXT
+                    r = await self.tts.speak(p["text"], tl, voice, p["rate"], priority=prio)
                 except Exception:  # noqa: BLE001
                     return
                 if r.fallback or not r.duration:
@@ -180,7 +217,8 @@ class LivePlanner:
                 self.natural[nat_key(p)] = r.duration * (1 + p["rate"] / 100)
                 clip_rate[p["i"]] = p["rate"]
 
-            await map_limit(first, 4, measure_one)
+            span = end if background else start + MEASURE_SPAN
+            await map_limit([p for p in first if p["start"] <= span], 4, measure_one)
 
         # Pass 3: the final rhythm from real durations. If it is close to the cached clip, the browser
         # corrects it while playing (±20% is barely audible); otherwise it asks for a new clip.
@@ -209,11 +247,24 @@ class LivePlanner:
             )
 
         # Sentences that need a clip at a new rate: make it in the background so it's ready when asked.
-        if measure and v.engine == "edge":
+        if measure and v.engine == "edge" and not background:
             for b in result:
                 if b["synthRate"] != clip_rate.get(b["i"]):
                     asyncio.ensure_future(self._warm(b["text"], tl, voice, b["synthRate"]))
+        if measure and not background:
+            asyncio.ensure_future(self._prepare(plan, end, voice, tl))
         return result
+
+    async def _prepare(self, plan: Plan, start: float, voice: str, tl: str) -> None:
+        """Translate and measure the stretch after ``start`` while the player is busy with this one."""
+        key = int(start // 10)
+        if key in plan.prepared:
+            return
+        plan.prepared.add(key)
+        try:
+            await self.blocks(plan, start, start + PREPARE_SPAN, voice, tl, measure=True, background=True)
+        except Exception:  # noqa: BLE001 — the player asks for it later anyway
+            plan.prepared.discard(key)
 
     async def _warm(self, text: str, tl: str, voice: str, rate: int) -> None:
         try:

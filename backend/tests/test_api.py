@@ -135,3 +135,24 @@ def test_web_app_files_get_browser_mime_types(client):
     assert mimetypes.guess_type("font.woff2")[0] == "font/woff2"
     r = client.get("/dub-engine.js")
     assert r.headers["content-type"].startswith("text/javascript")
+
+
+async def test_dub_falls_back_to_youtubes_translation_when_translators_refuse(services):
+    from tarjuman.captions.models import Cue, Line, VideoCues
+    from tarjuman.dub.live import Plan
+    from tarjuman.dub.planner import group_dub_blocks
+
+    async def refuse(texts, **_):
+        return {}  # Google rate-limited and MyMemory out of quota
+
+    async def youtube_lines(video_id, tl):
+        return [Line(0, 2.5, "أهلًا بالجميع"), Line(2.5, 4, "في الدرس الأول"), Line(6, 9, "لنبدأ الآن")]
+
+    services.translator.translate_many = refuse
+    services.captions.youtube_translation = youtube_lines
+    cues = [Cue(0, 4, "hi everyone and welcome to the first lesson"), Cue(6, 9, "let's start now")]
+    data = VideoCues(videoId="abcdefghijk", title="t", author="", lengthSeconds=9, tl="ar",
+                     alreadyTranslated=False, asr=True, srcLang="en", cues=cues)
+    plan = Plan(data, False, "en", group_dub_blocks(cues))
+    blocks = await services.live.blocks(plan, 0, 10, "", "ar")
+    assert [b["text"] for b in blocks] == ["أهلًا بالجميع في الدرس الأول", "لنبدأ الآن"]

@@ -9,7 +9,8 @@ from typing import Callable, Iterable
 from ..captions.models import Cue
 from ..core.store import Debounced, read_json, write_json
 from ..core.text import norm_lang
-from .providers import Google, MyMemory
+from ..voice.gate import PriorityGate
+from .providers import Google, GoogleExtension, MyMemory
 
 BATCH_CHARS = 1400
 BATCH_ITEMS = 24
@@ -49,7 +50,11 @@ class Translator:
         self.edits_file = edits_file
         self.cache: dict[str, str] = {}
         self.edits: dict[str, str] = {}
-        self.google = Google()
+        # Two Google endpoints with separate rate limits; when one refuses, the other usually still answers.
+        self.googles = [GoogleExtension(), Google()]
+        # Requests to the translators, most urgent first: the dub's next sentences (2–3) go ahead of
+        # the background translation of a long video's subtitles (1).
+        self.gate = PriorityGate(3)
         self.mymemory = MyMemory()
         self.stats = {"google": 0, "mymemory": 0, "failed": 0, "batches": 0, "lastProvider": ""}
         self._save = Debounced(self._write_cache, 1.2)
@@ -82,16 +87,23 @@ class Translator:
         for fn in self.edit_listeners:
             fn(norm_lang(tl), src, ar or self.cache.get(f"{norm_lang(tl)}|{src}", ""))
 
+    @property
+    def cooling(self) -> bool:
+        """Every Google endpoint is pausing after rate limits."""
+        return all(g.cooling for g in self.googles)
+
     async def translate_text(self, text: str, sl: str, tl: str) -> str:
         if not text.strip():
             return ""
-        if not self.google.cooling:
+        for g in self.googles:
+            if g.cooling:
+                continue
             try:
-                out = await self.google.translate(text, sl, tl)
+                out = await g.translate(text, sl, tl)
                 self.stats["google"] += 1
-                self.stats["lastProvider"] = "google"
+                self.stats["lastProvider"] = g.name
                 return out
-            except Exception:  # noqa: BLE001 — fall through to MyMemory
+            except Exception:  # noqa: BLE001 — next endpoint, then MyMemory
                 pass
         try:
             out = await self.mymemory.translate(text, sl, tl)
@@ -109,6 +121,7 @@ class Translator:
         sl: str = "auto",
         tl: str = "ar",
         concurrency: int = 3,
+        priority: int = 1,
         on_progress: Callable[[int, int], None] | None = None,
     ) -> dict[str, str]:
         """Returns {text: translation}. Texts that failed are left out so the caller can retry."""
@@ -134,21 +147,27 @@ class Translator:
         async def run(chunk: list[str]) -> None:
             nonlocal done
             res = None
-            if not self.google.cooling:
+            for g in self.googles:
+                if g.cooling:
+                    continue
                 try:
-                    res = await self.google.translate_batch(chunk, sl, tl)
-                    if res:
-                        self.stats["google"] += len(chunk)
-                        self.stats["batches"] += 1
-                        self.stats["lastProvider"] = "google"
-                except Exception:  # noqa: BLE001
+                    res = await self.gate.run(priority, lambda g=g: g.translate_batch(chunk, sl, tl))
+                except Exception:  # noqa: BLE001 — next endpoint
                     res = None
+                if res:
+                    self.stats["google"] += len(chunk)
+                    self.stats["batches"] += 1
+                    self.stats["lastProvider"] = g.name
+                    break
             if res:
                 for t, tr in zip(chunk, res):
                     put(t, tr)
             else:
                 for t in chunk:
-                    put(t, await self.translate_text(t, sl, tl))
+                    tr = await self.gate.run(priority, lambda t=t: self.translate_text(t, sl, tl))
+                    put(t, tr)
+                    if not tr and self.cooling:
+                        break  # every provider is refusing: stop instead of hammering them line by line
             done += len(chunk)
             if on_progress:
                 on_progress(done, len(unique))

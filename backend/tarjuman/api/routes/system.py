@@ -31,7 +31,7 @@ async def health(request: Request):
         version=__version__,
         port=request.app.state.port,
         cache=len(s.translator.cache),
-        providers={**s.translator.stats, "googleCooling": s.translator.google.cooling},
+        providers={**s.translator.stats, "googleCooling": s.translator.cooling},
         python=python_ok,
         ffmpeg=ffmpeg.available(),
         whisper=s.whisper.status(),
