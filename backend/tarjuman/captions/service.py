@@ -9,7 +9,9 @@ from typing import TYPE_CHECKING
 from .. import config
 from ..core.errors import AppError
 from ..core.text import is_media_link, media_id_of, norm_lang, parse_video_id
-from .models import Cue, VideoCues
+from urllib.parse import quote
+
+from .models import Cue, Line, VideoCues
 from .repair import align_source, reconstruct_asr
 from .youtube import fetch_track_lines, player_response
 
@@ -23,6 +25,8 @@ class CaptionService:
     def __init__(self, media: "MediaLibrary"):
         self.media = media
         self._cache: dict[str, tuple[float, VideoCues]] = {}
+        self._src_urls: dict[str, str] = {}  # video id -> its source caption track
+        self._yt_translations: dict[str, list[Line]] = {}
 
     def cached(self) -> list[VideoCues]:
         return [d for _, d in self._cache.values()]
@@ -91,6 +95,7 @@ class CaptionService:
                 srcLang=lang(source) if source else "en", cues=cues,
             )
 
+        self._src_urls[video_id] = source["baseUrl"]
         raw = await fetch_track_lines(source["baseUrl"])
         is_asr = source.get("kind") == "asr" or "kind=asr" in source.get("baseUrl", "")
         lines = reconstruct_asr(raw) if is_asr else raw
@@ -117,6 +122,22 @@ class CaptionService:
         )
         self._cache[key] = (time.time(), data)
         return data
+
+    async def youtube_translation(self, video_id: str, tl: str) -> list[Line]:
+        """YouTube's own machine translation of the source track (``tlang``). A fallback for when the
+        translation services refuse or run out of quota; timed lines, not sentences."""
+        key = f"{video_id}|{norm_lang(tl)}"
+        if key in self._yt_translations:
+            return self._yt_translations[key]
+        url = self._src_urls.get(video_id)
+        if not url:
+            return []
+        try:
+            lines = await fetch_track_lines(f"{url}&tlang={quote(norm_lang(tl))}")
+        except Exception:  # noqa: BLE001 — not every track can be translated
+            return []
+        self._yt_translations[key] = lines
+        return lines
 
     async def title(self, video_id: str) -> str:
         if is_media_link(video_id):

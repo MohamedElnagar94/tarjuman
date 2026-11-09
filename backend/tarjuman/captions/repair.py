@@ -18,6 +18,7 @@ def dedupe_rolling(lines: list[Line]) -> list[Line]:
         if prev and len(c.text) > len(prev.text) and c.text.startswith(prev.text):
             prev.text = c.text
             prev.end = max(prev.end, c.end)
+            prev.words = c.words
             continue
         out.append(replace(c))
     return out
@@ -60,9 +61,60 @@ def unroll_lines(lines: list[Line]) -> list[Line]:
         prev_words = words
         fresh = words[k:]
         if fresh:
-            out.append(Line(c.start, c.end, " ".join(fresh)))
+            timed = c.words[k:] if c.words and len(c.words) == len(words) else None
+            out.append(Line(timed[0][0] if timed else c.start, c.end, " ".join(fresh), timed))
     for i in range(len(out) - 1):
         out[i].end = max(out[i].start + 0.3, min(out[i].end, out[i + 1].start))
+    return out
+
+
+PAUSE = 0.45  # silence (beyond the time a word takes to say) that ends a sentence
+MIN_SENTENCE = 2.0
+MAX_SENTENCE = 7.0
+FILLERS = {"uh", "um", "uhm", "erm", "hmm", "ah"}
+
+
+def split_at_pauses(group: list[Line]) -> list[Line] | None:
+    """Auto captions often have no punctuation at all, so a whole talk would come out as one endless
+    "sentence" cut every ~17 s: slow to dub and read as one breathless block. Their words are timed,
+    though, so cut where the speaker actually pauses: 2–7 s sentences that follow the speech."""
+    words: list[tuple[float, str]] = []
+    for line in group:
+        if not line.words:
+            return None
+        words.extend(line.words)
+    if len(words) < 4:
+        return None
+
+    def pause_before(k: int) -> float:
+        t, w = words[k - 1]
+        score = words[k][0] - t - 0.06 * len(w) - 0.1
+        if words[k][1].lower().strip(",.") in FILLERS:
+            score += 0.4  # "uh" usually starts a new thought
+        return score
+
+    cuts = [0]
+    k = 1
+    while k < len(words):
+        start = words[cuts[-1]][0]
+        dur = words[k][0] - start
+        if dur >= MIN_SENTENCE and pause_before(k) >= PAUSE:
+            cuts.append(k)
+        elif dur >= MAX_SENTENCE:
+            # Too long without a clear pause: cut at the longest pause in its second half.
+            options = [j for j in range(cuts[-1] + 1, k + 1) if words[j][0] - start >= MAX_SENTENCE / 2]
+            cuts.append(max(options or [k], key=pause_before))
+            k = cuts[-1]
+        k += 1
+
+    out: list[Line] = []
+    bounds = cuts + [len(words)]
+    for a, b in zip(bounds, bounds[1:]):
+        text = " ".join(w for _, w in words[a:b]).strip()
+        if not text:
+            continue
+        end = words[b][0] if b < len(words) else group[-1].end
+        out.append(Line(words[a][0], max(end, words[a][0] + 0.6), text))
     return out
 
 
@@ -92,6 +144,11 @@ def reconstruct_asr(raw: list[Line]) -> list[Line]:
             marks.append((len(text), i))
             text += a.text
         bounds = [0] + [m.end() for m in _SENT_BOUND.finditer(text) if m.end() >= 8] + [len(text)]
+        if len(bounds) == 2 and len(text) > 120:
+            paused = split_at_pauses(g)
+            if paused:
+                segs.extend(paused)
+                continue
         for b in range(len(bounds) - 1):
             s, e = bounds[b], bounds[b + 1]
             if e <= s:

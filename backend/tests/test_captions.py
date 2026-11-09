@@ -136,3 +136,24 @@ def test_align_source_gives_each_source_line_to_exactly_one_target_line():
     targets = [L(0, 3), L(3, 6), L(6, 9)]
     sources = [L(0, 2.5, "one"), L(2.5, 4, "two"), L(4, 8.8, "three")]  # "two" overlaps the 2nd more
     assert align_source(targets, sources) == ["one", "two", "three"]
+
+
+def test_unpunctuated_auto_captions_are_split_at_the_speakers_pauses():
+    xml = (
+        '<timedtext format="3"><body>'
+        '<p t="0" d="2600"><s>hi</s><s t="300"> everyone</s><s t="700"> and</s><s t="900"> welcome</s>'
+        '<s t="1300"> to</s><s t="1500"> the</s><s t="1700"> first</s><s t="2000"> lesson</s></p>'
+        '<p t="2600" d="3000"><s>uh</s><s t="1100"> this</s><s t="1300"> course</s><s t="1600"> is</s>'
+        '<s t="1800"> based</s><s t="2100"> on</s><s t="2300"> an</s><s t="2500"> open</s></p>'
+        '<p t="5600" d="2400"><s>source</s><s t="400"> curriculum</s><s t="900"> that</s><s t="1100"> you</s>'
+        '<s t="1300"> can</s><s t="1500"> find</s><s t="1700"> online</s></p>'
+        "</body></timedtext>"
+    )
+    lines = parse_captions(xml)
+    assert lines[0].words[1] == (0.3, "everyone")
+    out = reconstruct_asr(lines)
+    assert [c.text for c in out] == [
+        "hi everyone and welcome to the first lesson",
+        "uh this course is based on an open source curriculum that you can find online",
+    ]
+    assert out[1].start == 2.6 and out[0].end == 2.6

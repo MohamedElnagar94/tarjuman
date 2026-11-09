@@ -10,6 +10,7 @@ from .models import Line
 
 _P = re.compile(r"<p\b([^>]*)>([\s\S]*?)</p>")
 _TAG = re.compile(r"<[^>]*>")
+_WORD = re.compile(r"<s\b([^>]*)>([\s\S]*?)</s>")
 
 
 def _attr(attrs: str, name: str) -> str | None:
@@ -34,9 +35,16 @@ def parse_timed_text(xml: str) -> list[Line]:
             continue
         t = _to_ms(t_raw)
         d = _to_ms(_attr(attrs, "d") or "0")
-        text = collapse_ws(decode_entities(_TAG.sub("", m.group(2))))
-        if text:
-            out.append(Line(t / 1000, (t + max(d, 0)) / 1000, text))
+        body = m.group(2)
+        text = collapse_ws(decode_entities(_TAG.sub("", body)))
+        if not text:
+            continue
+        words = []
+        for s in _WORD.finditer(body):
+            w = collapse_ws(decode_entities(_TAG.sub("", s.group(2))))
+            if w:
+                words.append(((t + _to_ms(_attr(s.group(1), "t") or "0")) / 1000, w))
+        out.append(Line(t / 1000, (t + max(d, 0)) / 1000, text, words or None))
     return out
 
 
@@ -50,7 +58,13 @@ def parse_json3(data: dict) -> list[Line]:
         if not text:
             continue
         start = (ev.get("tStartMs") or 0) / 1000
-        out.append(Line(start, start + (ev.get("dDurationMs") or 0) / 1000, text))
+        words = [
+            (start + (s.get("tOffsetMs") or 0) / 1000, collapse_ws(s.get("utf8") or ""))
+            for s in segs
+            if collapse_ws(s.get("utf8") or "")
+        ]
+        timed = len(words) > 1 and any(s.get("tOffsetMs") for s in segs)
+        out.append(Line(start, start + (ev.get("dDurationMs") or 0) / 1000, text, words if timed else None))
     return out
 
 

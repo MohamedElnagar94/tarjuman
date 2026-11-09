@@ -11,6 +11,8 @@ class Line:
     start: float
     end: float
     text: str
+    # Auto-generated tracks time every word: [(start seconds, word)]. Used to find the speaker's pauses.
+    words: list[tuple[float, str]] | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass
