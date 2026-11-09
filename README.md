@@ -81,7 +81,7 @@ Other languages work too: French, Spanish, German, Turkish and English are built
 
 You need **Python 3.11+** and **Node.js 20+**.
 
-**Windows:** double-click `start.cmd`.
+**Windows:** double-click `start.cmd`. If Windows asks whether to run a script from an unknown publisher, create a desktop shortcut once with `powershell -ExecutionPolicy Bypass -File scriptscreate-shortcut.ps1` and start Tarjuman from it; it runs the same script through Windows' own `cmd.exe`, so the prompt doesn't appear.
 
 **macOS / Linux:**
 
