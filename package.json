@@ -1,0 +1,23 @@
+{
+  "name": "tarjuman",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Tarjuman — watch any video in Arabic: synced translation, natural live dubbing, dubbed MP4s and a browser extension. Local-first.",
+  "license": "MIT",
+  "workspaces": [
+    "shared/dub-engine",
+    "frontend",
+    "extension"
+  ],
+  "scripts": {
+    "build": "npm run build -w frontend && npm run build -w extension",
+    "build:web": "npm run build -w frontend",
+    "build:ext": "npm run build -w extension",
+    "dev": "npm run dev -w frontend",
+    "test": "npm test -w shared/dub-engine && npm test -w frontend --if-present && npm test -w extension --if-present",
+    "package:ext": "npm run package -w extension"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

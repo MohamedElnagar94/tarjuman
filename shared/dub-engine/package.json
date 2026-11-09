@@ -1,0 +1,19 @@
+{
+  "name": "@tarjuman/dub-engine",
+  "version": "3.0.0",
+  "description": "Live dub engine: plays a sentence plan in sync with a video, never cuts or skips a sentence.",
+  "type": "module",
+  "private": true,
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  },
+  "license": "MIT"
+}
