@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarjuman · Privacy policy</title>
+<meta name="description" content="Privacy policy of the Tarjuman browser extension and app. Everything goes to your own computer.">
+<style>
+  :root {
+    --bg: #0A0F3A; --ink: #F5F2EA; --muted: #AEB6DE; --line: rgba(255,255,255,.1);
+    --card: rgba(255,255,255,.045); --saffron: #FFD27A; --saffron-2: #F0922B; --lapis: #3550D6;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg: #F7F5EF; --ink: #121A57; --muted: #4A5285; --line: rgba(18,26,87,.12); --card: #FFFFFF; --saffron: #B4600F; color-scheme: light; }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 400 16px/1.65 "Segoe UI", system-ui, -apple-system, "Noto Sans Arabic", Tahoma, sans-serif;
+  }
+  .top { background: radial-gradient(90% 120% at 80% 0%, rgba(53,80,214,.45), transparent 70%); border-bottom: 1px solid var(--line); }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 20px; }
+  header .wrap { display: flex; align-items: center; gap: 14px; padding-top: 40px; padding-bottom: 32px; }
+  header svg { flex: none; border-radius: 14px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  h1 { margin: 0; font-size: 30px; line-height: 1.2; letter-spacing: -.01em; }
+  h2 { margin: 40px 0 10px; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+  h2::before { content: ""; width: 8px; height: 8px; border-radius: 1.5px; transform: rotate(45deg); background: linear-gradient(135deg, var(--saffron), var(--saffron-2)); flex: none; }
+  a { color: var(--saffron); }
+  main { padding: 8px 0 64px; }
+  .note { color: var(--muted); font-size: 14px; margin-top: 24px; }
+  .summary { margin: 28px 0 0; padding: 18px 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+  .summary ul { margin: 0; padding-inline-start: 20px; }
+  .summary li + li { margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .table { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+  th, td { text-align: start; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  code { font-family: Consolas, ui-monospace, monospace; font-size: .92em; }
+  ul.services li { margin: 8px 0; }
+  .ar { margin-top: 56px; padding-top: 8px; border-top: 1px solid var(--line); }
+  footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  footer .wrap { padding-top: 20px; padding-bottom: 32px; }
+</style>
+</head>
+<body>
+<div class="top">
+  <header>
+    <div class="wrap">
+      <svg viewBox="0 0 128 128" width="52" height="52" aria-hidden="true">
+        <defs>
+          <linearGradient id="t" x1=".15" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#3550D6"/><stop offset=".55" stop-color="#1F2E8C"/><stop offset="1" stop-color="#121A57"/></linearGradient>
+          <linearGradient id="i" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD27A"/><stop offset="1" stop-color="#F0922B"/></linearGradient>
+        </defs>
+        <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#t)"/>
+        <path d="M27 24 L49 37 L27 50 Z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M104 46 C110 52,108 76,96 88 C86 98,72 102,58 101 C40 100,26 92,19 76 C30 84,44 88,58 88 C74 88,87 82,93 70 C97 62,97 54,95 50 Z" fill="url(#i)"/>
+        <rect x="50" y="52" width="14" height="14" rx="2.5" transform="rotate(45 57 59)" fill="#FFD27A"/>
+        <rect x="69" y="45" width="14" height="14" rx="2.5" transform="rotate(45 76 52)" fill="#fff"/>
+      </svg>
+      <div>
+        <h1>Privacy policy</h1>
+        <p>Tarjuman — Arabic subtitles &amp; dubbing for any video · Last updated 9 November 2026</p>
+      </div>
+    </div>
+  </header>
+</div>
+
+<main class="wrap">
+  <div class="summary">
+    <ul>
+      <li>The extension talks <strong>only to the Tarjuman app on your own computer</strong> (<code>127.0.0.1</code> / <code>localhost</code>).</li>
+      <li>There is <strong>no account, no analytics, no advertising and no tracking</strong>. The developer receives nothing.</li>
+      <li>Your data is <strong>never sold</strong> or shared for any other purpose.</li>
+    </ul>
+  </div>
+
+  <h2>What the extension processes, and where it goes</h2>
+  <div class="table">
+    <table>
+      <thead><tr><th>What</th><th>When</th><th>Where it goes</th></tr></thead>
+      <tbody>
+        <tr><td>The address of the video you are watching</td><td>When you start translation</td><td>Your local Tarjuman app, so it can fetch that video's captions</td></tr>
+        <tr><td>The captions shown in a site's own video player</td><td>When you start translation on a site that has them</td><td>Your local Tarjuman app, to translate them</td></tr>
+        <tr><td>The audio of the tab</td><td>Only in live mode (a site without captions), after you start it</td><td>Your local Tarjuman app, to transcribe and translate it. The sound is also played back to you, because the browser mutes a tab while it is captured</td></tr>
+        <tr><td>Your settings (language, subtitle style, voice)</td><td>Always</td><td>Stored in your browser. Not synced or sent anywhere</td></tr>
+        <tr><td>Which tab is being translated</td><td>While translation is on</td><td>Stored in your browser for the current session only</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The extension does not read pages you don't translate, does not record your browsing, and keeps no history.</p>
+
+  <h2>What the local Tarjuman app may contact</h2>
+  <p>The Tarjuman app runs on your computer and does the actual work. To do it, it may contact these services directly from your computer:</p>
+  <ul class="services">
+    <li><strong>YouTube</strong> — to read a video's captions and details, and to download audio or video when you ask it to transcribe or dub a video.</li>
+    <li><strong>Google Translate</strong> and <strong>MyMemory</strong> — to translate caption text. Only the text being translated is sent.</li>
+    <li><strong>Microsoft Edge text-to-speech voices</strong> — to synthesize the dubbed voice. Only the sentence being spoken is sent. An offline voice (Piper) is used when it is installed or the online voices are unavailable.</li>
+    <li><strong>An AI provider you configure yourself (optional)</strong> — for example Anthropic (Claude) or an OpenAI-compatible service, only if you enter your own API key in the app. Then the caption text of the videos you choose to process with AI is sent to that provider. Your key stays on your computer.</li>
+    <li><strong>Sites you give the app a link to</strong> — when you ask it to download a video from another site.</li>
+  </ul>
+  <p>Each of these services has its own privacy policy. Speech recognition (Whisper) runs entirely on your computer. The app keeps its cache, your corrections and your files in its own <code>data/</code> folder, which you can delete at any time.</p>
+
+  <h2>Permissions</h2>
+  <p>The extension asks only for what it needs: storage for settings, temporary access to the current tab when you click it (<code>activeTab</code>), showing the subtitle overlay (<code>scripting</code>), and audio capture for live mode (<code>tabCapture</code>, <code>offscreen</code>). It can reach only <code>127.0.0.1</code> and <code>localhost</code>. On sites other than YouTube it asks you for that one site, and you can remove sites at any time in its settings.</p>
+
+  <h2>Children</h2>
+  <p>Tarjuman is a general-purpose tool and does not knowingly collect any information from anyone, including children.</p>
+
+  <h2>Changes and contact</h2>
+  <p>If this policy changes, the new version is published here with a new date. Questions: <a href="https://github.com/MohamedElnagar94/tarjuman/issues">open an issue on GitHub</a>.</p>
+
+  <section class="ar" lang="ar" dir="rtl">
+    <h2>الخلاصة بالعربية</h2>
+    <ul>
+      <li>الإضافة لا تتصل إلا بتطبيق ترجمان على جهازك أنت (<code>127.0.0.1</code>).</li>
+      <li>بلا حساب، وبلا إحصاءات أو إعلانات أو تتبع. المطوّر لا يستلم أي شيء.</li>
+      <li>عنوان الفيديو ونص ترجمته، وصوت التبويب في الوضع المباشر فقط، تذهب إلى التطبيق على جهازك ليترجمها.</li>
+      <li>قد يتصل التطبيق من جهازك بيوتيوب، وخدمات الترجمة (Google Translate وMyMemory)، وأصوات Microsoft Edge، ومزود ذكاء اصطناعي إن أضفت مفتاحك بنفسك.</li>
+      <li>بياناتك لا تُباع ولا تُشارك لأي غرض آخر.</li>
+    </ul>
+  </section>
+</main>
+
+<footer><div class="wrap">Tarjuman is free and open source · <a href="https://github.com/MohamedElnagar94/tarjuman">github.com/MohamedElnagar94/tarjuman</a></div></footer>
+</body>
+</html>

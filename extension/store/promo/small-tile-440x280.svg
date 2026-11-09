@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280">
+  <title>Tarjuman — small promo tile</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1F2E8C"/>
+      <stop offset="0.55" stop-color="#121A57"/>
+      <stop offset="1" stop-color="#0A0F3A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.9" cy="0" r="0.75">
+      <stop offset="0" stop-color="#3550D6" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#3550D6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD27A"/>
+      <stop offset="1" stop-color="#F0922B"/>
+    </linearGradient>
+    <pattern id="lattice" width="44" height="44" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#FFD27A" stroke-width="1">
+        <path d="M22 9 25.5 18.5 35 22 25.5 25.5 22 35 18.5 25.5 9 22 18.5 18.5Z"/>
+        <rect x="13.5" y="13.5" width="17" height="17" transform="rotate(45 22 22)"/>
+        <rect x="13.5" y="13.5" width="17" height="17"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="440" height="280" fill="url(#bg)"/>
+  <rect width="440" height="280" fill="url(#glow)"/>
+  <rect width="440" height="280" fill="url(#lattice)" opacity="0.07"/>
+
+  <image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCI+CiAgPHRpdGxlPlRhcmp1bWFuPC90aXRsZT4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0idGlsZSIgeDE9IjAuMTUiIHkxPSIwIiB4Mj0iMC44NSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMzNTUwRDYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIwLjU1IiBzdG9wLWNvbG9yPSIjMUYyRThDIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzEyMUE1NyIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iaW5rIiB4MT0iMSIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRDI3QSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNGMDkyMkIiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Imdsb3ciIGN4PSIwLjI4IiBjeT0iMC4xNCIgcj0iMC44Ij4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZGRkZGIiBzdG9wLW9wYWNpdHk9IjAuMiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNGRkZGRkYiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CiAgPCEtLSBMYXBpcyB0aWxlLCBsaWtlIHRoZSBncm91bmRzIG9mIGlsbHVtaW5hdGVkIG1hbnVzY3JpcHRzIC0tPgogIDxyZWN0IHg9IjQiIHk9IjQiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiByeD0iMzAiIGZpbGw9InVybCgjdGlsZSkiLz4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgcng9IjMwIiBmaWxsPSJ1cmwoI2dsb3cpIi8+CiAgPHJlY3QgeD0iNC43NSIgeT0iNC43NSIgd2lkdGg9IjExOC41IiBoZWlnaHQ9IjExOC41IiByeD0iMjkuMjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLW9wYWNpdHk9IjAuMTQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPCEtLSBBIHBsYXkgbWFyazogdGhpcyBpcyBhYm91dCB2aWRlbyAtLT4KICA8cGF0aCBkPSJNMjcgMjQgTDQ5IDM3IEwyNyA1MCBaIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDwhLS0gVGhlIGxldHRlciDYqiAodGFhKSwgd3JpdHRlbiBhcyBvbmUgdGFwZXJlZCBwZW4gc3Ryb2tlOiB0aGUgaGVhZCBvbiB0aGUgcmlnaHQsIHRoZSB0YWlsIG9uIHRoZSBsZWZ0IC0tPgogIDxwYXRoIGQ9Ik0xMDQgNDYgQyAxMTAgNTIsIDEwOCA3NiwgOTYgODggQyA4NiA5OCwgNzIgMTAyLCA1OCAxMDEgQyA0MCAxMDAsIDI2IDkyLCAxOSA3NgogICAgICAgICAgIEMgMzAgODQsIDQ0IDg4LCA1OCA4OCBDIDc0IDg4LCA4NyA4MiwgOTMgNzAgQyA5NyA2MiwgOTcgNTQsIDk1IDUwIFoiCiAgICAgICAgZmlsbD0idXJsKCNpbmspIiBzdHJva2U9InVybCgjaW5rKSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8IS0tIEl0cyB0d28gZG90cywgc3RhZ2dlcmVkIGFzIGEgcGVuIGxlYXZlcyB0aGVtIC0tPgogIDxyZWN0IHg9IjUwIiB5PSI1MiIgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiByeD0iMi41IiB0cmFuc2Zvcm09InJvdGF0ZSg0NSA1NyA1OSkiIGZpbGw9IiNGRkQyN0EiLz4KICA8cmVjdCB4PSI2OSIgeT0iNDUiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgcng9IjIuNSIgdHJhbnNmb3JtPSJyb3RhdGUoNDUgNzYgNTIpIiBmaWxsPSIjRkZGRkZGIi8+Cjwvc3ZnPgo=" x="30" y="34" width="86" height="86"/>
+  <text x="134" y="76" font-family="Kufi Latin, Reem Kufi, sans-serif" font-weight="600" font-size="40" fill="#F5F2EA">Tarjuman</text>
+  <text x="134" y="114" font-family="Kufi Arabic, Reem Kufi, sans-serif" font-weight="600" font-size="28" fill="url(#ink)">ترجمان</text>
+
+  <text x="32" y="166" font-family="Plex Latin, IBM Plex Sans Arabic, sans-serif" font-weight="500" font-size="20" fill="#F5F2EA">Arabic subtitles &amp; live dubbing</text>
+  <text x="32" y="192" font-family="Plex Latin, IBM Plex Sans Arabic, sans-serif" font-weight="400" font-size="17" fill="#AEB6DE">for any video, on your own computer</text>
+
+  <rect x="32" y="218" width="376" height="38" rx="9" fill="#080A1E" fill-opacity="0.82"/>
+  <rect x="32" y="218" width="4" height="38" rx="2" fill="url(#ink)"/>
+  <text x="220" y="244" text-anchor="middle" font-family="Plex Arabic, IBM Plex Sans Arabic, sans-serif" font-weight="700" font-size="20" fill="#FFFFFF">وهكذا بدأت الحكاية كلها</text>
+</svg>
