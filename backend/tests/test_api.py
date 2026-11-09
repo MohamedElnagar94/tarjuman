@@ -125,3 +125,13 @@ def test_spa_fallback_serves_a_page_for_client_routes(client):
     r = client.get("/watch?url=abc")
     assert r.status_code == 200 and "<html" in r.text.lower()
     assert client.get("/api/nope").status_code == 404
+
+
+def test_web_app_files_get_browser_mime_types(client):
+    import mimetypes
+
+    # Browsers refuse module scripts served as text/plain (the Windows registry default for .js).
+    assert mimetypes.guess_type("index-abc.js")[0] == "text/javascript"
+    assert mimetypes.guess_type("font.woff2")[0] == "font/woff2"
+    r = client.get("/dub-engine.js")
+    assert r.headers["content-type"].startswith("text/javascript")

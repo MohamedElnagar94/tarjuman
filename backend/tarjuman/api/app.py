@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import mimetypes
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -19,6 +20,14 @@ from .routes import ai, jobs, learn, media, system, videos
 from .security import LOCAL_ONLY, is_loopback, post_allowed, request_allowed
 
 log = logging.getLogger("tarjuman")
+
+# Python reads MIME types from the Windows registry, where .js is often "text/plain"; browsers then
+# refuse to run the web app's module scripts. Set the types the app serves explicitly.
+for _ext, _type in {
+    ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml",
+    ".json": "application/json", ".woff2": "font/woff2", ".woff": "font/woff", ".webmanifest": "application/manifest+json",
+}.items():
+    mimetypes.add_type(_type, _ext)
 
 NO_BUILD_PAGE = """<!doctype html><html lang="en"><meta charset="utf-8"><title>Tarjuman</title>
 <body style="font:16px system-ui;max-width:40rem;margin:4rem auto;padding:0 1rem;line-height:1.6">
