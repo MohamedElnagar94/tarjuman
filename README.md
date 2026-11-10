@@ -43,15 +43,16 @@
 
 Paste a YouTube link, upload a video from your computer, or give it a link from almost any site.
 
-- **Synced subtitles.** Arabic subtitles appear on the video line by line, with the original language underneath if you want it. Auto-generated captions are rebuilt into whole sentences before they are translated.
-- **Live dubbing that sounds like a person.** A neural Arabic voice speaks each sentence in time with the speaker, in Egyptian, Saudi, Emirati, Syrian, Jordanian, Lebanese, Moroccan or Iraqi Arabic. A sentence is never cut off or skipped, and the video pauses only when the dub falls well behind.
+- **Synced subtitles.** Arabic subtitles appear on the video line by line, with the original language underneath if you want it. Auto-generated captions are rebuilt into whole sentences before they are translated; when they have no punctuation at all, they are cut where the speaker actually pauses, using YouTube's per-word timings.
+- **Live dubbing that sounds like a person.** A neural Arabic voice speaks each sentence in time with the speaker, in Egyptian, Saudi, Emirati, Syrian, Jordanian, Lebanese, Moroccan or Iraqi Arabic. A sentence is never cut off or skipped. With a fast speaker the video slows down slightly while the voice catches up, instead of the voice racing; slow the video yourself and the voice gets that extra time. Words that are spelled the same but read differently are read the way the sentence means (الجُمَل "sentences", not الجَمَل "the camel"), decided by the English original.
 - **Dubbed MP4.** Export the video with the Arabic voice-over. It can remove the original speaker's voice while keeping the music and effects, give each speaker a matching male or female voice, and embed or burn in subtitles.
 - **No captions? No problem.** Whisper transcribes the audio on your computer, then the transcript is translated.
 - **Subtitle files.** Download SRT, VTT or plain text, in Arabic or bilingual, or a subtitled MP4 ready to share.
 - **Whole playlists.** Give it a playlist or channel link to make subtitles, subtitled videos or dubbed videos for every video in it.
 - **Ask the video** (optional AI). Get a summary, key points, clickable chapters, and answers that jump to the moment the video covers your question. Works with Claude or any OpenAI-compatible provider (Gemini, Groq, OpenRouter, Ollama).
 - **Learn English.** Tap any word for its meaning, save it with its sentence, review it later, and export to Anki. You can also repeat a sentence, pause after each line, or blur the subtitles to test yourself.
-- **Browser extension.** Use the same subtitles and dubbing on YouTube itself, on sites whose player has captions (Coursera, Udemy and others), or on any other site by listening to the tab's audio.
+- **Browser extension.** Use the same subtitles and dubbing on YouTube itself, on sites whose player has captions (Coursera, Udemy and others), on movie and anime sites that embed their player from another site, or on any other site by listening to the tab's audio.
+- **On your phone.** Open the app from any phone on the same Wi-Fi.
 
 Other languages work too: French, Spanish, German, Turkish and English are built in as targets.
 
@@ -88,6 +89,8 @@ You need **Python 3.11+** and **Node.js 20+**.
 ```sh
 ./start.sh
 ```
+
+On Debian, Ubuntu and Kali, install `python3-venv` first if it is missing (`sudo apt install python3-venv`).
 
 The first run installs everything: the Python packages, the offline Arabic voice, and a build of the web app. Then the app opens at `http://127.0.0.1:4318`. On later runs it starts in a couple of seconds. To use it from your phone, open the address it prints for your Wi-Fi. On Windows, if the phone can't reach it, run `scripts/allow-phone.ps1` once as administrator: it marks your home Wi-Fi as Private and opens Tarjuman's ports on Private networks only.
 
@@ -127,7 +130,7 @@ The extension talks only to the app on your computer. Its Chrome Web Store kit (
 
 ## How the dub stays in sync
 
-Caption lines are merged into whole sentences and spoken filler is removed. Each sentence's speed is then chosen from a look-ahead window of about 12 seconds, so a roomy sentence lends time to a crowded one and the speed changes gradually instead of jumping. Before the browser plays anything, the server synthesizes and measures every sentence, so the plan is based on real durations rather than guesses. If the dub still falls behind, the next sentences play a little faster; the video pauses only when the gap passes about two seconds. Seeking anywhere resumes the dub on the exact spot.
+Caption lines are merged into whole sentences and spoken filler is removed. Each sentence's speed is then chosen from a look-ahead window of about 12 seconds, so a roomy sentence lends time to a crowded one and the speed changes gradually instead of jumping. Before the browser plays the first sentences of each stretch, the server synthesizes and measures them, so the plan is based on real durations rather than guesses, and it prepares the next stretch in the background. If the dub still falls behind, the video slows to 85% of your speed until the voice catches up, and pauses only when the gap passes about two seconds. Pacing follows your playback speed. Seeking anywhere resumes the dub on the exact spot. When the free translators rate-limit, a second Google endpoint and then YouTube's own translation keep the dub talking.
 
 The full design is in [docs/implementation.md](docs/implementation.md).
 
