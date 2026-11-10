@@ -157,3 +157,18 @@ def test_unpunctuated_auto_captions_are_split_at_the_speakers_pauses():
         "uh this course is based on an open source curriculum that you can find online",
     ]
     assert out[1].start == 2.6 and out[0].end == 2.6
+
+
+def test_a_lone_word_between_two_pauses_finishes_the_sentence_before_it():
+    xml = (
+        '<timedtext format="3"><body>'
+        '<p t="27560" d="8200"><s>artificial</s><s t="800"> intelligence</s><s t="2000"> and</s><s t="2400"> in</s>'
+        '<s t="3200"> this</s><s t="4400"> video</s><s t="5000"> large</s><s t="6040"> language</s></p>'
+        '<p t="35760" d="2640"><s>models</s><s t="1000"> large</s><s t="1360"> language</s><s t="1720"> models</s>'
+        '<s t="2200"> represent</s></p>'
+        '<p t="38400" d="2400"><s>the</s><s t="120"> pinnacle</s><s t="600"> of</s><s t="800"> AI</s><s t="1100"> technology</s></p>'
+        "</body></timedtext>"
+    )
+    texts = [c.text for c in reconstruct_asr(parse_captions(xml))]
+    k = next(i for i, t in enumerate(texts) if t.endswith("large language models"))
+    assert texts[k + 1].startswith("large language models represent"), texts

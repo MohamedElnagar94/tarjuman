@@ -65,7 +65,11 @@ class Translator:
         self.edits = {k: v for k, v in read_json(self.edits_file, {}).items() if isinstance(v, str) and v}
 
     def _write_cache(self) -> None:
-        write_json(self.cache_file, self.cache)
+        # Merge with what is on disk: another running copy of the app may have saved lines this one
+        # doesn't have, and a plain overwrite would throw them away.
+        merged = {k: v for k, v in read_json(self.cache_file, {}).items() if isinstance(v, str) and v}
+        merged.update(dict(self.cache))
+        write_json(self.cache_file, merged)
 
     def flush(self) -> None:
         self._save.flush()

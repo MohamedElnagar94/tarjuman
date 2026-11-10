@@ -99,6 +99,11 @@ def split_at_pauses(group: list[Line]) -> list[Line] | None:
         start = words[cuts[-1]][0]
         dur = words[k][0] - start
         if dur >= MIN_SENTENCE and pause_before(k) >= PAUSE:
+            # A lone word between two pauses ("…large language ‖ models ‖ large language models represent")
+            # usually finishes the phrase before it, so it stays with that sentence.
+            lone = k + 1 < len(words) and pause_before(k + 1) >= PAUSE and words[k + 1][0] - words[k][0] < 1.5
+            if lone and words[k][1].lower().strip(",.") not in FILLERS:
+                k += 1
             cuts.append(k)
         elif dur >= MAX_SENTENCE:
             # Too long without a clear pause: cut at the longest pause in its second half.
