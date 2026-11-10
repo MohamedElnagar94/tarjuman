@@ -146,6 +146,8 @@ Tarjuman 以本地为先。你的视频、字幕、保存的单词、设置和 A
 | `TARJUMAN_PORT` | `4318` | 首先尝试的端口（若被占用则依次递增；扩展会自动跟随） |
 | `TARJUMAN_HOST` | `0.0.0.0` | 设为 `127.0.0.1` 可让应用不对 Wi-Fi 开放 |
 | `TARJUMAN_WHISPER_MODEL` | `base` | 使用 `small` 或 `medium` 可获得更准确（但更慢）的转写 |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | 已保存配音语音的大小上限；最久未使用的先删除 |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | 可上传视频的最大大小 |
 | `ANTHROPIC_API_KEY` | – | 设置中未保存密钥时，用于 Claude |
 
 ## 项目结构

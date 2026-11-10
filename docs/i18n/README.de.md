@@ -146,6 +146,8 @@ Tarjuman arbeitet lokal. Deine Videos, Untertitel, gespeicherten Wörter, Einste
 | `TARJUMAN_PORT` | `4318` | Erster Port, der versucht wird (ist er belegt, wird der nächste genommen; die Erweiterung zieht mit) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Mit `127.0.0.1` ist die App aus dem WLAN nicht erreichbar |
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` oder `medium` für genauere Transkription (langsamer) |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | Größenlimit für gespeicherte Synchronstimmen; die am längsten nicht genutzten werden zuerst gelöscht |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | Größtes Video, das du hochladen kannst |
 | `ANTHROPIC_API_KEY` | – | Wird für Claude verwendet, wenn in den Einstellungen kein Schlüssel gespeichert ist |
 
 ## Projektstruktur

@@ -146,6 +146,8 @@ O Tarjuman funciona localmente em primeiro lugar. Seus vídeos, legendas, palavr
 | `TARJUMAN_PORT` | `4318` | Primeira porta a tentar (se estiver ocupada, passa para a próxima; a extensão acompanha) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Use `127.0.0.1` para deixar o aplicativo fora do seu Wi-Fi |
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` ou `medium` para uma transcrição mais precisa (mais lenta) |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | Limite de tamanho das vozes de dublagem salvas; as usadas há mais tempo são removidas primeiro |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | Maior vídeo que você pode enviar |
 | `ANTHROPIC_API_KEY` | – | Usada para o Claude quando nenhuma chave está salva nas configurações |
 
 ## Estrutura do projeto

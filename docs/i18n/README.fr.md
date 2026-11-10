@@ -146,6 +146,8 @@ Tarjuman privilégie le local. Vos vidéos, sous-titres, mots enregistrés, rég
 | `TARJUMAN_PORT` | `4318` | Premier port essayé (il passe au suivant si le port est occupé ; l'extension suit) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Utilisez `127.0.0.1` pour rendre l'application inaccessible depuis votre Wi-Fi |
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` ou `medium` pour une transcription plus précise (plus lente) |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | Taille maximale des voix de doublage enregistrées ; les moins récemment utilisées sont supprimées d'abord |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | Taille maximale d'une vidéo que vous pouvez envoyer |
 | `ANTHROPIC_API_KEY` | – | Utilisée pour Claude si aucune clé n'est enregistrée dans les réglages |
 
 ## Structure du projet

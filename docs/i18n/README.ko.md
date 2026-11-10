@@ -146,6 +146,8 @@ Tarjuman은 로컬 우선입니다. 영상, 자막, 저장한 단어, 설정, AP
 | `TARJUMAN_PORT` | `4318` | 처음 시도할 포트 (사용 중이면 다음 번호로 넘어가며, 확장 프로그램도 따라갑니다) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Wi-Fi에서 앱에 접근하지 못하게 하려면 `127.0.0.1` 사용 |
 | `TARJUMAN_WHISPER_MODEL` | `base` | 더 정확한(대신 느린) 받아쓰기를 원하면 `small` 또는 `medium` |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | 저장된 더빙 음성의 용량 한도. 가장 오래 사용하지 않은 것부터 삭제됩니다 |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | 업로드할 수 있는 최대 영상 크기 |
 | `ANTHROPIC_API_KEY` | – | 설정에 저장된 키가 없을 때 Claude에 사용 |
 
 ## 프로젝트 구조

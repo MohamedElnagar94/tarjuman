@@ -146,6 +146,8 @@ Tarjuman önce yerel çalışacak şekilde tasarlanmıştır. Videolarınız, al
 | `TARJUMAN_PORT` | `4318` | Denenecek ilk port (doluysa bir üstüne geçer; eklenti de onu izler) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Uygulamayı Wi-Fi ağınıza kapatmak için `127.0.0.1` kullanın |
 | `TARJUMAN_WHISPER_MODEL` | `base` | Daha doğru (ama daha yavaş) yazıya dökme için `small` veya `medium` |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | Kaydedilen dublaj seslerinin boyut sınırı; en uzun süredir kullanılmayanlar önce silinir |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | Yükleyebileceğin en büyük video |
 | `ANTHROPIC_API_KEY` | – | Ayarlarda kayıtlı anahtar yoksa Claude için kullanılır |
 
 ## Proje yapısı

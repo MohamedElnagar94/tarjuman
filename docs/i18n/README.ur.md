@@ -148,6 +148,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | `TARJUMAN_PORT` | `4318` | آزمایا جانے والا پہلا پورٹ (مصروف ہو تو اگلا لیتا ہے؛ ایکسٹینشن بھی ساتھ چلتی ہے) |
 | `TARJUMAN_HOST` | `0.0.0.0` | ایپ کو اپنے Wi-Fi سے دور رکھنے کے لیے `127.0.0.1` استعمال کریں |
 | `TARJUMAN_WHISPER_MODEL` | `base` | زیادہ درست (مگر سست) ٹرانسکرپشن کے لیے `small` یا `medium` |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | محفوظ ڈبنگ آوازوں کی حدِ حجم؛ سب سے کم حال میں استعمال ہونے والی پہلے حذف ہوتی ہیں |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | سب سے بڑی ویڈیو جو آپ اپ لوڈ کر سکتے ہیں |
 | `ANTHROPIC_API_KEY` | – | جب سیٹنگز میں کوئی کلید محفوظ نہ ہو تو Claude کے لیے استعمال ہوتی ہے |
 
 ## پروجیکٹ کی ساخت

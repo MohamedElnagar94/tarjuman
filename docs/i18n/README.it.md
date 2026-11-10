@@ -146,6 +146,8 @@ Tarjuman è pensato per funzionare in locale. I tuoi video, sottotitoli, parole 
 | `TARJUMAN_PORT` | `4318` | Prima porta da provare (se è occupata passa alla successiva; l'estensione si adegua) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Usa `127.0.0.1` per non esporre l'app sulla tua rete Wi-Fi |
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` o `medium` per una trascrizione più accurata (più lenta) |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | Limite di spazio per le voci di doppiaggio salvate; si eliminano prima quelle usate meno di recente |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | Dimensione massima del video che puoi caricare |
 | `ANTHROPIC_API_KEY` | – | Usata per Claude quando nelle impostazioni non è salvata alcuna chiave |
 
 ## Struttura del progetto

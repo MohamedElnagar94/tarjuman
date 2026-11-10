@@ -146,6 +146,8 @@ Tarjuman はローカルファーストです。動画、字幕、保存した�
 | `TARJUMAN_PORT` | `4318` | 最初に試すポート（使用中なら次の番号に進み、拡張機能もそれに追従） |
 | `TARJUMAN_HOST` | `0.0.0.0` | `127.0.0.1` にすると Wi-Fi からアプリにアクセスできなくなります |
 | `TARJUMAN_WHISPER_MODEL` | `base` | より正確な（ただし遅い）文字起こしには `small` または `medium` |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | 保存された吹き替え音声の容量上限。最も長く使われていないものから削除されます |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | アップロードできる動画の最大サイズ |
 | `ANTHROPIC_API_KEY` | – | 設定にキーが保存されていないときに Claude で使用 |
 
 ## プロジェクト構成

@@ -146,6 +146,8 @@ Tarjuman mengutamakan pemrosesan lokal. Video, subtitle, kata tersimpan, pengatu
 | `TARJUMAN_PORT` | `4318` | Port pertama yang dicoba (naik ke port berikutnya jika sibuk; ekstensi mengikutinya) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Gunakan `127.0.0.1` agar aplikasi tidak bisa diakses dari Wi-Fi Anda |
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` atau `medium` untuk transkripsi yang lebih akurat (lebih lambat) |
+| `TARJUMAN_VOICE_CACHE_GB` | `2` | Batas ukuran suara dubbing yang disimpan; yang paling lama tidak dipakai dihapus lebih dulu |
+| `TARJUMAN_MAX_UPLOAD_GB` | `8` | Ukuran video terbesar yang bisa kamu unggah |
 | `ANTHROPIC_API_KEY` | – | Dipakai untuk Claude jika tidak ada kunci yang tersimpan di pengaturan |
 
 ## Struktur proyek
