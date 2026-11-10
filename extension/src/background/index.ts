@@ -409,6 +409,7 @@ const handlers: Record<string, Handler> = {
       from: String(msg.from || 0),
       to: String(msg.to || 120),
       urgent: msg.urgent ? "1" : "0",
+      speed: String(msg.speed || 1),
     });
     return api(`/api/dubplan?${q}`, {}, 90000);
   },
@@ -423,6 +424,7 @@ const handlers: Record<string, Handler> = {
         voice: msg.voice ?? settings.voice ?? "",
         from: msg.from || 0,
         to: msg.to || 120,
+        speed: msg.speed || 1,
         urgent: !!msg.urgent,
       },
       90000,

@@ -480,6 +480,11 @@ declare global {
       return !v || v.paused || adShowing();
     },
     rate: () => currentVideo()?.playbackRate || 1,
+    // The engine slows the video slightly while the dub catches up, instead of pausing it.
+    setRate: (r) => {
+      const v = currentVideo();
+      if (v) v.playbackRate = r;
+    },
     play: () => void currentVideo()?.play().catch(() => {}),
     pause: () => currentVideo()?.pause(),
     // The real volume even while muted; otherwise stopping the dub would restore 0.
@@ -499,11 +504,11 @@ declare global {
     const voice = S.settings.voice || "";
     dub = new DubEngine({
       media: videoMedia,
-      loadPlan: async (from, to, { urgent }) => {
+      loadPlan: async (from, to, { urgent, speed }) => {
         const r =
           S.mode === "captions"
-            ? await bg("dub-plan-cues", { cues: S.cues.map((c) => ({ start: c.start, end: c.end, src: c.src })), sl: S.srcLang, tl: lang, voice, from, to, urgent })
-            : await bg("dub-plan", { url, tl: lang, voice, from, to, urgent });
+            ? await bg("dub-plan-cues", { cues: S.cues.map((c) => ({ start: c.start, end: c.end, src: c.src })), sl: S.srcLang, tl: lang, voice, from, to, urgent, speed })
+            : await bg("dub-plan", { url, tl: lang, voice, from, to, urgent, speed });
         if (!r || !r.ok) throw new Error((r && r.code) || "PLAN");
         return r as any;
       },

@@ -7,6 +7,8 @@ export function dubMedia(get: () => Player | null): DubMedia {
     time: () => get()?.getCurrentTime() ?? 0,
     paused: () => get()?.getPlayerState() !== PlayerState.Playing,
     rate: () => get()?.getPlaybackRate() || 1,
+    // The engine slows the video slightly while the dub catches up; YouTube's player accepts any rate.
+    setRate: (r: number) => get()?.setPlaybackRate(r),
     play: () => get()?.playVideo(),
     pause: () => get()?.pauseVideo(),
     // The real volume even while muted; otherwise stopping the dub would restore the volume to 0.

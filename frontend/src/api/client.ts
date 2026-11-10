@@ -141,9 +141,9 @@ export const api = {
     return { url: URL.createObjectURL(await res.blob()), duration: Number(res.headers.get("X-Audio-Duration")) || 0 };
   },
 
-  dubPlan: (q: { url: string; tl: string; voice: string; from: number; to: number; urgent: boolean }, signal?: AbortSignal) =>
+  dubPlan: (q: { url: string; tl: string; voice: string; from: number; to: number; urgent: boolean; speed: number }, signal?: AbortSignal) =>
     get<DubPlanResponse>("/api/dubplan", q, signal),
-  dubPlanForCues: (b: { cues: Pick<Cue, "start" | "end" | "src">[]; sl: string; tl: string; voice: string; from: number; to: number; urgent: boolean }) =>
+  dubPlanForCues: (b: { cues: Pick<Cue, "start" | "end" | "src">[]; sl: string; tl: string; voice: string; from: number; to: number; urgent: boolean; speed: number }) =>
     post<DubPlanResponse>("/api/dubplan/cues", b),
 
   startWhisper: (url: string, tl: string) => post<{ ok: true; id: string }>("/api/whisper/job", { url, tl }),

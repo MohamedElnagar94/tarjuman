@@ -29,7 +29,7 @@ export function startLiveDub(): void {
   const voice = liveVoiceId(prefs.voice);
   engine = new DubEngine({
     media: dubMedia(getPlayer),
-    loadPlan: async (from, to, { urgent }) => api.dubPlan({ url, tl, voice, from, to, urgent }),
+    loadPlan: async (from, to, { urgent, speed }) => api.dubPlan({ url, tl, voice, from, to, urgent, speed }),
     synth: (b, rate) => api.tts(b.text, tl, voice, rate),
     onState: (state, info) => {
       liveDub.state = state;
@@ -75,5 +75,7 @@ export function setDubOptions(o: { wait?: boolean; duck?: number }): void {
 export function prewarmDub(): void {
   const prefs = usePrefs();
   if (!prefs.liveDub || !session.link) return;
-  api.dubPlan({ url: session.link, tl: session.tl, voice: liveVoiceId(prefs.voice), from: 0, to: 12, urgent: false }).catch(() => {});
+  api
+    .dubPlan({ url: session.link, tl: session.tl, voice: liveVoiceId(prefs.voice), from: 0, to: 12, urgent: false, speed: prefs.speed || 1 })
+    .catch(() => {});
 }
