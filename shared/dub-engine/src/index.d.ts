@@ -9,6 +9,8 @@ export interface DubBlock {
   src?: string;
   srcStart?: number;
   end?: number;
+  /** The video speed the server paced this sentence for (1 = normal). */
+  speed?: number;
 }
 
 export interface DubMedia {
@@ -20,6 +22,8 @@ export interface DubMedia {
   /** 0..1 — the real volume, even while muted. */
   getVolume(): number;
   setVolume(v: number): void;
+  /** Optional: change the video's speed. With it the engine slows the video slightly while the dub catches up. */
+  setRate?(rate: number): void;
 }
 
 export interface DubPlan {
@@ -39,11 +43,13 @@ export interface DubOptions {
   wait?: boolean;
   /** Original volume while dubbing, 0..1 (default 0.15). */
   duck?: number;
+  /** Slow the video slightly instead of letting the voice race, when `media.setRate` exists (default true). */
+  flex?: boolean;
 }
 
 export interface DubEngineInit {
   media: DubMedia;
-  loadPlan(from: number, to: number, opts: { urgent: boolean }): Promise<DubPlan>;
+  loadPlan(from: number, to: number, opts: { urgent: boolean; speed: number }): Promise<DubPlan>;
   synth(block: DubBlock, rate: number): Promise<DubAudio>;
   onState?(state: DubState, info: { block?: DubBlock; message?: string }): void;
   options?: DubOptions;
@@ -56,7 +62,7 @@ export declare class DubEngine {
   constructor(init: DubEngineInit);
   readonly running: boolean;
   readonly state: DubState;
-  readonly stats: { spoken: number; skipped: number; holds: number };
+  readonly stats: { spoken: number; skipped: number; holds: number; slowed: number };
   start(): void;
   stop(): void;
   setOptions(o: DubOptions): void;

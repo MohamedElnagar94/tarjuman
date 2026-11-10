@@ -268,3 +268,86 @@ test("a slow next part of the plan holds the video instead of playing on without
   for (const b of passed) assert.ok(spoken.has("u" + b.i), "sentence " + b.i + " spoken");
   assert.ok(silent < 1, "video ran " + silent.toFixed(1) + "s past unspoken sentences");
 });
+
+// A media element whose speed can change, like the extension's <video> or the web app's player.
+function rateMedia({ t = 0, rate = 1 } = {}) {
+  const m = fakeMedia({ t });
+  m.r = rate;
+  m.rate = function () { return this.r; };
+  m.setRate = function (x) { this.r = x; this.rates = (this.rates || []).concat(x); };
+  return m;
+}
+
+async function run(engine, media, seconds, onStep) {
+  engine.start();
+  clearInterval(engine.timer);
+  for (let k = 0; k < seconds * 10; k++) {
+    await new Promise((r) => setImmediate(r));
+    engine.tick();
+    clock += 100;
+    if (!media.isPaused) media.t += 0.1 * media.rate();
+    else media.pausedSteps++;
+    FakeAudio.all.forEach((a) => a.advance(0.1));
+    onStep?.(k);
+  }
+  engine.stop();
+}
+
+test("a slowed-down video gives the voice its time: a plan paced for 0.75 plays at natural speed", async () => {
+  FakeAudio.all = [];
+  FakeAudio.durations = { u0: 3 };
+  clock = 0;
+  const media = rateMedia({ rate: 0.75 });
+  let asked;
+  const engine = new DubEngine({
+    media,
+    loadPlan: async (from, to, o) => ((asked = o.speed), { blocks: [{ i: 0, start: 0, slot: 4, text: "x", synthRate: 0, playRate: 1, speed: 0.75 }], end: 10 }),
+    synth: async () => ({ url: "u0", duration: 3 }),
+    options: { wait: true },
+    ...fakes,
+  });
+  await run(engine, media, 3);
+  assert.equal(asked, 0.75, "the plan is asked for the video's speed");
+  assert.ok(Math.abs(FakeAudio.all[0].playbackRate - 1) < 1e-9, "voice at its natural rate, got " + FakeAudio.all[0].playbackRate);
+});
+
+test("a fast speaker slows the video slightly instead of pausing it, then gives the speed back", async () => {
+  FakeAudio.all = [];
+  const blocks = Array.from({ length: 20 }, (_, i) => ({ i, start: i * 1.2, slot: 1.2, text: "x", rate: 0 }));
+  FakeAudio.durations = Object.fromEntries(blocks.map((b) => ["u" + b.i, 1.6]));
+  clock = 0;
+  const media = rateMedia();
+  const engine = new DubEngine({
+    media,
+    loadPlan: async () => ({ blocks, end: 30 }),
+    synth: async (b) => ({ url: "u" + b.i, duration: 1.6 }),
+    options: { wait: true },
+    ...fakes,
+  });
+  await run(engine, media, 45);
+  assert.equal(new Set(FakeAudio.all.map((a) => a.url)).size, 20, "every sentence spoken");
+  assert.ok(media.rates && media.rates.some((r) => r < 1), "the video was slowed while behind");
+  assert.equal(media.r, 1, "and the user's speed is back at the end");
+  assert.ok(media.pausedSteps <= 10, "hardly any pausing: " + media.pausedSteps / 10 + "s");
+});
+
+test("a part of the plan that never arrives doesn't freeze the video in an endless hold", async () => {
+  FakeAudio.all = [];
+  const blocks = Array.from({ length: 4 }, (_, i) => ({ i, start: i * 3, slot: 3, text: "x", rate: 0 }));
+  FakeAudio.durations = Object.fromEntries(blocks.map((b) => ["u" + b.i, 2]));
+  clock = 0;
+  let calls = 0;
+  const media = fakeMedia({ t: 0 });
+  const engine = new DubEngine({
+    media,
+    // The first window answers; the next one never does (a stuck server).
+    loadPlan: () => (calls++ === 0 ? Promise.resolve({ blocks, end: 120 }) : new Promise(() => {})),
+    synth: async (b) => ({ url: "u" + b.i, duration: 2 }),
+    options: { wait: true },
+    ...fakes,
+  });
+  let lastPlaying = 0;
+  await run(engine, media, 60, (k) => { if (!media.isPaused) lastPlaying = k; });
+  assert.ok(media.t > 40, "the video kept going (t=" + media.t.toFixed(1) + ")");
+  assert.ok(lastPlaying > 550, "and was not left paused at the end");
+});

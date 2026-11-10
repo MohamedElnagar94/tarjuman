@@ -46,6 +46,12 @@ export const PARALLEL = 3;
 /** The server synthesizes and measures a whole window before answering, so small windows return faster. */
 export const PLAN_WINDOW = 45;
 export const FIRST_WINDOW = 12;
+/** When the dub trails the speaker by this much, the video slows down a little (if the player allows). */
+export const SOFT_LAG = 0.8;
+/** How much it slows: a fast speaker is followed by a slightly slower video instead of a racing voice. */
+export const SOFT_RATE = 0.85;
+/** After a hold hits HOLD_MAX_MS, don't hold again for this long (no endless hold-release loop). */
+export const NO_HOLD_MS = 10000;
 
 export class DubEngine {
   constructor(o) {
@@ -76,7 +82,9 @@ export class DubEngine {
     this.holding = false;
     this.lastT = null;
     this.state = "idle";
-    this.stats = { spoken: 0, skipped: 0, holds: 0 };
+    this.stats = { spoken: 0, skipped: 0, holds: 0, slowed: 0 };
+    this.noHoldUntil = 0;
+    this.ourRate = null; // the rate we set to slow the video; null when the user's own rate is in force
   }
 
   /* ---------------- start / stop ---------------- */
@@ -90,6 +98,7 @@ export class DubEngine {
     } catch {}
     // Hold the video until the first sentence is ready; the engine resumes it.
     this.startedAt = this.media.time();
+    this.userRate = this.media.rate() || 1;
     if (this.opts.wait) {
       this.hold();
       this.emit("buffering");
@@ -109,6 +118,7 @@ export class DubEngine {
     this.running = false;
     clearInterval(this.timer);
     this.stopAudio();
+    this.soften(false);
     if (this.holding) this.release();
     try {
       if (this.origVolume != null) this.media.setVolume(this.origVolume);
@@ -158,7 +168,7 @@ export class DubEngine {
   }
 
   hold() {
-    if (this.holding) return;
+    if (this.holding || this.now() < this.noHoldUntil) return;
     this.holding = true;
     this.holdSince = this.now();
     this.stats.holds++;
@@ -196,7 +206,7 @@ export class DubEngine {
     this.loadingGen = gen;
     try {
       // The first window after a start or seek is urgent: the server puts it ahead of background work.
-      const res = await this.loadPlan(from, to, { urgent: !c });
+      const res = await this.loadPlan(from, to, { urgent: !c, speed: this.userRate || 1 });
       if (!this.running) return;
       this.addBlocks(res.blocks);
       if (gen !== this.planGen) {
@@ -210,6 +220,7 @@ export class DubEngine {
       }
       if (res.end) this.planEnd = res.end;
       this.covered = c && from === c[1] ? [c[0], to] : [from, to];
+      this.edgeGaveUp = false;
     } catch {
       this.emit("error", { message: "plan request failed" });
       await new Promise((r) => setTimeout(r, 3000));
@@ -269,6 +280,9 @@ export class DubEngine {
 
   onSeek(t) {
     this.stopAudio();
+    this.soften(false);
+    this.noHoldUntil = 0;
+    this.edgeGaveUp = false;
     this.done = new Set();
     // Sentences already past (or that we are in the middle of) are not spoken.
     for (const b of this.order) if (b.start < t - 0.6) this.done.add(b.i);
@@ -296,24 +310,41 @@ export class DubEngine {
     return null;
   }
 
-  /** Server correction × catch-up speed-up, capped by the maximum effective speed. */
+  /** The audio element's rate, in real time: the server's correction for the speed the plan was paced
+   *  at, sped up (up to MAX_FIT) when the sentence would overrun its time, capped by MAX_EFFECTIVE.
+   *  Video seconds and real seconds differ when the user changes the video's speed: at 0.75 a sentence
+   *  has 1/0.75 times longer to be said, and the voice gets that time instead of racing. */
   playbackRate(b, duration, t) {
-    const base = b.playRate || 1;
-    const avail = Math.max(0.6, b.start + b.slot + SPILL - t);
-    const fit = duration ? Math.min(MAX_FIT, Math.max(1, duration / base / avail)) : 1;
+    const userRate = this.userRate || 1;
+    const base = ((b.playRate || 1) * userRate) / (b.speed || 1);
+    const avail = Math.max(0.6, b.start + b.slot + SPILL - t); // video seconds
+    const need = duration ? (duration * userRate) / avail : 0;
+    const fit = Math.min(base * MAX_FIT, Math.max(base, need));
     const synthFactor = 1 + (b.synthRate ?? b.rate ?? 0) / 100;
     const cap = MAX_EFFECTIVE / synthFactor;
-    return Math.max(0.85, Math.min(base * fit, Math.max(cap, base)));
+    return Math.max(0.5, Math.min(fit, Math.max(cap, base)));
+  }
+
+  /** Slow the video a little while the dub catches up, or give the user's speed back. */
+  soften(on) {
+    if (!this.media.setRate) return;
+    const user = this.userRate || 1;
+    const want = on ? Math.max(0.5, user * SOFT_RATE) : null;
+    if (want === this.ourRate) return;
+    try {
+      this.media.setRate(want ?? user);
+      if (on) this.stats.slowed++;
+      this.ourRate = want;
+    } catch {}
   }
 
   play(b, a, t) {
     const el = new this.Audio(a.url);
     el.preservesPitch = true;
-    const mediaRate = this.media.rate() || 1;
-    el.playbackRate = this.playbackRate(b, a.duration, t) * mediaRate;
+    el.playbackRate = this.playbackRate(b, a.duration, t);
     if (!a.duration) {
       el.addEventListener("loadedmetadata", () => {
-        if (isFinite(el.duration)) el.playbackRate = this.playbackRate(b, el.duration, t) * mediaRate;
+        if (isFinite(el.duration)) el.playbackRate = this.playbackRate(b, el.duration, t);
       });
     }
     const cur = { b, el, ended: false };
@@ -360,6 +391,13 @@ export class DubEngine {
     this.lastT = t;
     this.lastNow = now;
 
+    // The user changed the video's speed (any rate we didn't set ourselves is theirs).
+    const r = m.rate() || 1;
+    if (this.ourRate == null ? Math.abs(r - (this.userRate || 1)) > 0.01 : Math.abs(r - this.ourRate) > 0.01) {
+      this.userRate = r;
+      this.ourRate = null;
+    }
+
     this.ensurePlan(t);
     this.prefetch(t);
 
@@ -369,10 +407,13 @@ export class DubEngine {
     // The user paused the video.
     if (paused && !this.holding) {
       if (this.cur && !this.cur.el.paused) this.cur.el.pause();
+      this.soften(false);
       return;
     }
 
-    // Safety: e.g. the network dropped — never hold the video forever.
+    // Safety: e.g. the network dropped — never hold the video forever. Let it play for a while without
+    // holding again, and drop a sentence whose audio still hasn't come, so the dub picks up from where
+    // the video is instead of freezing.
     if (this.holding && now - this.holdSince > HOLD_MAX_MS) {
       if (this.cur) {
         try {
@@ -380,7 +421,15 @@ export class DubEngine {
         } catch {}
         this.cur.ended = true;
       }
+      const stuck = this.nextBlock();
+      if (stuck && !this.ready.has(stuck.i) && stuck.start < t) {
+        this.done.add(stuck.i);
+        this.stats.skipped++;
+      }
       this.release();
+      this.noHoldUntil = now + NO_HOLD_MS;
+      // If it was the end of the plan we waited at, don't wait there again until that part arrives.
+      if (this.covered && t > this.covered[1]) this.edgeGaveUp = true;
       this.emit("idle");
       return;
     }
@@ -398,6 +447,13 @@ export class DubEngine {
         this.emit("idle");
       } else {
         if (el.paused) this.startEl(this.cur);
+        // A little behind: slow the video slightly so the voice doesn't have to race (if the player can).
+        // Back to the user's speed as soon as the dub has caught up.
+        const behind = next ? t - next.start : t - (this.cur.b.start + this.cur.b.slot);
+        if (this.opts.flex !== false && !paused) {
+          if (behind > SOFT_LAG) this.soften(true);
+          else if (behind < 0.2) this.soften(false);
+        }
         // The dub fell behind the speaker: the next sentence should have started a while ago.
         if (this.opts.wait && !paused && next && t - next.start > HOLD_LAG) {
           this.hold();
@@ -410,7 +466,7 @@ export class DubEngine {
     // Playback reached the end of the prepared part while the next part is still on its way: wait for
     // it instead of letting the video run on with no dub.
     const c = this.covered;
-    if (this.opts.wait && c && t > c[1] && t < this.planEnd && this.loading && !(next && next.start <= t + 0.05)) {
+    if (this.opts.wait && !this.edgeGaveUp && c && t > c[1] && t < this.planEnd && this.loading && !(next && next.start <= t + 0.05)) {
       if (!this.holding && !paused) {
         this.hold();
         this.emit("buffering");
@@ -418,6 +474,7 @@ export class DubEngine {
       return;
     }
 
+    if (!next || next.start > t + 0.05) this.soften(false); // in sync (or nothing to say): the user's speed
     if (!next) return this.covered ? this.release() : undefined;
     if (next.start > t + 0.05) return this.release();
 
