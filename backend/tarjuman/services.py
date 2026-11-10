@@ -27,6 +27,7 @@ class Services:
         self.translator = Translator(c / "translations.json", c / "edits.json")
         self.pronounce = PronunciationDict(config.DATA / "pronounce.json")
         self.tts = TtsService(config.TTS_DIR, config.PIPER_MODEL, self.pronounce)
+        self.tts.cache_limit = config.VOICE_CACHE_BYTES
         self.ai = AiSettings(config.DATA / "settings.json")
         self.ai_client = AiClient(self.ai)
         self.writer = ScriptWriter(self.ai, self.ai_client, c / "ai-script.json")

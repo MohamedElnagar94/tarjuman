@@ -225,3 +225,20 @@ def test_the_first_extension_is_trusted_and_others_wait_for_approval(client):
     assert client.get("/api/vocab", headers=other).status_code == 200
     client.post("/api/extensions/set", json={"id": "somethingelse", "allow": False})
     assert client.get("/api/vocab", headers=other).status_code == 403
+
+
+def test_storage_reports_sizes_and_clears_caches_but_never_corrections(client, services, phone):
+    from tarjuman import config
+
+    (config.TTS_DIR / "abc.mp3").write_bytes(b"x" * 2048)
+    services.translator.cache["ar|hello"] = "مرحبا"
+    services.translator.set_edit("ar", "Hi", "أهلًا")
+    u = client.get("/api/storage").json()["usage"]
+    assert u["voices"]["bytes"] >= 2048 and {"dubbed", "media", "models", "tmp"} <= u.keys()
+    assert phone.post("/api/storage/clear", json={"what": "voices"}).status_code == 403, "this computer only"
+    client.post("/api/storage/clear", json={"what": "voices"})
+    assert not (config.TTS_DIR / "abc.mp3").exists()
+    client.post("/api/storage/clear", json={"what": "translations"})
+    assert services.translator.lookup("ar", "hello") is None
+    assert services.translator.lookup("ar", "Hi") == "أهلًا", "the user's corrections are kept"
+    assert client.post("/api/storage/clear", json={"what": "everything"}).status_code == 400

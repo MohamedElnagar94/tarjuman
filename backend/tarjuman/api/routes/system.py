@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import binascii
 
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse, Response
 
-from ... import APP_ID, __version__, config
+from ... import APP_ID, __version__, config, storage
 from ...asr import installed as whisper_installed
 from ...core.deps import has
 from ...core.net import lan_ip
@@ -51,6 +52,26 @@ def _pair_links(request: Request) -> list[str]:
 async def pairing_info(request: Request):
     """For the QR code on the computer: the link a phone opens once to be paired."""
     return ok(links=_pair_links(request), lan=bool(_pair_links(request)))
+
+
+@router.get("/api/storage")
+async def storage_usage(request: Request):
+    """How much each kind of data takes on disk."""
+    return ok(usage=await asyncio.to_thread(storage.usage), voiceLimit=config.VOICE_CACHE_BYTES)
+
+
+@router.post("/api/storage/clear")
+async def storage_clear(request: Request):
+    """{what: "voices" | "translations" | "tmp"}. Your corrections, files and videos are never touched."""
+    b = await body(request)
+    what = str(b.get("what") or "")
+    if what not in ("voices", "translations", "tmp"):
+        return fail("BAD_REQUEST", status=400)
+    s = services(request)
+    await asyncio.to_thread(storage.clear, s, what)
+    if what == "translations":
+        s.translator.flush()
+    return ok(usage=await asyncio.to_thread(storage.usage))
 
 
 @router.get("/api/extensions")

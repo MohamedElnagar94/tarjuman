@@ -60,6 +60,19 @@ class TtsService:
         self._meta_file = cache_dir / "_meta.json"
         self._save_meta = Debounced(self._write_meta, 3.0)
         self.ready = False
+        self._written = 0
+        self.cache_limit = 0  # bytes; 0 = no limit (set by the app from config)
+
+    def prune(self) -> int:
+        """Keep the clip cache under its limit (least recently used first)."""
+        if not self.cache_limit:
+            return 0
+        from ..storage import prune_clips
+
+        n = prune_clips(self.dir, self.cache_limit, self.meta)
+        if n:
+            self._save_meta.touch()
+        return n
 
     # ---------------- status / catalog ----------------
 
@@ -142,6 +155,10 @@ class TtsService:
             f = self.dir / f"{key}.{ext}"
             if f.exists():
                 buf = f.read_bytes()
+                try:
+                    os.utime(f)  # marks it recently used, for the cache's size limit
+                except OSError:
+                    pass
                 duration = self.meta.get(key) or duration_of(buf, mime)
                 self._set_meta(key, duration)
                 return TtsResult(buf, mime, duration, v.engine)
@@ -163,6 +180,9 @@ class TtsService:
                     self._set_meta(key, res.duration)
                 except OSError:
                     pass
+                self._written += 1
+                if self._written % 200 == 0:
+                    asyncio.ensure_future(asyncio.to_thread(self.prune))
                 self.stats[a.engine] = self.stats.get(a.engine, 0) + 1
                 return res
             self.stats["fallback"] += 1

@@ -200,6 +200,8 @@ export const api = {
   extensions: () => get<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions"),
   setExtension: (id: string, allow: boolean) =>
     post<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions/set", { id, allow }),
+  storage: () => get<{ ok: true; usage: Record<string, { bytes: number; files: number }>; voiceLimit: number }>("/api/storage"),
+  clearStorage: (what: string) => post<{ ok: true; usage: Record<string, { bytes: number; files: number }> }>("/api/storage/clear", { what }),
   pairing: () => get<{ ok: true; links: string[]; lan: boolean }>("/api/pairing"),
   resetPairing: () => post<{ ok: true; links: string[] }>("/api/pairing/reset", {}),
   pronounce: () => get<{ ok: true; items: PronounceRule[] }>("/api/pronounce"),

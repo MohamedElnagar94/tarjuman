@@ -486,7 +486,8 @@
       "appearance": "Appearance",
       "shortcuts": "Shortcuts",
       "phone": "Phone",
-      "extensions": "Extensions"
+      "extensions": "Extensions",
+      "storage": "Storage"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -615,7 +616,8 @@
     "NOT_PAIRED": "This device isn't paired. Pair it from Settings, Phone, on the computer.",
     "UPLOAD_TOO_LARGE": "The file is bigger than the upload limit.",
     "DISK_FULL": "There isn't enough disk space for this file.",
-    "EXTENSION_NOT_ALLOWED": "This extension isn't allowed. Allow it in the Tarjuman app under Settings, Extensions."
+    "EXTENSION_NOT_ALLOWED": "This extension isn't allowed. Allow it in the Tarjuman app under Settings, Extensions.",
+    "JOBS_RUNNING": "Jobs are running. Wait for them to finish, then try again."
   },
   "phone": {
     "lead": "Open Tarjuman on your phone over the same Wi-Fi. Each device is paired once, and an unpaired device can't reach your files.",
@@ -644,5 +646,26 @@
     "allow": "Allow",
     "dismiss": "Dismiss",
     "remove": "Remove"
+  },
+  "storage": {
+    "lead": "What Tarjuman keeps on this computer. Clearing a cache is safe: it is rebuilt when needed, and your translation corrections are never cleared.",
+    "voices": "Saved dub voices",
+    "voicesHint": "The least recently used are removed automatically above {limit}",
+    "translations": "Saved translations",
+    "translationsHint": "Your corrections are kept",
+    "tmp": "Temporary files",
+    "tmpHint": "Left by interrupted jobs; cleared at every start",
+    "dubbed": "Dubbed and subtitled videos",
+    "dubbedHint": "Managed in My files",
+    "media": "My uploaded and downloaded videos",
+    "mediaHint": "Managed in My files",
+    "subtitles": "Subtitle files",
+    "subtitlesHint": "Managed in My files",
+    "models": "Models (Whisper, voice, speech removal)",
+    "modelsHint": "Downloaded once",
+    "total": "Total",
+    "clear": "Clear",
+    "confirm": "Confirm",
+    "cleared": "Cleared."
   }
 }

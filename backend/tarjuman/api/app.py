@@ -11,7 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .. import __version__, config
+from .. import __version__, config, storage
 from ..core import http
 from ..core.errors import AppError
 from ..services import Services
@@ -53,6 +53,9 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         s.load()
+        # Nothing is running yet, so whatever is in tmp/ was left by a job that was interrupted.
+        await asyncio.to_thread(storage.clear_tmp)
+        asyncio.ensure_future(asyncio.to_thread(s.tts.prune))
         if warm:
             asyncio.get_running_loop().call_later(1.5, lambda: asyncio.ensure_future(s.tts.warm_up()))
         yield
