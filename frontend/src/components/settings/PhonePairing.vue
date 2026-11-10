@@ -134,7 +134,8 @@ onBeforeUnmount(() => clearInterval(timer));
               <button type="submit" class="btn btn--primary btn--sm">{{ t("common.save") }}</button>
               <button type="button" class="btn btn--quiet btn--sm" @click="editing = ''">{{ t("common.cancel") }}</button>
             </form>
-            <strong v-else class="device__name" dir="auto">{{ d.name }}</strong>
+            <!-- bdi keeps a Latin name in order while the line itself follows the page side -->
+            <strong v-else class="device__name"><bdi>{{ d.name }}</bdi></strong>
             <div class="device__meta">
               <span class="device__status" :title="t('phone.pairedAt', { when: new Date(d.pairedAt).toLocaleString(locale) })">
                 {{ online(d) ? t("phone.online") : t("phone.lastSeen", { when: ago(d.lastSeen) }) }}
