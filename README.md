@@ -89,7 +89,7 @@ You need **Python 3.11+** and **Node.js 20+**.
 ./start.sh
 ```
 
-The first run installs everything: the Python packages, the offline Arabic voice, and a build of the web app. Then the app opens at `http://127.0.0.1:4318`. On later runs it starts in a couple of seconds. To use it from your phone, open the address it prints for your Wi-Fi.
+The first run installs everything: the Python packages, the offline Arabic voice, and a build of the web app. Then the app opens at `http://127.0.0.1:4318`. On later runs it starts in a couple of seconds. To use it from your phone, open the address it prints for your Wi-Fi. On Windows, if the phone can't reach it, run `scripts/allow-phone.ps1` once as administrator: it marks your home Wi-Fi as Private and opens Tarjuman's ports on Private networks only.
 
 <details>
 <summary>Manual setup</summary>
