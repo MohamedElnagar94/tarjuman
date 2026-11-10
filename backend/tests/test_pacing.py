@@ -104,3 +104,21 @@ def test_condense_for_dub_drops_fast_talker_filler():
     assert condense_for_dub("Honestly, I'm very curious to hear what you guys think.") == "I'm very curious to hear what you think."
     assert condense_for_dub("So, let's go ahead and get right into it.") == "Let's get right into it."
     assert condense_for_dub("This is going to be a very hot topic.") == "This will be a very hot topic."
+
+
+def test_condense_for_dub_never_changes_the_meaning():
+    keep = {
+        "This is not just a tool.": "This is not just a tool.",
+        "Do you know what this is?": "Do you know what this is?",
+        "What I mean is simple.": "What I mean is simple.",
+        "Did you know that?": "Did you know that?",
+        "It costs just 5 dollars.": "It costs just 5 dollars.",
+        "It works just like before.": "It works just like before.",
+        "It is not really that hard.": "It is not really that hard.",
+        "Actually, the second one is wrong.": "Actually, the second one is wrong.",
+    }
+    for src, want in keep.items():
+        assert condense_for_dub(src) == want, src
+    assert condense_for_dub("I mean, it works.") == "It works."
+    assert condense_for_dub("It's, you know, pretty fast.") == "It's pretty fast."
+    assert condense_for_dub("I just finished it.") == "I finished it."

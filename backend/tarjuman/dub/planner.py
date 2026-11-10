@@ -18,15 +18,31 @@ def jround(x: float) -> int:
 
 SENT_END = re.compile(r"[.!?…؟。][\"'”’)\]]*$")
 
-# Filler makes the translation longer without adding meaning. Removed from the dub text only.
+# Filler makes the translation longer without adding meaning. Removed from the dub text only, and
+# only where removing it can't change the meaning ("not just a tool" must not become "not a tool").
+_NOT_AFTER_NEGATION = r"(?<!not )(?<!n't )(?<!never )"
 FILLERS = [
     re.compile(r"\b(?:um+|uh+|erm|hmm+)\b[,.]?\s*", re.I),
-    re.compile(r",?\s*\b(?:you know|i mean|kind of|sort of|basically|literally|actually)\b,?", re.I),
-    re.compile(r"^(?:(?:so|now|okay|ok|well|alright|all right|and|right)\b[,.]?\s+)+", re.I),
-    re.compile(r",?\s*\b(?:really|just|pretty much|simply|obviously)\b", re.I),
-    # Fast talkers' openers and padding.
-    re.compile(r"^(?:honestly|definitely|anyway|anyways|of course)\b,?\s*", re.I),
     re.compile(r"\b(?:go ahead and|kind of like|you know what I mean)\b\s*", re.I),
+    # Hedges that never carry meaning.
+    re.compile(r",?\s*\b(?:basically|literally|kind of|sort of)\b,?", re.I),
+    re.compile(r"^(?:(?:so|now|okay|ok|well|alright|all right|and|right)\b[,.]?\s+)+", re.I),
+    # Fast talkers' openers.
+    re.compile(r"^(?:honestly|definitely|anyway|anyways|of course)\b,?\s*", re.I),
+    # "you know" / "I mean" are filler at the start of a clause or between commas, but not in
+    # "do you know what…" or "what I mean is…".
+    re.compile(
+        r"(?:^|,|(?<=\bso )|(?<=\band )|(?<=\bbut ))\s*\b(?:you know|i mean)\b,?"
+        r"(?!\s+(?:what|that|it|is|how|why|where|who|which)\b)",
+        re.I,
+    ),
+    # Intensifiers, except after a negation ("not really", "not just").
+    re.compile(rf",?\s*{_NOT_AFTER_NEGATION}\b(?:really|pretty much|simply|obviously)\b", re.I),
+    # "just" also means "only" or "exactly": kept before a number, "like", "as", "now", "about".
+    re.compile(
+        rf",?\s*{_NOT_AFTER_NEGATION}\bjust\b(?!\s+(?:\d|\$|like\b|as\b|now\b|in time\b|because\b|about\b|one\b|a few\b))",
+        re.I,
+    ),
 ]
 # Wordy phrasings translate into long sentences; shorten them before translating.
 SHORTER = [
