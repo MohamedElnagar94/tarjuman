@@ -40,6 +40,8 @@ SCRIPT_SCHEMA = {
     "required": ["lines"],
     "additionalProperties": False,
 }
+# Bump when the prompt changes, so cached lines are written again with it.
+PROMPT_VERSION = 2
 SCRIPT_SHAPE = '{"lines":[{"id":0,"text":"..."}]}'
 
 
@@ -61,6 +63,17 @@ def script_system_prompt(tl: str, style: str) -> str:
             "speakers of the language say them (for example Unreal Engine, Blueprint, ChatGPT).",
             "- Use commas and full stops where a speaker would pause; the voice uses them for natural rhythm.",
             "- Use the `context` lines (already dubbed) so the script flows naturally from line to line.",
+            *(
+                [
+                    "- The voice cannot tell apart Arabic words that are spelled the same but read differently, and "
+                    "guesses the commonest reading. Add short-vowel diacritics (tashkeel) to every such word, using "
+                    "the meaning of `source` to choose: الجُمَل for sentences but الجَمَل for a camel, العِلْم for "
+                    "science but العَلَم for a flag, كُتُب for books but كَتَبَ for wrote. Diacritize only those "
+                    "words, not the whole line; diacritics do not count toward `max_chars`.",
+                ]
+                if tl == "ar"
+                else []
+            ),
             "",
             "Return exactly one output line per input `id`, in the same order. Never merge, split or skip lines.",
         ]
@@ -88,7 +101,7 @@ class ScriptWriter:
         style = a["style"] if tl == "ar" else "-"
 
         def key_of(it: dict) -> str:
-            return f"{a['provider']}|{self.settings.model}|{style}|{tl}|{-(-it['maxChars'] // 10)}|{it['src']}"
+            return f"{PROMPT_VERSION}|{a['provider']}|{self.settings.model}|{style}|{tl}|{-(-it['maxChars'] // 10)}|{it['src']}"
 
         out: dict[str, str] = {}
         todo = []

@@ -62,5 +62,9 @@ def mmss(sec: float) -> str:
     return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
 
 
+_DIACRITICS = re.compile(r"[ً-ْٰ]")
+
+
 def chars_of(text: str) -> int:
-    return len(collapse_ws(text))
+    """Spoken length in characters. Arabic diacritics mark vowels already counted, so they don't add any."""
+    return len(_DIACRITICS.sub("", collapse_ws(text)))
