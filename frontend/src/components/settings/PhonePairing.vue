@@ -67,6 +67,9 @@ async function saveName(d: PairedDevice) {
   if (newName.value.trim() && newName.value !== d.name) await run(api.pairingDevice(d.id, "rename", newName.value), "phone.renamed");
 }
 
+// The app asks the server every few seconds while open, so two minutes of silence means it is closed.
+const online = (d: PairedDevice) => Date.now() - d.lastSeen < 120_000;
+
 const rtf = computed(() => new Intl.RelativeTimeFormat(locale.value, { numeric: "auto" }));
 function ago(ms: number): string {
   const s = Math.round((ms - Date.now()) / 1000);
@@ -120,26 +123,40 @@ onBeforeUnmount(() => clearInterval(timer));
       <h3 class="sub">{{ t("phone.devices", { n: devices.length }) }}</h3>
       <p v-if="!devices.length" class="muted">{{ t("phone.noDevices") }}</p>
       <ul v-else class="devices">
-        <li v-for="d in devices" :key="d.id" class="device">
-          <PhDeviceMobile :size="22" class="device__icon" aria-hidden="true" />
+        <li v-for="d in devices" :key="d.id" class="device" :class="{ 'device--online': online(d) }">
+          <span class="device__tile" aria-hidden="true">
+            <PhDeviceMobile :size="22" weight="duotone" />
+            <span class="device__dot" />
+          </span>
           <div class="device__info">
             <form v-if="editing === d.id" class="rename" @submit.prevent="saveName(d)">
               <input v-model="newName" class="input" maxlength="60" :aria-label="t('phone.nameLabel')" @keydown.esc="editing = ''" />
               <button type="submit" class="btn btn--primary btn--sm">{{ t("common.save") }}</button>
+              <button type="button" class="btn btn--quiet btn--sm" @click="editing = ''">{{ t("common.cancel") }}</button>
             </form>
-            <strong v-else dir="auto">{{ d.name }}</strong>
-            <small class="muted">
-              {{ t("phone.lastSeen", { when: ago(d.lastSeen) }) }}
-              <span dir="ltr" class="mono">· {{ d.lastIp }}</span>
-            </small>
+            <strong v-else class="device__name" dir="auto">{{ d.name }}</strong>
+            <div class="device__meta">
+              <span class="device__status" :title="t('phone.pairedAt', { when: new Date(d.pairedAt).toLocaleString(locale) })">
+                {{ online(d) ? t("phone.online") : t("phone.lastSeen", { when: ago(d.lastSeen) }) }}
+              </span>
+              <span v-if="d.lastIp" class="device__ip mono" dir="ltr">{{ d.lastIp }}</span>
+            </div>
           </div>
-          <button type="button" class="btn btn--quiet btn--icon btn--sm" :aria-label="t('phone.rename')" @click="startRename(d)">
-            <PhPencilSimple :size="16" />
-          </button>
-          <button type="button" class="btn btn--sm" :class="confirming === d.id ? 'btn--primary' : 'btn--quiet'" @click="remove(d)">
-            <PhX v-if="confirming !== d.id" :size="15" />
-            {{ confirming === d.id ? t("phone.removeConfirm") : t("phone.remove") }}
-          </button>
+          <div v-if="editing !== d.id" class="device__actions">
+            <button type="button" class="btn btn--quiet btn--icon btn--sm" :title="t('phone.rename')" :aria-label="t('phone.rename')" @click="startRename(d)">
+              <PhPencilSimple :size="17" />
+            </button>
+            <button
+              type="button"
+              class="btn btn--sm device__remove"
+              :class="confirming === d.id ? 'btn--danger' : 'btn--quiet'"
+              @click="remove(d)"
+              @blur="confirming === d.id && (confirming = '')"
+            >
+              <PhX v-if="confirming !== d.id" :size="15" />
+              {{ confirming === d.id ? t("phone.removeConfirm") : t("phone.remove") }}
+            </button>
+          </div>
         </li>
       </ul>
       <div v-if="devices.length > 1" class="actions">
@@ -205,20 +222,92 @@ onBeforeUnmount(() => clearInterval(timer));
 .device {
   display: flex;
   align-items: center;
-  gap: var(--s-3);
-  padding: var(--s-2) var(--s-3);
-  border-radius: var(--r-md);
-  border: 1px solid var(--line, rgba(127, 127, 127, 0.2));
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  transition: border-color var(--dur) var(--ease);
 }
-.device__icon {
-  color: var(--accent);
+.device:hover {
+  border-color: var(--line-2);
+}
+.device__tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
   flex: none;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+/* Grey when the phone is away, green while it has Tarjuman open */
+.device__dot {
+  position: absolute;
+  inset-block-end: -3px;
+  inset-inline-end: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-3);
+  border: 2px solid var(--surface-2);
+}
+.device--online .device__dot {
+  background: var(--ok);
 }
 .device__info {
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: var(--s-1);
+}
+.device__name {
+  font-weight: 600;
+  font-size: var(--fs-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.device__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.device--online .device__status {
+  color: var(--ok);
+}
+.device__ip {
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
+.device__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  flex: none;
+}
+.device__remove:not(.btn--danger):hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+@media (max-width: 520px) {
+  .device {
+    flex-wrap: wrap;
+  }
+  .device__actions {
+    width: 100%;
+    justify-content: flex-end;
+    border-top: 1px solid var(--line);
+    padding-top: var(--s-2);
+  }
 }
 .rename {
   display: flex;

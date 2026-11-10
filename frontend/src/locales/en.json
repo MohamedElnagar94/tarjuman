@@ -649,7 +649,9 @@
     "renamed": "Name saved.",
     "remove": "Unpair",
     "removeConfirm": "Confirm",
-    "removed": "Device unpaired."
+    "removed": "Device unpaired.",
+    "online": "Online now",
+    "pairedAt": "Paired on {when}"
   },
   "extensions": {
     "lead": "Browser extensions allowed to use Tarjuman. The first one that connects is trusted automatically; any other waits for your approval here.",
