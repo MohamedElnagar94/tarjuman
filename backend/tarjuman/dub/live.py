@@ -17,6 +17,7 @@ from ..captions.service import CaptionService
 from ..core.text import norm_lang
 from ..translate.service import Translator, map_limit
 from ..voice.catalog import resolve_voice
+from ..voice.homographs import disambiguate
 from ..voice.gate import NEXT, PLAY, URGENT, WARM
 from ..voice.service import TtsService
 from .planner import Block, group_dub_blocks, pace_blocks
@@ -187,7 +188,11 @@ class LivePlanner:
         v = resolve_voice(voice, tl)
         ready = [b for b in sel if b.text]
         after = plan.blocks[ready[-1].i + 1] if ready and ready[-1].i + 1 < len(plan.blocks) else None
-        rows = [{"i": b.i, "start": b.start, "end": b.end, "text": b.text, "src": b.src} for b in ready]
+        # The spoken text gets diacritics where the English settles an ambiguous word (الجُمَل, not الجَمَل).
+        rows = [
+            {"i": b.i, "start": b.start, "end": b.end, "text": disambiguate(b.text, " ".join(b.parts) or b.src), "src": b.src}
+            for b in ready
+        ]
         follow = after.start if after else math.inf
 
         def nat_key(b: dict) -> str:

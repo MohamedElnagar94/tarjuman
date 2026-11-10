@@ -1,5 +1,7 @@
 """The HTTP API, offline: translation and voices are replaced by fakes."""
 
+import re
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -155,4 +157,5 @@ async def test_dub_falls_back_to_youtubes_translation_when_translators_refuse(se
                      alreadyTranslated=False, asr=True, srcLang="en", cues=cues)
     plan = Plan(data, False, "en", group_dub_blocks(cues))
     blocks = await services.live.blocks(plan, 0, 10, "", "ar")
-    assert [b["text"] for b in blocks] == ["أهلًا بالجميع في الدرس الأول", "لنبدأ الآن"]
+    plain = [re.sub("[ً-ْ]", "", b["text"]) for b in blocks]  # the voice text may carry diacritics
+    assert plain == ["أهلا بالجميع في الدرس الأول", "لنبدأ الآن"]
