@@ -98,3 +98,9 @@ def test_split_speakers_gives_each_clear_speaker_a_voice():
     assert s.per_sentence[0] == "auto-m"
     assert s.per_sentence[7] == s.per_sentence[6], "unclear pitch keeps the previous voice"
     assert split_speakers([0, 1, 2], [120, 0, 130]).per_sentence is None
+
+
+def test_condense_for_dub_drops_fast_talker_filler():
+    assert condense_for_dub("Honestly, I'm very curious to hear what you guys think.") == "I'm very curious to hear what you think."
+    assert condense_for_dub("So, let's go ahead and get right into it.") == "Let's get right into it."
+    assert condense_for_dub("This is going to be a very hot topic.") == "This will be a very hot topic."

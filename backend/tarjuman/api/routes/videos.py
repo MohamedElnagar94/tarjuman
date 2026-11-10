@@ -103,7 +103,9 @@ async def dubplan(
     end = qnum(q.get("to"), 0) or start + 120
     s = services(request)
     plan = await s.live.plan_for(url, tl)
-    blocks = await s.live.blocks(plan, start, end, voice, tl, measure=True, urgent=urgent == "1")
+    blocks = await s.live.blocks(
+        plan, start, end, voice, tl, measure=True, urgent=urgent == "1", speed=qnum(q.get("speed"), 1.0)
+    )
     return _plan_reply(plan, start, end, blocks)
 
 
@@ -125,5 +127,7 @@ async def dubplan_cues(request: Request):
         raise AppError("NO_CUES")
     s = services(request)
     plan = s.live.plan_for_cues(cues, b.get("sl") or "auto", tl)
-    blocks = await s.live.blocks(plan, start, end, b.get("voice") or "", tl, measure=True, urgent=bool(b.get("urgent")))
+    blocks = await s.live.blocks(
+        plan, start, end, b.get("voice") or "", tl, measure=True, urgent=bool(b.get("urgent")), speed=qnum(b.get("speed"), 1.0)
+    )
     return _plan_reply(plan, start, end, blocks)

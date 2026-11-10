@@ -24,6 +24,9 @@ FILLERS = [
     re.compile(r",?\s*\b(?:you know|i mean|kind of|sort of|basically|literally|actually)\b,?", re.I),
     re.compile(r"^(?:(?:so|now|okay|ok|well|alright|all right|and|right)\b[,.]?\s+)+", re.I),
     re.compile(r",?\s*\b(?:really|just|pretty much|simply|obviously)\b", re.I),
+    # Fast talkers' openers and padding.
+    re.compile(r"^(?:honestly|definitely|anyway|anyways|of course)\b,?\s*", re.I),
+    re.compile(r"\b(?:go ahead and|kind of like|you know what I mean)\b\s*", re.I),
 ]
 # Wordy phrasings translate into long sentences; shorten them before translating.
 SHORTER = [
@@ -33,6 +36,8 @@ SHORTER = [
     (re.compile(r"\b(?:I am|I'm) going to\b", re.I), "I'll"),
     (re.compile(r"\b(?:we are|we're) going to\b", re.I), "we'll"),
     (re.compile(r"\byou are going to\b|\byou're going to\b", re.I), "you'll"),
+    (re.compile(r"\byou guys\b", re.I), "you"),
+    (re.compile(r"\bis going to be\b", re.I), "will be"),
 ]
 _NOT_SPEECH = re.compile(
     r"\[[^\]]{0,40}\]|\([^)]{0,25}(?:music|applause|laughter|موسيقى|تصفيق|ضحك)[^)]{0,10}\)", re.I

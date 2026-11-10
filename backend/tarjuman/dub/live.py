@@ -176,10 +176,16 @@ class LivePlanner:
         measure: bool = False,
         urgent: bool = False,
         background: bool = False,
+        speed: float = 1.0,
     ) -> list[dict]:
         """Sentences between ``start`` and ``end``, paced. With ``measure``, the sentences near the start
         are synthesized once at their estimated rate and measured first, so the pace comes from real
-        durations and the browser finds the audio already cached."""
+        durations and the browser finds the audio already cached.
+
+        ``speed`` is the video's playback speed. Pacing is done in video seconds, and at 0.75 a sentence
+        that takes D seconds to say covers only 0.75·D of video: slowing the video gives the voice room
+        to speak at a natural pace instead of racing."""
+        speed = min(2.0, max(0.25, float(speed or 1.0)))
         sel = [b for b in plan.blocks if b.start + b.slot >= start and b.start <= end]
         need = [b for b in sel if b.text is None]
         if need:
@@ -201,8 +207,11 @@ class LivePlanner:
         def estimate(b: dict) -> float:
             return self.natural.get(nat_key(b)) or self.tts.natural_duration(b["text"], v)
 
+        def in_video_time(b: dict) -> float:
+            return estimate(b) * speed
+
         # Pass 1: a first rhythm from estimates (or from durations measured earlier).
-        first = pace_blocks(rows, estimate, follow)
+        first = pace_blocks(rows, in_video_time, follow)
         clip_rate: dict[int, int] = {}  # i -> the rate the cached clip was made at
 
         # Pass 2: synthesize each sentence once at its first rate and measure it. Character-count
@@ -223,12 +232,12 @@ class LivePlanner:
                 clip_rate[p["i"]] = p["rate"]
 
             span = end if background else start + MEASURE_SPAN
-            await map_limit([p for p in first if p["start"] <= span], 4, measure_one)
+            await map_limit([p for p in first if p["start"] <= span], 8, measure_one)
 
         # Pass 3: the final rhythm from real durations. If it is close to the cached clip, the browser
         # corrects it while playing (±20% is barely audible); otherwise it asks for a new clip.
         result = []
-        for b in pace_blocks(rows, estimate, follow):
+        for b in pace_blocks(rows, in_video_time, follow):
             final_rate = b["rate"] if v.engine == "edge" else 0
             synth_rate, play_rate = final_rate, 1.0
             if b["i"] in clip_rate:
@@ -248,6 +257,7 @@ class LivePlanner:
                     "src": b["src"],
                     "srcStart": b["start"],
                     "end": b["end"],
+                    "speed": speed,
                 }
             )
 
@@ -257,17 +267,17 @@ class LivePlanner:
                 if b["synthRate"] != clip_rate.get(b["i"]):
                     asyncio.ensure_future(self._warm(b["text"], tl, voice, b["synthRate"]))
         if measure and not background:
-            asyncio.ensure_future(self._prepare(plan, end, voice, tl))
+            asyncio.ensure_future(self._prepare(plan, end, voice, tl, speed))
         return result
 
-    async def _prepare(self, plan: Plan, start: float, voice: str, tl: str) -> None:
+    async def _prepare(self, plan: Plan, start: float, voice: str, tl: str, speed: float = 1.0) -> None:
         """Translate and measure the stretch after ``start`` while the player is busy with this one."""
         key = int(start // 10)
         if key in plan.prepared:
             return
         plan.prepared.add(key)
         try:
-            await self.blocks(plan, start, start + PREPARE_SPAN, voice, tl, measure=True, background=True)
+            await self.blocks(plan, start, start + PREPARE_SPAN, voice, tl, measure=True, background=True, speed=speed)
         except Exception:  # noqa: BLE001 — the player asks for it later anyway
             plan.prepared.discard(key)
 

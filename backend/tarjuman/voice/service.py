@@ -51,7 +51,8 @@ class TtsService:
         self.dir = cache_dir
         self.piper = Piper(piper_model)
         self.pronounce = pronounce
-        self.gate = PriorityGate(4)
+        # Measured: 8 parallel requests give the most throughput; more only queue up on Microsoft's side.
+        self.gate = PriorityGate(8)
         self.meta: dict[str, float] = {}  # clip key -> duration
         self.cps: dict[str, dict] = {}  # voice key -> {"cps": float, "n": int}
         self.stats = {"edge": 0, "piper": 0, "fallback": 0, "google": 0}
