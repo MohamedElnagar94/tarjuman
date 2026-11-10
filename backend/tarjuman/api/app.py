@@ -8,7 +8,7 @@ import mimetypes
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from .. import __version__, config
@@ -16,8 +16,10 @@ from ..core import http
 from ..core.errors import AppError
 from ..services import Services
 from .deps import fail
+from .extensions import ExtensionTrust, extension_id
+from .pairing import COOKIE, HEADER, Pairing
 from .routes import ai, jobs, learn, media, system, videos
-from .security import LOCAL_ONLY, is_loopback, post_allowed, request_allowed
+from .security import LOCAL_ONLY, OPEN_TO_ALL, is_loopback, post_allowed, request_allowed
 
 log = logging.getLogger("tarjuman")
 
@@ -34,6 +36,15 @@ NO_BUILD_PAGE = """<!doctype html><html lang="en"><meta charset="utf-8"><title>T
 <h1>Tarjuman is running</h1><p>The web app hasn't been built yet. Build it once with:</p>
 <pre style="background:#eef;padding:1rem;border-radius:8px">npm --prefix frontend install
 npm --prefix frontend run build</pre><p>then reload this page. The API is live at <code>/api/health</code>.</p></body></html>"""
+
+
+PAIR_FAILED_PAGE = """<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>ترجمان</title>
+<body style="font:17px system-ui;max-width:34rem;margin:3rem auto;padding:0 1.2rem;line-height:1.8">
+<h1 style="font-size:1.4rem">رمز الربط غير صالح</h1>
+<p>ربما أُعيد إنشاء الرمز. افتح ترجمان على الحاسوب، ثم «الإعدادات ← الهاتف»، وامسح رمز QR الجديد.</p>
+<p dir="ltr" style="text-align:left;color:#555">This pairing code is no longer valid. On the computer, open Settings → Phone and scan the new QR code.</p>
+</body></html>"""
 
 
 def create_app(services: Services | None = None, *, port: int = config.DEFAULT_PORT, warm: bool = True) -> FastAPI:
@@ -53,6 +64,10 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
                   openapi_url="/api/openapi.json")
     app.state.services = s
     app.state.port = port
+    pairing = app.state.pairing = Pairing(config.DATA / "pairing.json")
+    pairing.load()
+    trust = app.state.extensions = ExtensionTrust(config.DATA / "extensions.json")
+    trust.load()
 
     @app.middleware("http")
     async def guard(request: Request, call_next):
@@ -60,9 +75,23 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
         if path.startswith("/api/"):
             if not request_allowed(request.headers):
                 return fail("FORBIDDEN_ORIGIN", status=403)
-            # The settings hold an API key: only from this computer, not from others on the Wi-Fi.
-            if path in LOCAL_ONLY and not is_loopback(request.client.host if request.client else None):
+            ext = extension_id(request.headers.get("origin"))
+            request.state.extension_allowed = not ext or trust.check(ext)
+            if not request.state.extension_allowed and path not in OPEN_TO_ALL:
+                return fail(
+                    "EXTENSION_NOT_ALLOWED",
+                    "هذه الإضافة غير مسموح لها. اسمح بها من «الإعدادات ← الإضافات» في تطبيق ترجمان.",
+                    status=403,
+                )
+            local = is_loopback(request.client.host if request.client else None)
+            # The settings hold an API key, and pairing hands out access: only from this computer.
+            if path in LOCAL_ONLY and not local:
                 return fail("LOCAL_ONLY", "لا يمكن تعديل هذه الإعدادات إلا من الحاسوب نفسه", status=403)
+            # Another device on the Wi-Fi gets nothing until it is paired (see pairing.py).
+            paired = local or pairing.valid(request.cookies.get(COOKIE) or request.headers.get(HEADER))
+            request.state.paired = paired
+            if not paired and path not in OPEN_TO_ALL:
+                return fail("NOT_PAIRED", "هذا الجهاز غير مربوط بترجمان. امسح رمز الربط من إعدادات الحاسوب.", status=401)
             if request.method == "POST" and not post_allowed(path, request.headers.get("content-type")):
                 return fail("JSON_REQUIRED", status=415)
         return await call_next(request)
@@ -79,6 +108,15 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
 
     for r in (system.router, videos.router, jobs.router, media.router, learn.router, ai.router):
         app.include_router(r)
+
+    @app.get("/pair", include_in_schema=False)
+    async def pair(code: str = ""):
+        """Opened once on a phone (from the QR code): remembers the device, then opens the app."""
+        if not pairing.valid(code):
+            return HTMLResponse(PAIR_FAILED_PAGE, status_code=403)
+        res = RedirectResponse("/", status_code=303)
+        res.set_cookie(COOKIE, pairing.secret, max_age=365 * 24 * 3600, httponly=True, samesite="lax")
+        return res
 
     dist = config.FRONTEND_DIST
     if (dist / "assets").is_dir():

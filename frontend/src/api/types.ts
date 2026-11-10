@@ -150,6 +150,8 @@ export interface Health {
   tts: { installed: boolean; ready: boolean; edge?: boolean; piper?: boolean; stats?: unknown };
   ai: { ready: boolean; provider: string; model: string; style: string };
   jobs: number;
+  /** False on another device that has not been paired yet (it may only call /api/health). */
+  paired?: boolean;
 }
 
 export type AiProvider = "anthropic" | "openai";

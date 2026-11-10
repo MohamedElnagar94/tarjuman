@@ -29,8 +29,24 @@ def services():
 
 
 @pytest.fixture()
-def client(services):
-    with TestClient(create_app(services, warm=False), headers=LOCAL) as c:
+def app(services):
+    a = create_app(services, warm=False)
+    a.state.extensions.allowed, a.state.extensions.pending = [], []  # each test starts with no trusted extension
+    return a
+
+
+@pytest.fixture()
+def client(app):
+    """Requests from the computer running the app."""
+    with TestClient(app, headers=LOCAL, client=("127.0.0.1", 50000)) as c:
+        yield c
+
+
+@pytest.fixture()
+def phone(app):
+    """Requests from another device on the Wi-Fi."""
+    with TestClient(app, base_url="http://192.168.0.104:4318", headers={"host": "192.168.0.104:4318"},
+                    client=("192.168.0.50", 50000), follow_redirects=False) as c:
         yield c
 
 
@@ -52,10 +68,46 @@ def test_posts_must_be_json(client):
     assert r.json()["code"] == "JSON_REQUIRED"
 
 
-def test_settings_answer_only_to_this_computer(client):
-    # TestClient's peer address is "testclient", which is not loopback.
-    r = client.get("/api/settings")
+def test_settings_answer_only_to_this_computer(phone):
+    r = phone.get("/api/settings")
     assert r.status_code == 403 and r.json()["code"] == "LOCAL_ONLY"
+    assert phone.get("/api/pairing").status_code == 403, "a phone can't read the pairing code"
+
+
+def test_another_device_needs_pairing_before_it_can_use_the_app(app, phone):
+    assert phone.get("/api/vocab").status_code == 401
+    assert phone.get("/api/library").json()["code"] == "NOT_PAIRED"
+    assert phone.get("/api/health").json()["paired"] is False, "health still answers, to show the pairing screen"
+    assert phone.get("/pair?code=wrong").status_code == 403
+    r = phone.get("/pair?code=" + app.state.pairing.secret)
+    assert r.status_code == 303 and r.headers["location"] == "/"
+    assert "tarjuman_pair" in r.headers["set-cookie"] and "httponly" in r.headers["set-cookie"].lower()
+    assert phone.get("/api/vocab").json()["ok"], "the cookie pairs this browser"
+    assert phone.get("/api/health").json()["paired"] is True
+
+
+def test_resetting_the_pairing_code_unpairs_every_device(app, client, phone):
+    phone.get("/pair?code=" + app.state.pairing.secret)
+    assert phone.get("/api/vocab").status_code == 200
+    new = client.post("/api/pairing/reset", json={}).json()["links"]
+    assert phone.get("/api/vocab").status_code == 401
+    assert all(app.state.pairing.secret in link for link in new)
+
+
+def test_this_computer_never_needs_pairing(client):
+    assert client.get("/api/vocab").status_code == 200
+    assert client.get("/api/health").json()["paired"] is True
+
+
+def test_uploads_are_capped_and_cleaned_up(client, services, monkeypatch):
+    from tarjuman import config
+
+    monkeypatch.setattr(config, "MAX_UPLOAD_BYTES", 1000)
+    r = client.post("/api/media/upload?name=a.mp4", content=b"x" * 5000, headers={"content-type": "application/octet-stream"})
+    assert r.status_code == 413 and r.json()["code"] == "UPLOAD_TOO_LARGE"
+    assert services.media.items == {}, "nothing left behind"
+    r = client.post("/api/media/upload?name=a.mp4", content=b"x" * 500, headers={"content-type": "application/octet-stream"})
+    assert r.json()["ok"] and r.json()["size"] == 500
 
 
 def test_settings_never_return_the_key_and_clear_it_when_the_provider_changes(services):
@@ -159,3 +211,17 @@ async def test_dub_falls_back_to_youtubes_translation_when_translators_refuse(se
     blocks = await services.live.blocks(plan, 0, 10, "", "ar")
     plain = [re.sub("[ً-ْ]", "", b["text"]) for b in blocks]  # the voice text may carry diacritics
     assert plain == ["أهلا بالجميع في الدرس الأول", "لنبدأ الآن"]
+
+
+def test_the_first_extension_is_trusted_and_others_wait_for_approval(client):
+    mine = {"origin": "chrome-extension://tarjumanaaaa"}
+    other = {"origin": "chrome-extension://somethingelse"}
+    assert client.get("/api/health", headers=mine).status_code == 200
+    assert client.get("/api/health", headers=other).json()["extensionAllowed"] is False, "health says why"
+    r = client.get("/api/vocab", headers=other)
+    assert r.status_code == 403 and r.json()["code"] == "EXTENSION_NOT_ALLOWED"
+    assert client.get("/api/extensions").json()["pending"] == ["somethingelse"]
+    client.post("/api/extensions/set", json={"id": "somethingelse", "allow": True})
+    assert client.get("/api/vocab", headers=other).status_code == 200
+    client.post("/api/extensions/set", json={"id": "somethingelse", "allow": False})
+    assert client.get("/api/vocab", headers=other).status_code == 403

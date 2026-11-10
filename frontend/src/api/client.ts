@@ -197,6 +197,11 @@ export const api = {
   deleteVocab: (id: string) => post<{ ok: true }>("/api/vocab/delete", { id }),
   vocabCsvUrl: "/api/vocab.csv",
 
+  extensions: () => get<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions"),
+  setExtension: (id: string, allow: boolean) =>
+    post<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions/set", { id, allow }),
+  pairing: () => get<{ ok: true; links: string[]; lan: boolean }>("/api/pairing"),
+  resetPairing: () => post<{ ok: true; links: string[] }>("/api/pairing/reset", {}),
   pronounce: () => get<{ ok: true; items: PronounceRule[] }>("/api/pronounce"),
   savePronounce: (items: PronounceRule[]) => post<{ ok: true; items: PronounceRule[] }>("/api/pronounce", { items }),
   previewPronounce: (text: string) => post<{ ok: true; text: string }>("/api/pronounce/preview", { text }),

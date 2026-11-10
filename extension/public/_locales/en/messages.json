@@ -438,5 +438,11 @@
   },
   "taglineShort": {
     "message": "Subtitles & dubbing for any video"
+  },
+  "notAllowedTitle": {
+    "message": "Allow this extension in Tarjuman"
+  },
+  "notAllowedBody": {
+    "message": "The Tarjuman app is running but hasn't allowed this extension yet. Open the app on your computer, go to Settings, Extensions, and click Allow."
   }
 }

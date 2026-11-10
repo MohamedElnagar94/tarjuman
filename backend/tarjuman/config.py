@@ -28,6 +28,10 @@ PORT_TRIES = 10
 DEFAULT_HOST = os.environ.get("TARJUMAN_HOST") or "0.0.0.0"
 
 WHISPER_MODEL = os.environ.get("TARJUMAN_WHISPER_MODEL") or "base"
+
+# Uploads: at most this big, and never leaving less than DISK_RESERVE_BYTES free on the disk.
+MAX_UPLOAD_BYTES = int(float(os.environ.get("TARJUMAN_MAX_UPLOAD_GB") or 8) * (1 << 30))
+DISK_RESERVE_BYTES = 1 << 30
 FORCE_ASR = os.environ.get("TARJUMAN_FORCE_ASR") == "1"
 
 PIPER_VOICE = "ar_JO-kareem-medium"

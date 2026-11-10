@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { PhKeyboard, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh } from "@phosphor-icons/vue";
+import { PhDeviceMobile, PhKeyboard, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
 import AiSettings from "@/components/settings/AiSettings.vue";
+import PhonePairing from "@/components/settings/PhonePairing.vue";
+import ExtensionTrust from "@/components/settings/ExtensionTrust.vue";
 import PronounceEditor from "@/components/settings/PronounceEditor.vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
@@ -21,6 +23,8 @@ onMounted(() => (document.title = t("settings.title") + " | " + t("app.name")));
 
 const SECTIONS = [
   { id: "ai", icon: PhSparkle },
+  { id: "phone", icon: PhDeviceMobile },
+  { id: "extensions", icon: PhPuzzlePiece },
   { id: "pronounce", icon: PhSpeakerHigh },
   { id: "defaults", icon: PhSlidersHorizontal },
   { id: "appearance", icon: PhPaintBrush },
@@ -58,6 +62,16 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
         <section id="ai" class="panel sec" aria-labelledby="h-ai">
           <h2 id="h-ai" class="panel__title">{{ t("settings.s.ai") }}</h2>
           <AiSettings />
+        </section>
+
+        <section id="phone" class="panel sec" aria-labelledby="h-phone">
+          <h2 id="h-phone" class="panel__title">{{ t("settings.s.phone") }}</h2>
+          <PhonePairing />
+        </section>
+
+        <section id="extensions" class="panel sec" aria-labelledby="h-ext">
+          <h2 id="h-ext" class="panel__title">{{ t("settings.s.extensions") }}</h2>
+          <ExtensionTrust />
         </section>
 
         <section id="pronounce" class="panel sec" aria-labelledby="h-pr">

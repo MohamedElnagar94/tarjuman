@@ -10,7 +10,11 @@ from typing import Mapping
 from urllib.parse import urlsplit
 
 _EXT_ORIGIN = re.compile(r"^(chrome|moz|edge)-extension://")
-LOCAL_ONLY = frozenset({"/api/settings", "/api/ai/test"})
+LOCAL_ONLY = frozenset(
+    {"/api/settings", "/api/ai/test", "/api/pairing", "/api/pairing/reset", "/api/extensions", "/api/extensions/set"}
+)
+# Answered for unpaired devices too, so a phone can show "pair this device" instead of an error.
+OPEN_TO_ALL = frozenset({"/api/health"})
 
 
 def request_allowed(headers: Mapping[str, str]) -> bool:

@@ -21,6 +21,7 @@ import time
 import webbrowser
 
 from . import __version__, config
+from .core.net import lan_ip
 
 
 def _free_port(host: str, start: int) -> int:
@@ -32,15 +33,6 @@ def _free_port(host: str, start: int) -> int:
             except OSError:
                 continue
     raise SystemExit(f"No free port between {start} and {start + config.PORT_TRIES - 1}")
-
-
-def _lan_ip() -> str | None:
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("10.255.255.255", 1))
-            return s.getsockname()[0]
-    except OSError:
-        return None
 
 
 def serve(args: argparse.Namespace) -> None:
@@ -55,9 +47,10 @@ def serve(args: argparse.Namespace) -> None:
     print(f"\n  Tarjuman {__version__}")
     print(f"  Open: {local}")
     if host == "0.0.0.0":
-        ip = _lan_ip()
+        ip = lan_ip()
         if ip:
-            print(f"  From your phone (same Wi-Fi): http://{ip}:{port}")
+            # Opening this link once pairs the phone (the code is also shown as a QR in Settings → Phone).
+            print(f"  From your phone (same Wi-Fi), open once: http://{ip}:{port}/pair?code={app.state.pairing.secret}")
     if port != args.port:
         print(f"  Port {args.port} was busy; the extension finds the new port on its own.")
     if not config.FRONTEND_DIST.joinpath("index.html").exists():

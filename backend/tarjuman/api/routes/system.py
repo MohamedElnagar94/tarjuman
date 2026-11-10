@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse, Response
 
 from ... import APP_ID, __version__, config
 from ...asr import installed as whisper_installed
+from ...core.net import lan_ip
 from ...media import ffmpeg
 from ..deps import body, fail, ok, services
 
@@ -38,7 +39,46 @@ async def health(request: Request):
         tts=s.tts.status(),
         ai={"ready": s.ai.ready, "provider": s.ai.ai["provider"], "model": s.ai.model, "style": s.ai.ai["style"]},
         jobs=s.jobs.running_count(),
+        paired=bool(getattr(request.state, "paired", True)),
+        extensionAllowed=bool(getattr(request.state, "extension_allowed", True)),
     )
+
+
+def _pair_links(request: Request) -> list[str]:
+    code = request.app.state.pairing.secret
+    port = request.app.state.port
+    ip = lan_ip()
+    return [f"http://{ip}:{port}/pair?code={code}"] if ip else []
+
+
+@router.get("/api/pairing")
+async def pairing_info(request: Request):
+    """For the QR code on the computer: the link a phone opens once to be paired."""
+    return ok(links=_pair_links(request), lan=bool(_pair_links(request)))
+
+
+@router.get("/api/extensions")
+async def extensions(request: Request):
+    t = request.app.state.extensions
+    return ok(allowed=t.allowed, pending=t.pending)
+
+
+@router.post("/api/extensions/set")
+async def extensions_set(request: Request):
+    """{id, allow: true|false}: allow a waiting extension, or remove one."""
+    b = await body(request)
+    t = request.app.state.extensions
+    ext = str(b.get("id") or "")
+    if ext:
+        t.allow(ext) if b.get("allow") else t.remove(ext)
+    return ok(allowed=t.allowed, pending=t.pending)
+
+
+@router.post("/api/pairing/reset")
+async def pairing_reset(request: Request):
+    """A new secret: every device paired so far has to be paired again."""
+    request.app.state.pairing.reset()
+    return ok(links=_pair_links(request))
 
 
 @router.post("/api/live")

@@ -23,6 +23,8 @@ const running = computed(() => !!status.value?.activeHere);
 const runMode = computed(() => (running.value ? status.value?.state.mode : null));
 const tab = computed(() => status.value?.tab || null);
 const online = computed(() => !!status.value?.health);
+// The app answers but hasn't approved this extension yet (it trusts the first one that connects).
+const notAllowed = computed(() => (status.value?.health as { extensionAllowed?: boolean } | null)?.extensionAllowed === false);
 const version = computed(() => (status.value?.health?.version as string) || "");
 const blocked = computed(() => !!tab.value?.protected);
 
@@ -192,6 +194,15 @@ onMounted(async () => {
           <button type="button" class="btn" :disabled="retrying" @click="retry">{{ retrying ? t("connSearching") : t("btnRetry") }}</button>
         </div>
         <p class="small">{{ t("offlineHint") }}</p>
+      </section>
+
+      <!-- The app runs but another extension was approved first -->
+      <section v-else-if="notAllowed" class="offline">
+        <h2>{{ t("notAllowedTitle") }}</h2>
+        <p>{{ t("notAllowedBody") }}</p>
+        <div class="offline-actions">
+          <button type="button" class="btn" :disabled="retrying" @click="retry">{{ retrying ? t("connSearching") : t("btnRetry") }}</button>
+        </div>
       </section>
 
       <!-- Controls -->

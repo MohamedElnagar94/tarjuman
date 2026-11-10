@@ -484,7 +484,9 @@
       "pronounce": "Pronunciation",
       "defaults": "Defaults",
       "appearance": "Appearance",
-      "shortcuts": "Shortcuts"
+      "shortcuts": "Shortcuts",
+      "phone": "Phone",
+      "extensions": "Extensions"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -609,6 +611,38 @@
     "AI_SDK_MISSING": "The provider's library isn't installed. Run python -m tarjuman setup.",
     "LOCAL_ONLY": "This setting is only available on the computer Tarjuman runs on.",
     "FORBIDDEN_ORIGIN": "The server refused this request for security reasons.",
-    "YT_API": "Couldn't load the YouTube player."
+    "YT_API": "Couldn't load the YouTube player.",
+    "NOT_PAIRED": "This device isn't paired. Pair it from Settings, Phone, on the computer.",
+    "UPLOAD_TOO_LARGE": "The file is bigger than the upload limit.",
+    "DISK_FULL": "There isn't enough disk space for this file.",
+    "EXTENSION_NOT_ALLOWED": "This extension isn't allowed. Allow it in the Tarjuman app under Settings, Extensions."
+  },
+  "phone": {
+    "lead": "Open Tarjuman on your phone over the same Wi-Fi. Each device is paired once, and an unpaired device can't reach your files.",
+    "qrLabel": "QR code to pair a phone",
+    "step1": "Connect the phone to the same Wi-Fi.",
+    "step2": "Point the camera at the code and open the link.",
+    "step3": "Tarjuman opens on the phone and stays paired.",
+    "copy": "Copy link",
+    "firewall": "On Windows, if the phone can't open the link, run scripts/allow-phone.ps1 once as administrator.",
+    "reset": "Unpair all devices",
+    "resetConfirm": "Confirm unpairing",
+    "resetHint": "A new code is made, and every phone has to be paired again.",
+    "resetDone": "All devices were unpaired. Here is the new code.",
+    "remote": "This device is paired. Pairing is managed from the computer running Tarjuman.",
+    "noLan": "This computer isn't on a local network right now, so a phone can't be paired.",
+    "unpairedTitle": "This device isn't paired with Tarjuman",
+    "unpairedBody": "To protect your files, Tarjuman opens on other devices only after they are paired once.",
+    "unpaired1": "On the computer, open Tarjuman, then Settings, then Phone.",
+    "unpaired2": "Scan the QR code with this device's camera, or open the link under it."
+  },
+  "extensions": {
+    "lead": "Browser extensions allowed to use Tarjuman. The first one that connects is trusted automatically; any other waits for your approval here.",
+    "none": "No extension has connected yet.",
+    "waiting": "Waiting for approval",
+    "allowed": "Allowed",
+    "allow": "Allow",
+    "dismiss": "Dismiss",
+    "remove": "Remove"
   }
 }

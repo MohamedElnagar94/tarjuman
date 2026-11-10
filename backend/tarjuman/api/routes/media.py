@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import shutil
+
 from fastapi import APIRouter, Request
 
+from ... import config
+from ...core.errors import AppError
 from ...jobs import runners
 from ..deps import body, fail, ok, services
 from .jobs import send_file
@@ -11,18 +15,42 @@ from .jobs import send_file
 router = APIRouter()
 
 
+def _free_bytes(folder) -> int:
+    try:
+        return shutil.disk_usage(folder).free
+    except OSError:
+        return 1 << 62
+
+
 @router.post("/api/media/upload")
 async def upload(request: Request, name: str = "video"):
-    """The file is written to disk as it arrives, never held in memory whole."""
+    """The file is written to disk as it arrives, never held in memory whole. Uploads are capped
+    (TARJUMAN_MAX_UPLOAD_GB) and stop before they would leave the disk nearly full."""
     s = services(request)
+    limit = config.MAX_UPLOAD_BYTES
+    try:
+        declared = int(request.headers.get("content-length") or 0)
+    except ValueError:
+        declared = 0
+    if declared > limit:
+        return fail("UPLOAD_TOO_LARGE", f"أقصى حجم للرفع {limit // (1 << 30)} غيغابايت", status=413)
+    if declared and declared > _free_bytes(s.media.folder) - config.DISK_RESERVE_BYTES:
+        return fail("DISK_FULL", "لا توجد مساحة كافية على القرص لهذا الملف", status=507)
     item = s.media.upload_target(name)
     size = 0
     try:
         item.path.parent.mkdir(parents=True, exist_ok=True)
         with open(item.path, "wb") as fh:
             async for chunk in request.stream():
-                fh.write(chunk)
                 size += len(chunk)
+                if size > limit:
+                    raise AppError("UPLOAD_TOO_LARGE", f"أقصى حجم للرفع {limit // (1 << 30)} غيغابايت")
+                if size % (64 << 20) < len(chunk) and _free_bytes(s.media.folder) < config.DISK_RESERVE_BYTES:
+                    raise AppError("DISK_FULL", "امتلأ القرص أثناء الرفع")
+                fh.write(chunk)
+    except AppError as e:
+        s.media.discard(item)
+        return fail(e.code, e.message, status=413 if e.code == "UPLOAD_TOO_LARGE" else 507)
     except BaseException:
         s.media.discard(item)
         raise
