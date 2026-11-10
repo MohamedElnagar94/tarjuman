@@ -134,21 +134,79 @@ async function closeOffscreen() {
 /*  Tabs                                                               */
 /* ------------------------------------------------------------------ */
 
-async function inject(tabId: number) {
-  await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+/** Loads the overlay script into the page, and into every frame we may access: on most movie and anime
+ *  sites the video plays inside an iframe from another site, and only a script inside it can see it. */
+async function inject(tabId: number, allFrames = false) {
+  await chrome.scripting.executeScript({ target: { tabId, allFrames }, files: ["content.js"] });
 }
 
 /** Sends to the overlay; if there is none yet (a site other than YouTube, or a reloaded page) injects it first. */
-async function sendToTab(tabId: number, msg: Record<string, unknown>): Promise<Reply> {
+async function sendToTab(tabId: number, msg: Record<string, unknown>, frameId = 0): Promise<Reply> {
   try {
-    return await chrome.tabs.sendMessage(tabId, msg);
+    return await chrome.tabs.sendMessage(tabId, msg, { frameId });
   } catch {
     try {
-      await inject(tabId);
-      return await chrome.tabs.sendMessage(tabId, msg);
+      await inject(tabId, frameId !== 0);
+      return await chrome.tabs.sendMessage(tabId, msg, { frameId });
     } catch (e2) {
       return { ok: false, code: "NO_ACCESS", message: String((e2 as Error)?.message || e2) };
     }
+  }
+}
+
+// Site and path only: player frames often carry a fresh token in the query on every reload.
+const frameKey = (url: string) => {
+  try {
+    const u = new URL(url);
+    return u.origin + u.pathname;
+  } catch {
+    return url;
+  }
+};
+
+/** The frame that plays the video: the one with the biggest <video>. 0 (the page itself) if none is found. */
+async function findPlayerFrame(tabId: number): Promise<{ frameId: number; url: string }> {
+  try {
+    await inject(tabId, true);
+  } catch {}
+  let results: chrome.scripting.InjectionResult<{ url: string; area: number }>[] = [];
+  try {
+    results = await chrome.scripting.executeScript({
+      target: { tabId, allFrames: true },
+      func: () => {
+        let area = 0;
+        for (const v of Array.from(document.querySelectorAll("video"))) area = Math.max(area, v.offsetWidth * v.offsetHeight);
+        return { url: location.href, area };
+      },
+    });
+  } catch {}
+  let best = { frameId: 0, url: "", area: 0 };
+  for (const r of results) {
+    const res = r.result;
+    if (res && res.area > best.area) best = { frameId: r.frameId, url: res.url, area: res.area };
+  }
+  return { frameId: best.frameId, url: best.frameId ? frameKey(best.url) : "" };
+}
+
+/** Sites of the large iframes on the page (players, not ad pixels), as permission patterns. */
+async function frameOriginsOf(tabId: number, pageOrigin: string | null): Promise<string[]> {
+  try {
+    const [r] = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () =>
+        Array.from(document.querySelectorAll("iframe"))
+          .filter((f) => f.offsetWidth * f.offsetHeight >= 300 * 160)
+          .map((f) => f.src)
+          .filter((s) => /^https?:/.test(s)),
+    });
+    const out = new Set<string>();
+    for (const src of (r && r.result) || []) {
+      const p = originPattern(src);
+      if (p && p !== pageOrigin) out.add(p);
+    }
+    return [...out].slice(0, 5);
+  } catch {
+    return [];
   }
 }
 
@@ -177,13 +235,14 @@ async function tabInfo(tab: chrome.tabs.Tab | undefined): Promise<TabInfo | null
   const url = tab.url || tab.pendingUrl || "";
   const youtube = isYouTube(url);
   const origin = youtube ? null : originPattern(url);
+  const frameOrigins = origin && !isProtectedUrl(url) ? await frameOriginsOf(tab.id, origin) : [];
   let siteGranted = youtube;
   if (origin) {
     try {
-      siteGranted = await chrome.permissions.contains({ origins: [origin] });
+      siteGranted = await chrome.permissions.contains({ origins: [origin, ...frameOrigins] });
     } catch {}
   }
-  return { id: tab.id, url, youtube, protected: isProtectedUrl(url), origin, siteGranted };
+  return { id: tab.id, url, youtube, protected: isProtectedUrl(url), origin, siteGranted, frameOrigins };
 }
 
 /* ------------------------------------------------------------------ */
@@ -211,15 +270,18 @@ async function start(tab: chrome.tabs.Tab | undefined): Promise<Reply> {
     return { ok: true, mode: "youtube" };
   }
 
-  // Any other site: the player's own captions are exact and well timed, so prefer them; otherwise capture the tab's audio.
-  const probeRes = await sendToTab(tabId, { type: "probe-captions" });
+  // Any other site: the player's own captions are exact and well timed, so prefer them; otherwise capture
+  // the tab's audio. Either way the overlay runs in the frame that plays the video, so it sees the player
+  // and stays visible when that player goes full screen.
+  const player = await findPlayerFrame(tabId);
+  const probeRes = await sendToTab(tabId, { type: "probe-captions" }, player.frameId);
   if (probeRes && probeRes.ok === false) return { ok: false, code: "NO_ACCESS", message: probeRes.message };
   const tracks: TrackInfo[] = (probeRes && probeRes.tracks) || [];
   const pick = pickTrack(tracks, settings.lang);
   if (pick) {
-    state = { active: true, mode: "captions", tabId, track: pick.index };
+    state = { active: true, mode: "captions", tabId, track: pick.index, frameUrl: player.url };
     saveState();
-    await sendToTab(tabId, activation());
+    await sendToTab(tabId, activation(), player.frameId);
     return { ok: true, mode: "captions" };
   }
 
@@ -238,9 +300,9 @@ async function start(tab: chrome.tabs.Tab | undefined): Promise<Reply> {
     await closeOffscreen();
     return { ok: false, code: "CAPTURE_FAILED", message: r && r.message };
   }
-  state = { active: true, mode: "live", tabId };
+  state = { active: true, mode: "live", tabId, frameUrl: player.url };
   saveState();
-  await sendToTab(tabId, activation());
+  await sendToTab(tabId, activation(), player.frameId);
   return { ok: true, mode: "live" };
 }
 
@@ -408,6 +470,9 @@ const handlers: Record<string, Handler> = {
     const tabId = sender.tab?.id;
     if (!state.active || tabId == null || tabId !== state.tabId) return { ok: true, activate: null };
     const url = String(msg.url || sender.url || "");
+    // Only the frame that plays the video carries the overlay (the page itself when there is no player iframe).
+    const wanted = state.mode === "youtube" ? "" : state.frameUrl || "";
+    if (wanted ? frameKey(url) !== wanted : (sender.frameId || 0) !== 0) return { ok: true, activate: null };
     if (isYouTube(url) && state.mode !== "youtube" && state.mode !== "live") {
       state = { active: true, mode: "youtube", tabId };
       saveState();
@@ -469,7 +534,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info) => {
   } catch {}
   if (state.mode === "youtube") return void stop(); // left YouTube
   try {
-    await inject(tabId); // the new copy sends "content-ready" and is activated from there
+    await inject(tabId, !!state.frameUrl); // the new copy sends "content-ready" and is activated from there
   } catch {
     await stop(); // no access to this page any more
   }

@@ -8,6 +8,8 @@ export interface RunState {
   mode: Mode | null;
   tabId: number | null;
   track?: number;
+  /** On sites that play the video inside an iframe (most movie and anime sites): that frame's address. */
+  frameUrl?: string;
 }
 
 export interface TabInfo {
@@ -19,6 +21,8 @@ export interface TabInfo {
   origin: string | null;
   /** The extension may run on this site again after a reload (YouTube, or the site was granted). */
   siteGranted: boolean;
+  /** "https://player-host/*" for each large iframe on the page (the player often lives on another site). */
+  frameOrigins: string[];
 }
 
 export interface Status {

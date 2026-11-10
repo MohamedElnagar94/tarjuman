@@ -76,7 +76,8 @@ async function toggle() {
       void send("pending-start", { tabId: tb.id });
       let granted = false;
       try {
-        granted = await chrome.permissions.request({ origins: [tb.origin] });
+        // The player often lives in an iframe from another site; it needs the same permission.
+        granted = await chrome.permissions.request({ origins: [tb.origin, ...(tb.frameOrigins || [])] });
       } catch {}
       if (!granted) remember(tb.origin);
     }
@@ -90,7 +91,7 @@ async function allowSite() {
   const tb = tab.value;
   if (!tb?.origin) return;
   try {
-    if (await chrome.permissions.request({ origins: [tb.origin] })) {
+    if (await chrome.permissions.request({ origins: [tb.origin, ...(tb.frameOrigins || [])] })) {
       forget(tb.origin);
       await refresh();
     }

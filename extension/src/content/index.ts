@@ -555,14 +555,24 @@ declare global {
   }
 
   /** Turns the track on (hidden) and waits for its cues to load. */
+  // Tracks we switched off screen, with the mode to give back when translation stops.
+  const hiddenTracks = new Map<TextTrack, TextTrackMode>();
+
   async function loadTrackCues(track: TextTrack) {
-    const before = track.mode;
-    if (track.mode === "disabled") track.mode = "hidden";
+    // "hidden" still loads the cues but stops the player drawing them under our translation.
+    if (!hiddenTracks.has(track)) hiddenTracks.set(track, track.mode);
+    track.mode = "hidden";
     for (let k = 0; k < 25 && !(track.cues && track.cues.length); k++) await sleep(200);
-    const cues = normalizeTrackCues((track.cues || []) as unknown as ArrayLike<VTTCue>);
-    // Keep the site's own captions off screen if they were off before.
-    if (before === "disabled") track.mode = "hidden";
-    return cues;
+    return normalizeTrackCues((track.cues || []) as unknown as ArrayLike<VTTCue>);
+  }
+
+  function restoreTracks() {
+    for (const [track, mode] of hiddenTracks) {
+      try {
+        track.mode = mode;
+      } catch {}
+    }
+    hiddenTracks.clear();
   }
 
   async function activateCaptions(index?: number) {
@@ -658,6 +668,7 @@ declare global {
   });
 
   function deactivate() {
+    restoreTracks();
     S.gen++;
     S.active = false;
     S.mode = null;
