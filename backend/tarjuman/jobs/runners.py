@@ -568,8 +568,10 @@ async def run_batch(s: "Services", job: Job) -> None:
                 else:
                     sub = s.jobs.new("subvideo", item["id"], lang=o["lang"], mode="ar", quality=o["quality"])
                 job.current = sub
-                sub.status = "running"
-                await (run_dub(s, sub, link) if o["what"] == "dub" else run_subvideo(s, sub, link))
+                sub.phase = "في انتظار انتهاء مهمة أخرى"
+                async with s.jobs.slot(sub.type):
+                    sub.status = "running"
+                    await (run_dub(s, sub, link) if o["what"] == "dub" else run_subvideo(s, sub, link))
                 sub.status = "done"
             item["status"] = "done"
         except Exception as e:  # noqa: BLE001

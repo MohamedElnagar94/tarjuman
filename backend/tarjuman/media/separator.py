@@ -35,21 +35,6 @@ def emit(obj: dict) -> None:
     print(json.dumps(obj), flush=True)
 
 
-def load_stereo(path: str) -> np.ndarray:
-    """Any video/audio -> float32 [2, N] at 44.1 kHz."""
-    import av
-
-    res = av.audio.resampler.AudioResampler(format="fltp", layout="stereo", rate=SR)
-    chunks = []
-    with av.open(path) as c:
-        for frame in c.decode(audio=0):
-            chunks.extend(f.to_ndarray() for f in res.resample(frame))
-        chunks.extend(f.to_ndarray() for f in res.resample(None))
-    if not chunks:
-        raise RuntimeError("NO_AUDIO")
-    return np.concatenate(chunks, axis=1).astype(np.float32)
-
-
 def stft(x: np.ndarray) -> np.ndarray:
     """[..., CHUNK] -> complex [..., N_BINS, DIM_T] (like torch.stft with center=True, reflect padding)."""
     pad = N_FFT // 2
@@ -107,6 +92,97 @@ def write_wav(path: str, audio: np.ndarray) -> None:
         w.writeframes(pcm.tobytes())
 
 
+def _run_chunks(session, in_name: str, chunks: list[np.ndarray]) -> list[np.ndarray]:
+    """The model on a few CHUNK-long pieces; returns the clean middle (GEN samples) of each."""
+    spec = stft(np.stack(chunks))
+    x = np.stack([spec.real, spec.imag], axis=2).reshape(len(chunks), 4, N_BINS, DIM_T)[:, :, :DIM_F]
+    y = session.run(None, {in_name: x.astype(np.float32)})[0]
+    y = np.concatenate([y, np.zeros((len(chunks), 4, N_BINS - DIM_F, DIM_T), np.float32)], axis=2)
+    y = y.reshape(len(chunks), 2, 2, N_BINS, DIM_T)
+    wav = istft(y[:, :, 0] + 1j * y[:, :, 1], CHUNK)
+    return [wav[k, :, TRIM : CHUNK - TRIM] * COMPENSATE for k in range(len(chunks))]
+
+
+def separate_stream(session, frames, write, total: int = 0, batch: int = 2) -> int:
+    """Same result as ``separate``, without holding the whole track in memory: audio comes in as
+    [2, k] float32 pieces from ``frames``, and ``write(background, mix)`` receives the output in order,
+    a few seconds at a time. Memory stays a few MB however long the video is. Returns the sample count."""
+    in_name = session.get_inputs()[0].name
+    pieces = [np.zeros((2, TRIM), np.float32)]  # the same leading pad as separate()
+    have = TRIM
+    n = written = 0
+
+    def flush(buf: np.ndarray, count: int) -> np.ndarray:
+        nonlocal written
+        outs = _run_chunks(session, in_name, [buf[:, k * GEN : k * GEN + CHUNK] for k in range(count)])
+        for k, out in enumerate(outs):
+            mix = buf[:, k * GEN + TRIM : k * GEN + TRIM + GEN]
+            keep = max(0, min(GEN, n_final - written)) if n_final is not None else GEN
+            if keep:
+                write(out[:, :keep], mix[:, :keep])
+                written += keep
+        if total:
+            emit({"progress": round(min(1.0, written / total), 3)})
+        return buf[:, count * GEN :]
+
+    n_final = None
+    need = batch * GEN + 2 * TRIM
+    for f in frames:
+        pieces.append(f.astype(np.float32, copy=False))
+        have += f.shape[1]
+        n += f.shape[1]
+        if have >= need:
+            buf = np.concatenate(pieces, axis=1)
+            while buf.shape[1] >= need:
+                buf = flush(buf, batch)
+            pieces, have = [buf], buf.shape[1]
+    n_final = n
+    pad_end = GEN - n % GEN
+    buf = np.concatenate(pieces + [np.zeros((2, pad_end + TRIM), np.float32)], axis=1)
+    while buf.shape[1] >= CHUNK:
+        buf = flush(buf, min(batch, (buf.shape[1] - 2 * TRIM) // GEN))
+    return n
+
+
+def stereo_frames(path: str):
+    """Decode any video/audio to float32 [2, k] pieces at 44.1 kHz, as it is read."""
+    import av
+
+    res = av.audio.resampler.AudioResampler(format="fltp", layout="stereo", rate=SR)
+    with av.open(path) as c:
+        for frame in c.decode(audio=0):
+            for f in res.resample(frame):
+                yield f.to_ndarray()
+        for f in res.resample(None):
+            yield f.to_ndarray()
+
+
+def duration_samples(path: str) -> int:
+    try:
+        import av
+
+        with av.open(path) as c:
+            return int((c.duration or 0) / 1_000_000 * SR)
+    except Exception:  # noqa: BLE001 — only used for the progress bar
+        return 0
+
+
+class WavWriter:
+    """Appends stereo float audio to a 16-bit WAV file."""
+
+    def __init__(self, path: str):
+        self.w = wave.open(path, "wb")
+        self.w.setnchannels(2)
+        self.w.setsampwidth(2)
+        self.w.setframerate(SR)
+
+    def write(self, audio: np.ndarray) -> None:
+        self.w.writeframes((np.clip(audio.T, -1.0, 1.0) * 32767.0).astype(np.int16).tobytes())
+
+    def close(self) -> None:
+        self.w.close()
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
@@ -120,12 +196,23 @@ def main(argv: list[str] | None = None) -> None:
     opts = ort.SessionOptions()
     opts.intra_op_num_threads = os.cpu_count() or 4
     session = ort.InferenceSession(args.model, sess_options=opts, providers=["CPUExecutionProvider"])
-    mix = load_stereo(args.input)
-    background = separate(session, mix)
-    write_wav(args.out, background)
-    if args.vocals_out:
-        write_wav(args.vocals_out, mix - background)
-    emit({"ok": True, "out": args.out, "seconds": round(mix.shape[1] / SR, 2)})
+    out = WavWriter(args.out)
+    vocals = WavWriter(args.vocals_out) if args.vocals_out else None
+
+    def write(background: np.ndarray, mix: np.ndarray) -> None:
+        out.write(background)
+        if vocals:
+            vocals.write(mix - background)
+
+    try:
+        n = separate_stream(session, stereo_frames(args.input), write, total=duration_samples(args.input))
+    finally:
+        out.close()
+        if vocals:
+            vocals.close()
+    if not n:
+        raise SystemExit("NO_AUDIO")
+    emit({"ok": True, "out": args.out, "seconds": round(n / SR, 2)})
 
 
 if __name__ == "__main__":

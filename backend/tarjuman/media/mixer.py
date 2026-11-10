@@ -115,7 +115,8 @@ def main(argv: list[str] | None = None) -> None:
         except Exception as e:  # noqa: BLE001
             print("match-voice failed:", e, file=sys.stderr)
 
-    buf = np.zeros(int(duration * rate) + rate, dtype=np.float64)
+    # float32: a two-hour track is ~635 MB instead of 1.3 GB, with no audible difference.
+    buf = np.zeros(int(duration * rate) + rate, dtype=np.float32)
     placed = compressed = trimmed = delayed = 0
     last_end = 0
     for i, s in enumerate(segs):
@@ -155,7 +156,7 @@ def main(argv: list[str] | None = None) -> None:
             hdata = np.interp(x_new, x_old, hdata.astype(np.float64)).astype(np.int16)
 
         start_sample = max(0, int(round(start_s * rate)))
-        chunk = hdata.astype(np.float64) / 32768.0
+        chunk = hdata.astype(np.float32) / 32768.0
         # Never two voices at once: wait briefly for the previous sentence, or fade it out.
         if start_sample < last_end:
             if (last_end - start_sample) / rate <= 0.8:
@@ -175,7 +176,7 @@ def main(argv: list[str] | None = None) -> None:
                     chunk[-fade:] *= np.linspace(1.0, 0.0, fade)
         end = start_sample + len(chunk)
         if end > len(buf):
-            buf = np.concatenate([buf, np.zeros(end - len(buf) + rate)])
+            buf = np.concatenate([buf, np.zeros(end - len(buf) + rate, dtype=np.float32)])
         buf[start_sample:end] += chunk
         last_end = end
         placed += 1

@@ -72,9 +72,23 @@ class Job:
         return d
 
 
+# How many jobs of each kind run at once; the rest wait their turn ("queued"). Dubbing, burning
+# subtitles and Whisper each keep the CPU busy; running several together only makes all of them slow
+# and can run the computer out of memory.
+LIMITS = {"whisper": 1, "dub": 1, "subvideo": 1, "batch": 1, "fetch": 2}
+QUEUED_PHASE = "في انتظار انتهاء مهمة أخرى"
+
+
 class JobManager:
     def __init__(self) -> None:
         self.jobs: dict[str, Job] = {}
+        self._slots: dict[str, asyncio.Semaphore] = {}
+
+    def slot(self, type_: str) -> asyncio.Semaphore:
+        """The turn for one kind of job. A playlist batch takes it for each video it dubs or subtitles."""
+        if type_ not in self._slots:
+            self._slots[type_] = asyncio.Semaphore(LIMITS.get(type_, 2))
+        return self._slots[type_]
 
     def new(self, type_: str, video_id: str, **opts: Any) -> Job:
         jid = type_[0] + format(int(time.time() * 1000), "x") + secrets.token_hex(2)
@@ -100,11 +114,16 @@ class JobManager:
         return [j.public() for j in reversed(list(self.jobs.values()))]
 
     def start(self, job: Job, fn: Callable[[Job], Awaitable[None]]) -> None:
-        job.status = "running"
+        job.status = "queued"
+        job.phase = QUEUED_PHASE
 
         async def runner() -> None:
             try:
-                await fn(job)
+                async with self.slot(job.type):
+                    if job.cancelled:
+                        return
+                    job.status = "running"
+                    await fn(job)
                 if job.status == "running":
                     job.status = "done"
             except BaseException as e:  # noqa: BLE001
