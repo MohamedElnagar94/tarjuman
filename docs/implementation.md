@@ -47,7 +47,7 @@ When YouTube already has an Arabic track, the English track is still fetched to 
 
 `TtsService.speak` returns audio bytes and a duration, and every clip is cached on disk by a key built from (voice, rate, text). The cache key layout is the same as the prototype's, so an existing cache carries over.
 
-- **The priority gate** (`voice/gate.py`) allows four requests in flight. Microsoft's service starts refusing connections beyond that. Priority 3 is the spot the user just seeked to, 2 is "play now", 1 is "prepare what's next" and 0 is background warm-up. A request for a sentence already waiting at lower priority raises that sentence's priority (`bump`).
+- **The priority gate** (`voice/gate.py`) allows eight requests in flight. Measured on a slow connection, eight give the most throughput; beyond that requests only queue up on Microsoft's side. Priority 3 is the spot the user just seeked to, 2 is "play now", 1 is "prepare what's next" and 0 is background warm-up. A request for a sentence already waiting at lower priority raises that sentence's priority (`bump`).
 - **In-flight dedupe.** If two callers ask for the same sentence, it is synthesized once.
 - **Fallbacks are never cached under the requested key.** When Edge fails and Piper speaks instead, that clip is returned but not stored as the Edge clip. Storing it would keep the wrong voice and the wrong duration for that sentence forever.
 - **Learned speed.** Each voice's real speaking speed (characters per second at rate 0) is learned from the clips it produces, with an exponential moving average. Estimates get better the more a voice is used.
