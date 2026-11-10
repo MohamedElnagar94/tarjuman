@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import ProgressMeter from "@/components/ui/ProgressMeter.vue";
-import { cues, retryTranslation, session, sourceCount, translatedCount } from "@/composables/session";
+import { cues, retryTranslation, session, sourceCount, tr, translatedCount } from "@/composables/session";
 import { formatTime } from "@/lib/time";
 
 const { t, te, locale } = useI18n();
@@ -18,8 +18,24 @@ const source = computed(() => {
   return { tone: "accent", text: t("watch.chip.machine", { lang: langName(session.srcLang) }) };
 });
 
-const pct = computed(() => (sourceCount.value ? Math.round((translatedCount.value / sourceCount.value) * 100) : 100));
-const showMeter = computed(() => !session.already && sourceCount.value > 0 && (session.translating || pct.value < 100));
+// Progress of the lines around the playhead: only that window is translated (see session.ts), so a
+// whole-video percentage would sit near 0% on a long video even when everything you watch is ready.
+const windowLines = computed(() => {
+  const t = session.time;
+  const out: number[] = [];
+  cues.value.forEach((c, i) => {
+    if (c.src && c.start <= t + 300 && c.end >= t - 30) out.push(i);
+  });
+  return out;
+});
+const pct = computed(() => {
+  const w = windowLines.value;
+  if (!w.length) return sourceCount.value ? Math.round((translatedCount.value / sourceCount.value) * 100) : 100;
+  return Math.round((w.filter((i) => tr.value[i]).length / w.length) * 100);
+});
+const showMeter = computed(
+  () => !session.already && sourceCount.value > 0 && (pct.value < 100 || (!session.translating && session.translateFailed > 0)),
+);
 </script>
 
 <template>
