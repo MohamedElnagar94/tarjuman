@@ -66,7 +66,10 @@ Environment variables:
 2. **Origin check.** Requests from `chrome-extension://`, `moz-extension://` and `edge-extension://` origins are allowed. Any other `Origin` must equal the request host. With no `Origin`, the request is rejected if `Sec-Fetch-Site: cross-site`.
 3. **JSON only.** `POST` requires `Content-Type: application/json`. The one exception is `POST /api/media/upload`, which takes `application/octet-stream`. HTML forms on other sites can't send either without a CORS preflight.
 4. **Local only.** `/api/settings` and `/api/ai/test` answer only to loopback clients, because the settings hold an API key.
-5. The API key is never returned. Responses carry `hasKey` and `keyHint` (`…abcd`) instead. Changing the provider or `baseUrl` clears the stored key, so a key is never sent to a server it wasn't entered for.
+5. **Pairing.** A client that isn't loopback (a phone on the Wi-Fi) gets `401 {code:"NOT_PAIRED"}` on every route except `/api/health` until it is paired. It is paired by opening `/pair?code=<secret>` once, which sets the HttpOnly cookie `tarjuman_pair`. The link is shown as a QR in Settings → Phone and printed at startup. `POST /api/pairing/reset` makes a new secret and unpairs every device. `/api/pairing` and `/api/pairing/reset` are local only.
+6. **Extensions.** The first extension origin that connects is trusted. Any other gets `403 {code:"EXTENSION_NOT_ALLOWED"}` until it is allowed (`GET /api/extensions`, `POST /api/extensions/set {id, allow}`, both local only). `/api/health` still answers it, with `extensionAllowed:false`.
+7. **Uploads** are capped at `TARJUMAN_MAX_UPLOAD_GB` (default 8): `413 UPLOAD_TOO_LARGE`. They also stop before less than 1 GB would be left free on the disk: `507 DISK_FULL`. A refused upload leaves no file behind.
+8. The API key is never returned. Responses carry `hasKey` and `keyHint` (`…abcd`) instead. Changing the provider or `baseUrl` clears the stored key, so a key is never sent to a server it wasn't entered for.
 
 Rejected requests get `403 {"ok":false,"code":"FORBIDDEN_ORIGIN"|"LOCAL_ONLY"}` or `415 {"ok":false,"code":"JSON_REQUIRED"}`.
 
@@ -80,7 +83,7 @@ Rejected requests get `403 {"ok":false,"code":"FORBIDDEN_ORIGIN"|"LOCAL_ONLY"}` 
 
 ### Error codes
 
-`BAD_URL`, `NO_CAPTIONS`, `UNPLAYABLE`, `CAPTIONS_EMPTY`, `NO_MEDIA`, `NO_SPEECH`, `NO_JOB`, `NO_FILE`, `NO_TEXT`, `NO_CUES`, `NO_AUDIO`, `NO_WORD`, `NO_QUESTION`, `EMPTY_FILE`, `BAD_JSON`, `BODY_TOO_LARGE`, `CANCELLED`, `PY_NOT_INSTALLED`, `WHISPER_NOT_INSTALLED`, `TTS_ERROR`, `TTS_FAILED`, `TRANSLATE_FAILED`, `FFMPEG_NOT_FOUND`, `YTDLP_FAILED`, `DOWNLOAD_FAILED`, `MIX_FAILED`, `BURN_FAILED`, `PLAYLIST_FAILED`, `PLAYLIST_EMPTY`, `AI_NOT_READY`, `AI_AUTH`, `AI_RATE_LIMIT`, `AI_HTTP`, `AI_NETWORK`, `AI_REFUSED`, `AI_TRUNCATED`, `AI_SDK_MISSING`.
+`NOT_PAIRED`, `EXTENSION_NOT_ALLOWED`, `UPLOAD_TOO_LARGE`, `DISK_FULL`, `BAD_URL`, `NO_CAPTIONS`, `UNPLAYABLE`, `CAPTIONS_EMPTY`, `NO_MEDIA`, `NO_SPEECH`, `NO_JOB`, `NO_FILE`, `NO_TEXT`, `NO_CUES`, `NO_AUDIO`, `NO_WORD`, `NO_QUESTION`, `EMPTY_FILE`, `BAD_JSON`, `BODY_TOO_LARGE`, `CANCELLED`, `PY_NOT_INSTALLED`, `WHISPER_NOT_INSTALLED`, `TTS_ERROR`, `TTS_FAILED`, `TRANSLATE_FAILED`, `FFMPEG_NOT_FOUND`, `YTDLP_FAILED`, `DOWNLOAD_FAILED`, `MIX_FAILED`, `BURN_FAILED`, `PLAYLIST_FAILED`, `PLAYLIST_EMPTY`, `AI_NOT_READY`, `AI_AUTH`, `AI_RATE_LIMIT`, `AI_HTTP`, `AI_NETWORK`, `AI_REFUSED`, `AI_TRUNCATED`, `AI_SDK_MISSING`.
 
 ## 5. Data shapes
 
@@ -144,7 +147,7 @@ type PronounceRule = { from: string; to: string }
 | `GET /api/subs` (alias `/api/srt`) | `url, tl, mode=ar\|bi\|src, format=srt\|vtt\|txt, save=0\|1` | the file as an attachment (UTF-8 with BOM, except VTT) |
 | `GET /api/voices` | `lang` | `{ok, voices: Voice[]}`. The first voice is the default. |
 | `GET /api/tts` | `text(≤1500), lang, voice, rate` | audio bytes, with headers `X-Audio-Duration` and `X-TTS-Engine` |
-| `GET /api/dubplan` | `url, tl, voice, from, to, urgent=0\|1` | `{ok, from, to, total, end, blocks: DubBlock[]}` |
+| `GET /api/dubplan` | `url, tl, voice, from, to, urgent=0\|1, speed=1` (the video's playback speed) | `{ok, from, to, total, end, blocks: DubBlock[]}` |
 | `POST /api/dubplan/cues` | `{cues:[{start,end,src}], sl, tl, voice, from, to, urgent}` | the same as above, for captions taken from any website |
 | `POST /api/whisper/job` | `{url, tl}` | `{ok, id}` |
 | `GET /api/whisper/job` | `id` | `Job & {srcLang, tl, cues?}` (`cues` once done) |

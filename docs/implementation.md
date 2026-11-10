@@ -89,12 +89,18 @@ The simulation tests in `shared/dub-engine/test/` replay these situations with a
 
 Every heavy step is a subprocess registered on the job, so **Cancel** kills it. Whisper runs in-process and checks `job.cancelled` between segments.
 
+Heavy jobs take turns: one Whisper, one dub, one subtitled video and one playlist batch at a time, plus two downloads. A job waiting its turn is `queued`, and it can be cancelled before it starts. A playlist batch takes the same turn for each video it dubs or subtitles.
+
+The separator streams: it decodes a few seconds, separates them, appends them to the output WAV and moves on. Memory use stays at a few megabytes whatever the video's length, and the output is identical to separating the whole track at once (`tests/test_separator.py`).
+
 ## Security
 
 The server binds to `0.0.0.0` so a phone on the same Wi-Fi can use the app, which means it has to treat requests carefully. The checks are in `api/security.py` and listed in specs §3. Two of them matter most:
 
 - **Origin and Host checks** stop any website from driving the API through the browser, including through DNS rebinding.
 - **`/api/settings` answers only loopback clients**, so a device on the LAN can never read or change the AI key.
+- **Other devices must be paired.** The server listens on the Wi-Fi so a phone can use it. Any device other than the computer itself gets nothing until it has opened the pairing link (the QR in Settings → Phone) once.
+- **Only approved extensions.** Any installed extension could call 127.0.0.1. The first one to connect is trusted, and the rest wait for approval in Settings → Extensions.
 
 ## Tests
 
