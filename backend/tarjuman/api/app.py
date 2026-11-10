@@ -61,6 +61,7 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
         yield
         s.jobs.cancel_all()
         s.flush()
+        pairing.flush()
         await http.close()
 
     app = FastAPI(title="Tarjuman", version=__version__, lifespan=lifespan, docs_url="/api/docs", redoc_url=None,
@@ -86,17 +87,31 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
                     "هذه الإضافة غير مسموح لها. اسمح بها من «الإعدادات ← الإضافات» في تطبيق ترجمان.",
                     status=403,
                 )
-            local = is_loopback(request.client.host if request.client else None)
+            ip = request.client.host if request.client else ""
+            local = is_loopback(ip)
             # The settings hold an API key, and pairing hands out access: only from this computer.
-            if path in LOCAL_ONLY and not local:
+            if (path in LOCAL_ONLY or path.startswith("/api/pairing")) and not local:
                 return fail("LOCAL_ONLY", "لا يمكن تعديل هذه الإعدادات إلا من الحاسوب نفسه", status=403)
             # Another device on the Wi-Fi gets nothing until it is paired (see pairing.py).
-            paired = local or pairing.valid(request.cookies.get(COOKIE) or request.headers.get(HEADER))
-            request.state.paired = paired
-            if not paired and path not in OPEN_TO_ALL:
+            token = request.cookies.get(COOKIE) or request.headers.get(HEADER)
+            device = None if local else pairing.device(token)
+            if not local and device is None and pairing.is_legacy(token):
+                # Paired with the first version's shared secret: give it its own key, no re-pairing.
+                migrated = pairing.pair(request.headers.get("user-agent", ""), ip)
+                device = pairing.device(migrated)
+            else:
+                migrated = None
+            if device:
+                pairing.seen(device, ip)
+            request.state.paired = local or device is not None
+            if not request.state.paired and path not in OPEN_TO_ALL:
                 return fail("NOT_PAIRED", "هذا الجهاز غير مربوط بترجمان. امسح رمز الربط من إعدادات الحاسوب.", status=401)
             if request.method == "POST" and not post_allowed(path, request.headers.get("content-type")):
                 return fail("JSON_REQUIRED", status=415)
+            if migrated:
+                res = await call_next(request)
+                res.set_cookie(COOKIE, migrated, max_age=365 * 24 * 3600, httponly=True, samesite="lax")
+                return res
         return await call_next(request)
 
     @app.exception_handler(AppError)
@@ -113,12 +128,14 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
         app.include_router(r)
 
     @app.get("/pair", include_in_schema=False)
-    async def pair(code: str = ""):
-        """Opened once on a phone (from the QR code): remembers the device, then opens the app."""
-        if not pairing.valid(code):
+    async def pair(request: Request, code: str = ""):
+        """Opened once on a phone (from the QR code): gives this device its own key, then opens the app."""
+        if not pairing.valid_code(code):
             return HTMLResponse(PAIR_FAILED_PAGE, status_code=403)
         res = RedirectResponse("/", status_code=303)
-        res.set_cookie(COOKIE, pairing.secret, max_age=365 * 24 * 3600, httponly=True, samesite="lax")
+        if pairing.device(request.cookies.get(COOKIE)) is None:  # scanning twice doesn't list it twice
+            token = pairing.pair(request.headers.get("user-agent", ""), request.client.host if request.client else "")
+            res.set_cookie(COOKIE, token, max_age=365 * 24 * 3600, httponly=True, samesite="lax")
         return res
 
     dist = config.FRONTEND_DIST

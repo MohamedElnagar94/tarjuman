@@ -42,16 +42,42 @@ async def health(request: Request):
 
 
 def _pair_links(request: Request) -> list[str]:
-    code = request.app.state.pairing.secret
+    code = request.app.state.pairing.code
     port = request.app.state.port
     ip = lan_ip()
     return [f"http://{ip}:{port}/pair?code={code}"] if ip else []
 
 
+def _pairing_state(request: Request) -> dict:
+    links = _pair_links(request)
+    return {"links": links, "lan": bool(links), "devices": request.app.state.pairing.public()}
+
+
 @router.get("/api/pairing")
 async def pairing_info(request: Request):
-    """For the QR code on the computer: the link a phone opens once to be paired."""
-    return ok(links=_pair_links(request), lan=bool(_pair_links(request)))
+    """For Settings → Phone: the link a phone opens once to be paired (the QR), and the paired devices."""
+    return ok(**_pairing_state(request))
+
+
+@router.post("/api/pairing/device")
+async def pairing_device(request: Request):
+    """{id, action: "remove"} unpairs one device; {id, action: "rename", name} renames it."""
+    b = await body(request)
+    p = request.app.state.pairing
+    did = str(b.get("id") or "")
+    if b.get("action") == "rename":
+        p.rename(did, str(b.get("name") or ""))
+    elif b.get("action") == "remove":
+        p.remove(did)
+    else:
+        return fail("BAD_REQUEST", status=400)
+    return ok(**_pairing_state(request))
+
+
+@router.post("/api/pairing/unpair-all")
+async def pairing_unpair_all(request: Request):
+    request.app.state.pairing.remove_all()
+    return ok(**_pairing_state(request))
 
 
 @router.get("/api/storage")
@@ -93,9 +119,9 @@ async def extensions_set(request: Request):
 
 @router.post("/api/pairing/reset")
 async def pairing_reset(request: Request):
-    """A new secret: every device paired so far has to be paired again."""
-    request.app.state.pairing.reset()
-    return ok(links=_pair_links(request))
+    """A new invite code: the old QR stops pairing new devices. Paired devices stay paired."""
+    request.app.state.pairing.new_code()
+    return ok(**_pairing_state(request))
 
 
 @router.post("/api/live")

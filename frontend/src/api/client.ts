@@ -26,6 +26,20 @@ import type {
   WhisperJob,
 } from "./types";
 
+export interface PairedDevice {
+  id: string;
+  name: string;
+  pairedAt: number;
+  lastSeen: number;
+  lastIp: string;
+}
+export interface PairingState {
+  ok: true;
+  links: string[];
+  lan: boolean;
+  devices: PairedDevice[];
+}
+
 export class ApiError extends Error {
   constructor(
     public code: string,
@@ -202,8 +216,11 @@ export const api = {
     post<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions/set", { id, allow }),
   storage: () => get<{ ok: true; usage: Record<string, { bytes: number; files: number }>; voiceLimit: number }>("/api/storage"),
   clearStorage: (what: string) => post<{ ok: true; usage: Record<string, { bytes: number; files: number }> }>("/api/storage/clear", { what }),
-  pairing: () => get<{ ok: true; links: string[]; lan: boolean }>("/api/pairing"),
-  resetPairing: () => post<{ ok: true; links: string[] }>("/api/pairing/reset", {}),
+  pairing: () => get<PairingState>("/api/pairing"),
+  pairingDevice: (id: string, action: "remove" | "rename", name = "") =>
+    post<PairingState>("/api/pairing/device", { id, action, name }),
+  resetPairing: () => post<PairingState>("/api/pairing/reset", {}),
+  unpairAll: () => post<PairingState>("/api/pairing/unpair-all", {}),
   pronounce: () => get<{ ok: true; items: PronounceRule[] }>("/api/pronounce"),
   savePronounce: (items: PronounceRule[]) => post<{ ok: true; items: PronounceRule[] }>("/api/pronounce", { items }),
   previewPronounce: (text: string) => post<{ ok: true; text: string }>("/api/pronounce/preview", { text }),

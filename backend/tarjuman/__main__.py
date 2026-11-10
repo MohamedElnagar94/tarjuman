@@ -50,7 +50,7 @@ def serve(args: argparse.Namespace) -> None:
         ip = lan_ip()
         if ip:
             # Opening this link once pairs the phone (the code is also shown as a QR in Settings → Phone).
-            print(f"  From your phone (same Wi-Fi), open once: http://{ip}:{port}/pair?code={app.state.pairing.secret}")
+            print(f"  From your phone (same Wi-Fi), open once: http://{ip}:{port}/pair?code={app.state.pairing.code}")
     if port != args.port:
         print(f"  Port {args.port} was busy; the extension finds the new port on its own.")
     if not config.FRONTEND_DIST.joinpath("index.html").exists():

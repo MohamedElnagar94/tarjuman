@@ -32,6 +32,7 @@ def services():
 def app(services):
     a = create_app(services, warm=False)
     a.state.extensions.allowed, a.state.extensions.pending = [], []  # each test starts with no trusted extension
+    a.state.pairing.devices = []  # ...and no paired device
     return a
 
 
@@ -74,24 +75,69 @@ def test_settings_answer_only_to_this_computer(phone):
     assert phone.get("/api/pairing").status_code == 403, "a phone can't read the pairing code"
 
 
+ANDROID = "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Mobile Safari/537.36"
+IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
+
+
+def other_device(app, ip, ua):
+    return TestClient(app, base_url="http://192.168.0.104:4318", headers={"host": "192.168.0.104:4318", "user-agent": ua},
+                      client=(ip, 50000), follow_redirects=False)
+
+
 def test_another_device_needs_pairing_before_it_can_use_the_app(app, phone):
     assert phone.get("/api/vocab").status_code == 401
     assert phone.get("/api/library").json()["code"] == "NOT_PAIRED"
     assert phone.get("/api/health").json()["paired"] is False, "health still answers, to show the pairing screen"
     assert phone.get("/pair?code=wrong").status_code == 403
-    r = phone.get("/pair?code=" + app.state.pairing.secret)
+    r = phone.get("/pair?code=" + app.state.pairing.code)
     assert r.status_code == 303 and r.headers["location"] == "/"
     assert "tarjuman_pair" in r.headers["set-cookie"] and "httponly" in r.headers["set-cookie"].lower()
     assert phone.get("/api/vocab").json()["ok"], "the cookie pairs this browser"
     assert phone.get("/api/health").json()["paired"] is True
 
 
-def test_resetting_the_pairing_code_unpairs_every_device(app, client, phone):
-    phone.get("/pair?code=" + app.state.pairing.secret)
-    assert phone.get("/api/vocab").status_code == 200
-    new = client.post("/api/pairing/reset", json={}).json()["links"]
+def test_each_phone_gets_its_own_key_and_can_be_unpaired_alone(app, client):
+    with other_device(app, "192.168.0.50", ANDROID) as a, other_device(app, "192.168.0.51", IPHONE) as b:
+        a.get("/pair?code=" + app.state.pairing.code)
+        b.get("/pair?code=" + app.state.pairing.code)
+        a.get("/pair?code=" + app.state.pairing.code)  # scanning twice doesn't list it twice
+        devices = client.get("/api/pairing").json()["devices"]
+        assert sorted(d["name"] for d in devices) == ["Android · SM-S918B · Chrome", "iPhone · Safari"]
+        android = next(d for d in devices if d["name"].startswith("Android"))
+        assert android["lastIp"] == "192.168.0.50"
+        client.post("/api/pairing/device", json={"id": android["id"], "action": "remove"})
+        assert a.get("/api/vocab").status_code == 401, "the removed phone is out"
+        assert b.get("/api/vocab").status_code == 200, "the other one stays paired"
+        iphone = client.get("/api/pairing").json()["devices"][0]
+        client.post("/api/pairing/device", json={"id": iphone["id"], "action": "rename", "name": "هاتف أمي"})
+        assert client.get("/api/pairing").json()["devices"][0]["name"] == "هاتف أمي"
+
+
+def test_a_new_code_stops_the_old_qr_but_keeps_paired_phones(app, client, phone):
+    old = app.state.pairing.code
+    phone.get("/pair?code=" + old)
+    client.post("/api/pairing/reset", json={})
+    assert phone.get("/api/vocab").status_code == 200, "already paired: still in"
+    with other_device(app, "192.168.0.60", IPHONE) as late:
+        assert late.get("/pair?code=" + old).status_code == 403, "the old QR no longer pairs"
+
+
+def test_unpairing_all_devices_also_retires_the_qr(app, client, phone):
+    old = app.state.pairing.code
+    phone.get("/pair?code=" + old)
+    client.post("/api/pairing/unpair-all", json={})
     assert phone.get("/api/vocab").status_code == 401
-    assert all(app.state.pairing.secret in link for link in new)
+    assert client.get("/api/pairing").json()["devices"] == []
+    assert phone.get("/pair?code=" + old).status_code == 403
+
+
+def test_a_phone_paired_by_the_first_version_keeps_working_and_gets_its_own_key(app, client, phone):
+    legacy = app.state.pairing.code
+    app.state.pairing._legacy = legacy  # what the first version's cookie held
+    phone.cookies.set("tarjuman_pair", legacy)
+    r = phone.get("/api/vocab")
+    assert r.status_code == 200 and "tarjuman_pair" in r.headers.get("set-cookie", "")
+    assert len(client.get("/api/pairing").json()["devices"]) == 1
 
 
 def test_this_computer_never_needs_pairing(client):

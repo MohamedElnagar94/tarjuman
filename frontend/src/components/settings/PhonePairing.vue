@@ -1,47 +1,79 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import QRCode from "qrcode";
-import { api, ApiError } from "@/api/client";
+import { PhDeviceMobile, PhPencilSimple, PhX } from "@phosphor-icons/vue";
+import { api, ApiError, type PairedDevice, type PairingState } from "@/api/client";
 import { toast } from "@/composables/toast";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const link = ref("");
 const qr = ref("");
+const devices = ref<PairedDevice[]>([]);
 const state = ref<"loading" | "ready" | "nolan" | "remote" | "error">("loading");
-const confirming = ref(false);
+const confirming = ref(""); // "all", "code" or a device id waiting for a second tap
+const editing = ref("");
+const newName = ref("");
+let timer: number | undefined;
 
-async function show(links: string[]) {
-  link.value = links[0] || "";
-  if (!link.value) {
-    state.value = "nolan";
-    return;
+async function apply(s: PairingState) {
+  devices.value = s.devices;
+  if (s.links[0] !== link.value) {
+    link.value = s.links[0] || "";
+    qr.value = link.value ? await QRCode.toString(link.value, { type: "svg", margin: 1, errorCorrectionLevel: "M" }) : "";
   }
-  qr.value = await QRCode.toString(link.value, { type: "svg", margin: 1, errorCorrectionLevel: "M" });
-  state.value = "ready";
+  state.value = link.value ? "ready" : "nolan";
 }
 
 async function load() {
   try {
-    await show((await api.pairing()).links);
+    await apply(await api.pairing());
   } catch (e) {
-    // Pairing is handed out from the computer only; on a paired phone this section just says so.
+    // Pairing is managed from the computer only; on a paired phone this section just says so.
     state.value = e instanceof ApiError && e.code === "LOCAL_ONLY" ? "remote" : "error";
+    clearInterval(timer);
   }
 }
 
-async function reset() {
-  if (!confirming.value) {
-    confirming.value = true;
-    return;
+/** A second tap confirms; the first only arms the button. */
+function armed(what: string): boolean {
+  if (confirming.value === what) {
+    confirming.value = "";
+    return true;
   }
-  confirming.value = false;
+  confirming.value = what;
+  return false;
+}
+
+async function run(p: Promise<PairingState>, done: string) {
   try {
-    await show((await api.resetPairing()).links);
-    toast(t("phone.resetDone"));
+    await apply(await p);
+    toast(t(done));
   } catch {
     toast(t("errors.UNKNOWN"), { tone: "danger" });
   }
+}
+
+const remove = (d: PairedDevice) => armed(d.id) && run(api.pairingDevice(d.id, "remove"), "phone.removed");
+const newCode = () => armed("code") && run(api.resetPairing(), "phone.codeDone");
+const unpairAll = () => armed("all") && run(api.unpairAll(), "phone.resetDone");
+
+function startRename(d: PairedDevice) {
+  editing.value = d.id;
+  newName.value = d.name;
+}
+async function saveName(d: PairedDevice) {
+  editing.value = "";
+  if (newName.value.trim() && newName.value !== d.name) await run(api.pairingDevice(d.id, "rename", newName.value), "phone.renamed");
+}
+
+const rtf = computed(() => new Intl.RelativeTimeFormat(locale.value, { numeric: "auto" }));
+function ago(ms: number): string {
+  const s = Math.round((ms - Date.now()) / 1000);
+  if (s > -60) return t("phone.now");
+  if (s > -3600) return rtf.value.format(Math.round(s / 60), "minute");
+  if (s > -86400) return rtf.value.format(Math.round(s / 3600), "hour");
+  return rtf.value.format(Math.round(s / 86400), "day");
 }
 
 async function copy() {
@@ -51,7 +83,12 @@ async function copy() {
   } catch {}
 }
 
-onMounted(load);
+onMounted(() => {
+  void load();
+  // A phone that just scanned the code shows up here by itself.
+  timer = window.setInterval(load, 4000);
+});
+onBeforeUnmount(() => clearInterval(timer));
 </script>
 
 <template>
@@ -60,26 +97,57 @@ onMounted(load);
     <p v-if="state === 'remote'" class="muted">{{ t("phone.remote") }}</p>
     <p v-else-if="state === 'nolan'" class="muted">{{ t("phone.noLan") }}</p>
     <p v-else-if="state === 'error'" class="muted">{{ t("errors.UNKNOWN") }}</p>
-    <div v-else-if="state === 'ready'" class="pair">
-      <!-- The SVG comes from the QR library and holds only the pairing link. -->
-      <div class="qr" role="img" :aria-label="t('phone.qrLabel')" v-html="qr" />
-      <ol class="steps">
-        <li>{{ t("phone.step1") }}</li>
-        <li>{{ t("phone.step2") }}</li>
-        <li>{{ t("phone.step3") }}</li>
-      </ol>
-    </div>
-    <div v-if="state === 'ready'" class="link">
-      <code dir="ltr" class="mono">{{ link }}</code>
-      <button type="button" class="btn btn--outline btn--sm" @click="copy">{{ t("phone.copy") }}</button>
-    </div>
-    <p v-if="state === 'ready'" class="muted small">{{ t("phone.firewall") }}</p>
-    <div v-if="state === 'ready'" class="actions">
-      <button type="button" class="btn btn--sm" :class="confirming ? 'btn--primary' : 'btn--quiet'" @click="reset">
-        {{ confirming ? t("phone.resetConfirm") : t("phone.reset") }}
-      </button>
-      <span class="muted small">{{ t("phone.resetHint") }}</span>
-    </div>
+
+    <template v-if="state === 'ready' || state === 'nolan'">
+      <div v-if="state === 'ready'" class="pair">
+        <!-- The SVG comes from the QR library and holds only the pairing link. -->
+        <div class="qr" role="img" :aria-label="t('phone.qrLabel')" v-html="qr" />
+        <ol class="steps">
+          <li>{{ t("phone.step1") }}</li>
+          <li>{{ t("phone.step2") }}</li>
+          <li>{{ t("phone.step3") }}</li>
+        </ol>
+      </div>
+      <div v-if="state === 'ready'" class="link">
+        <code dir="ltr" class="mono">{{ link }}</code>
+        <button type="button" class="btn btn--outline btn--sm" @click="copy">{{ t("phone.copy") }}</button>
+        <button type="button" class="btn btn--sm" :class="confirming === 'code' ? 'btn--primary' : 'btn--quiet'" @click="newCode">
+          {{ confirming === "code" ? t("phone.codeConfirm") : t("phone.newCode") }}
+        </button>
+      </div>
+      <p v-if="state === 'ready'" class="muted small">{{ t("phone.codeHint") }} {{ t("phone.firewall") }}</p>
+
+      <h3 class="sub">{{ t("phone.devices", { n: devices.length }) }}</h3>
+      <p v-if="!devices.length" class="muted">{{ t("phone.noDevices") }}</p>
+      <ul v-else class="devices">
+        <li v-for="d in devices" :key="d.id" class="device">
+          <PhDeviceMobile :size="22" class="device__icon" aria-hidden="true" />
+          <div class="device__info">
+            <form v-if="editing === d.id" class="rename" @submit.prevent="saveName(d)">
+              <input v-model="newName" class="input" maxlength="60" :aria-label="t('phone.nameLabel')" @keydown.esc="editing = ''" />
+              <button type="submit" class="btn btn--primary btn--sm">{{ t("common.save") }}</button>
+            </form>
+            <strong v-else dir="auto">{{ d.name }}</strong>
+            <small class="muted">
+              {{ t("phone.lastSeen", { when: ago(d.lastSeen) }) }}
+              <span dir="ltr" class="mono">· {{ d.lastIp }}</span>
+            </small>
+          </div>
+          <button type="button" class="btn btn--quiet btn--icon btn--sm" :aria-label="t('phone.rename')" @click="startRename(d)">
+            <PhPencilSimple :size="16" />
+          </button>
+          <button type="button" class="btn btn--sm" :class="confirming === d.id ? 'btn--primary' : 'btn--quiet'" @click="remove(d)">
+            <PhX v-if="confirming !== d.id" :size="15" />
+            {{ confirming === d.id ? t("phone.removeConfirm") : t("phone.remove") }}
+          </button>
+        </li>
+      </ul>
+      <div v-if="devices.length > 1" class="actions">
+        <button type="button" class="btn btn--sm" :class="confirming === 'all' ? 'btn--primary' : 'btn--quiet'" @click="unpairAll">
+          {{ confirming === "all" ? t("phone.resetConfirm") : t("phone.reset") }}
+        </button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -123,12 +191,45 @@ onMounted(load);
   font-size: var(--fs-sm);
   word-break: break-all;
 }
-.actions {
+.sub {
+  font-size: var(--fs-md, 1rem);
+  margin: var(--s-5) 0 var(--s-2);
+}
+.devices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.device {
   display: flex;
-  gap: var(--s-3);
   align-items: center;
-  flex-wrap: wrap;
-  margin-top: var(--s-4);
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--line, rgba(127, 127, 127, 0.2));
+}
+.device__icon {
+  color: var(--accent);
+  flex: none;
+}
+.device__info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.rename {
+  display: flex;
+  gap: var(--s-2);
+}
+.rename .input {
+  flex: 1;
+  min-width: 0;
+}
+.actions {
+  margin-top: var(--s-3);
 }
 .small {
   font-size: var(--fs-sm);
