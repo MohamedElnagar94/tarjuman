@@ -15,6 +15,7 @@ from .. import config
 from ..captions.formats import to_srt
 from ..captions.models import Cue, VideoCues
 from ..core import http
+from ..core.deps import has
 from ..core.errors import AppError, Cancelled
 from ..core.text import is_media_link, media_id_of, norm_lang, safe_name, video_key, work_id
 from ..dub.live import Plan
@@ -63,10 +64,8 @@ def _need_key(link: str) -> str:
 
 
 def _need_python_tools() -> None:
-    try:
-        import yt_dlp  # noqa: F401
-    except ImportError as e:
-        raise AppError("PY_NOT_INSTALLED", "مكوّنات Python غير مثبّتة. شغّل: python -m tarjuman setup") from e
+    if not has("yt_dlp"):
+        raise AppError("PY_NOT_INSTALLED", "مكوّنات Python غير مثبّتة. شغّل: python -m tarjuman setup")
 
 
 async def _download_video(s: "Services", job: Job, link: str, work: Path, quality: int, scale: float, base: float) -> Path:

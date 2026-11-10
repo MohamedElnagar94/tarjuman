@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from ..core import http
+from ..core.deps import has
 from ..media.ffmpeg import ffmpeg_exe
 from .audio import wav_duration
 
@@ -42,12 +43,7 @@ async def edge_synth(text: str, voice: str, rate: float = 0, attempts: int = 3) 
 
 
 def edge_available() -> bool:
-    try:
-        import edge_tts  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
+    return has("edge_tts")
 
 
 def shift_pitch(path: Path, factor: float, rate: int) -> None:

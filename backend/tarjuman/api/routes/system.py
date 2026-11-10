@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse, Response
 
 from ... import APP_ID, __version__, config
 from ...asr import installed as whisper_installed
+from ...core.deps import has
 from ...core.net import lan_ip
 from ...media import ffmpeg
 from ..deps import body, fail, ok, services
@@ -21,12 +22,7 @@ router = APIRouter()
 async def health(request: Request):
     s = services(request)
     s.jobs.prune()
-    try:
-        import yt_dlp  # noqa: F401
-
-        python_ok = True
-    except ImportError:
-        python_ok = False
+    python_ok = has("yt_dlp")
     return ok(
         app=APP_ID,
         version=__version__,

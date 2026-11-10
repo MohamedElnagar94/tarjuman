@@ -12,18 +12,14 @@ import wave
 from pathlib import Path
 from typing import Callable
 
+from .core.deps import has
 from .core.errors import Cancelled
 
 log = logging.getLogger("tarjuman.asr")
 
 
 def installed() -> bool:
-    try:
-        import faster_whisper  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
+    return has("faster_whisper")
 
 
 class Whisper:

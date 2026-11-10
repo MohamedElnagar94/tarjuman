@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/MohamedElnagar94/tarjuman/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/MohamedElnagar94/tarjuman/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3550D6"></a>
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1F2E8C">
   <img alt="Vue 3" src="https://img.shields.io/badge/vue-3-1F2E8C">
