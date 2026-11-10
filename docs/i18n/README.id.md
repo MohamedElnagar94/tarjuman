@@ -43,23 +43,46 @@
 
 Tempel tautan YouTube, unggah video dari komputer Anda, atau berikan tautan dari hampir situs mana pun.
 
-- **Subtitle tersinkron.** Subtitle Arab muncul di video baris demi baris, dengan bahasa aslinya di bawah jika Anda mau. Teks otomatis disusun ulang menjadi kalimat utuh sebelum diterjemahkan.
-- **Sulih suara langsung yang terdengar seperti manusia.** Suara Arab neural mengucapkan setiap kalimat seiring pembicara, dalam bahasa Arab Mesir, Saudi, Emirat, Suriah, Yordania, Lebanon, Maroko, atau Irak. Tidak ada kalimat yang terpotong atau terlewat, dan video hanya dijeda jika sulih suara tertinggal cukup jauh.
+- **Subtitle tersinkron.** Subtitle Arab muncul di video baris demi baris, dengan bahasa aslinya di bawah jika Anda mau. Teks otomatis disusun ulang menjadi kalimat utuh sebelum diterjemahkan. Jika sama sekali tidak ada tanda baca, teks dipotong di tempat pembicara benar-benar berhenti sejenak, berdasarkan waktu per kata dari YouTube.
+- **Sulih suara langsung yang terdengar seperti manusia.** Suara Arab neural mengucapkan setiap kalimat seiring pembicara, dalam bahasa Arab Mesir, Saudi, Emirat, Suriah, Yordania, Lebanon, Maroko, atau Irak. Tidak ada kalimat yang terpotong atau terlewat. Jika pembicara bicara cepat, video sedikit diperlambat sampai suara menyusul, alih-alih suaranya yang terburu-buru; jika Anda sendiri memperlambat video, suara mendapat waktu tambahan itu. Kata yang tulisannya sama tetapi dibaca berbeda diucapkan sesuai makna kalimat (الجُمَل "kalimat-kalimat", bukan الجَمَل "unta"), ditentukan berdasarkan teks asli bahasa Inggris.
 - **MP4 bersulih suara.** Ekspor video dengan sulih suara Arab. Tarjuman dapat menghapus suara pembicara asli sambil mempertahankan musik dan efek, memberi tiap pembicara suara pria atau wanita yang sesuai, serta menyematkan atau menempelkan subtitle secara permanen.
 - **Tidak ada teks? Tidak masalah.** Whisper mentranskripsikan audio di komputer Anda, lalu transkripnya diterjemahkan.
 - **Berkas subtitle.** Unduh SRT, VTT, atau teks biasa, dalam bahasa Arab atau dwibahasa, atau MP4 bersubtitle yang siap dibagikan.
 - **Seluruh playlist.** Berikan tautan playlist atau kanal untuk membuat subtitle, video bersubtitle, atau video bersulih suara bagi setiap video di dalamnya.
 - **Tanya videonya** (AI opsional). Dapatkan ringkasan, poin-poin penting, bab yang dapat diklik, dan jawaban yang langsung melompat ke momen saat video membahas pertanyaan Anda. Bekerja dengan Claude atau penyedia apa pun yang kompatibel dengan OpenAI (Gemini, Groq, OpenRouter, Ollama).
 - **Belajar bahasa Inggris.** Ketuk kata apa pun untuk melihat artinya, simpan beserta kalimatnya, ulangi nanti, dan ekspor ke Anki. Anda juga bisa mengulang kalimat, berhenti setelah tiap baris, atau mengaburkan subtitle untuk menguji diri sendiri.
-- **Ekstensi browser.** Gunakan subtitle dan sulih suara yang sama langsung di YouTube, di situs yang pemutarnya punya teks (Coursera, Udemy, dan lainnya), atau di situs lain mana pun dengan mendengarkan audio tab.
+- **Ekstensi browser.** Gunakan subtitle dan sulih suara yang sama langsung di YouTube, di situs yang pemutarnya punya teks (Coursera, Udemy, dan lainnya), di situs film dan anime yang menyematkan pemutarnya dari situs lain, atau di situs lain mana pun dengan mendengarkan audio tab.
+- **Di ponsel Anda.** Buka aplikasi dari ponsel mana pun yang tersambung ke Wi-Fi yang sama.
 
 Bahasa lain juga bisa: Prancis, Spanyol, Jerman, Turki, dan Inggris sudah tersedia sebagai bahasa target.
+
+## Tangkapan layar
+
+<table>
+  <tr>
+    <td width="50%"><img src="../screenshots/home.png" alt="Beranda: tempel tautan, unggah video, video terbaru, dan status komputer"></td>
+    <td width="50%"><img src="../screenshots/watch-en.png" alt="Menonton video dengan subtitle tersinkron dan transkrip, dalam bahasa Inggris dan tema terang"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/library.png" alt="File saya: tugas, batch playlist, video yang diunggah, dan file yang sudah jadi"></td>
+    <td><img src="../screenshots/settings.png" alt="Pengaturan: penyedia AI, kamus pelafalan, setelan bawaan, dan tampilan"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/extension-overlay.png" alt="Ekstensi menampilkan subtitle Arab di YouTube"></td>
+    <td><img src="../screenshots/extension-welcome.png" alt="Halaman sambutan ekstensi, terhubung ke aplikasi"></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="../screenshots/phone-home.png" alt="Beranda di ponsel" width="260">
+  <img src="../screenshots/phone-watch.png" alt="Menonton di ponsel" width="260">
+</p>
 
 ## Mulai cepat
 
 Anda memerlukan **Python 3.11+** dan **Node.js 20+**.
 
-**Windows:** klik dua kali `start.cmd`.
+**Windows:** klik dua kali `start.cmd`. Jika Windows bertanya apakah akan menjalankan skrip dari penerbit tak dikenal, buat pintasan desktop sekali saja dengan `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` lalu jalankan Tarjuman dari pintasan itu; pintasan ini menjalankan skrip yang sama lewat `cmd.exe` bawaan Windows, sehingga pertanyaan itu tidak muncul.
 
 **macOS / Linux:**
 
@@ -67,7 +90,9 @@ Anda memerlukan **Python 3.11+** dan **Node.js 20+**.
 ./start.sh
 ```
 
-Proses pertama memasang semuanya: paket Python, suara Arab luring, dan build aplikasi web. Setelah itu aplikasi terbuka di `http://127.0.0.1:4318`. Pada proses berikutnya, aplikasi siap dalam beberapa detik. Untuk memakainya dari ponsel, buka alamat yang ditampilkannya untuk Wi-Fi Anda.
+Di Debian, Ubuntu, dan Kali, pasang dulu `python3-venv` jika belum ada (`sudo apt install python3-venv`).
+
+Proses pertama memasang semuanya: paket Python, suara Arab luring, dan build aplikasi web. Setelah itu aplikasi terbuka di `http://127.0.0.1:4318`. Pada proses berikutnya, aplikasi siap dalam beberapa detik. Untuk memakainya dari ponsel, buka alamat yang ditampilkannya untuk Wi-Fi Anda. Di Windows, jika ponsel tidak bisa menjangkaunya, jalankan `scripts/allow-phone.ps1` sekali sebagai administrator: skrip ini menandai Wi-Fi rumah Anda sebagai Private dan membuka port Tarjuman hanya di jaringan Private.
 
 <details>
 <summary>Penyiapan manual</summary>
@@ -105,7 +130,7 @@ Ekstensi hanya berkomunikasi dengan aplikasi di komputer Anda. Kit Chrome Web St
 
 ## Cara sulih suara tetap sinkron
 
-Baris teks digabung menjadi kalimat utuh dan kata pengisi dihapus. Kemudian kecepatan setiap kalimat dipilih berdasarkan jendela antisipasi sekitar 12 detik, sehingga kalimat yang longgar meminjamkan waktu kepada kalimat yang padat dan kecepatan berubah bertahap alih-alih melompat. Sebelum browser memutar apa pun, server menyintesis dan mengukur setiap kalimat, jadi rencananya didasarkan pada durasi nyata, bukan tebakan. Jika sulih suara tetap tertinggal, kalimat berikutnya diputar sedikit lebih cepat; video hanya dijeda bila selisihnya melewati sekitar dua detik. Melompat ke titik mana pun akan melanjutkan sulih suara tepat di posisi itu.
+Baris teks digabung menjadi kalimat utuh dan kata pengisi dihapus. Kemudian kecepatan setiap kalimat dipilih berdasarkan jendela antisipasi sekitar 12 detik, sehingga kalimat yang longgar meminjamkan waktu kepada kalimat yang padat dan kecepatan berubah bertahap alih-alih melompat. Sebelum browser memutar kalimat-kalimat pertama di setiap bagian, server menyintesis dan mengukurnya, jadi rencananya didasarkan pada durasi nyata, bukan tebakan, dan server menyiapkan bagian berikutnya di latar belakang. Jika sulih suara tetap tertinggal, video melambat menjadi 85% dari kecepatan Anda sampai suara menyusul, dan hanya dijeda bila selisihnya melewati sekitar dua detik. Tempo mengikuti kecepatan putar Anda. Melompat ke titik mana pun akan melanjutkan sulih suara tepat di posisi itu. Saat penerjemah gratis membatasi jumlah permintaan, endpoint Google kedua lalu terjemahan milik YouTube sendiri menjaga sulih suara tetap berjalan.
 
 Desain lengkapnya ada di [docs/implementation.md](../implementation.md).
 
@@ -138,7 +163,7 @@ docs/        plan, specification, implementation notes, translated READMEs, scre
 
 ```sh
 # backend tests (offline)
-cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
+cd backend && ../.venv/bin/python -m pytest      # Windows: ..\.venv\Scripts\python
 
 # dub engine tests
 npm test

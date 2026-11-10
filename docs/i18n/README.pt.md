@@ -43,23 +43,46 @@
 
 Cole um link do YouTube, envie um vídeo do seu computador ou passe um link de praticamente qualquer site.
 
-- **Legendas sincronizadas.** As legendas em árabe aparecem sobre o vídeo linha por linha, com o idioma original embaixo, se você quiser. Legendas geradas automaticamente são reconstruídas em frases completas antes de serem traduzidas.
-- **Dublagem ao vivo que soa como uma pessoa.** Uma voz árabe neural fala cada frase no ritmo de quem está falando, em árabe egípcio, saudita, emiradense, sírio, jordaniano, libanês, marroquino ou iraquiano. Nenhuma frase é cortada ou pulada, e o vídeo só pausa quando a dublagem fica bem atrasada.
+- **Legendas sincronizadas.** As legendas em árabe aparecem sobre o vídeo linha por linha, com o idioma original embaixo, se você quiser. Legendas geradas automaticamente são reconstruídas em frases completas antes de serem traduzidas. Quando não têm nenhuma pontuação, são cortadas onde quem fala realmente faz pausas, usando os tempos de cada palavra do YouTube.
+- **Dublagem ao vivo que soa como uma pessoa.** Uma voz árabe neural fala cada frase no ritmo de quem está falando, em árabe egípcio, saudita, emiradense, sírio, jordaniano, libanês, marroquino ou iraquiano. Nenhuma frase é cortada ou pulada. Com alguém que fala rápido, o vídeo desacelera um pouco enquanto a voz o alcança, em vez de a voz correr; se você mesmo desacelerar o vídeo, a voz ganha esse tempo extra. Palavras que se escrevem igual mas se leem de forma diferente são lidas conforme o sentido da frase (الجُمَل "as frases", não الجَمَل "o camelo"), com base no original em inglês.
 - **MP4 dublado.** Exporte o vídeo com a narração em árabe. É possível remover a voz do locutor original mantendo a música e os efeitos, dar a cada pessoa uma voz masculina ou feminina correspondente e embutir ou gravar as legendas na imagem.
 - **Sem legendas? Sem problema.** O Whisper transcreve o áudio no seu computador e, em seguida, a transcrição é traduzida.
 - **Arquivos de legenda.** Baixe SRT, VTT ou texto simples, em árabe ou bilíngue, ou um MP4 legendado pronto para compartilhar.
 - **Playlists inteiras.** Passe o link de uma playlist ou de um canal para gerar legendas, vídeos legendados ou vídeos dublados de todos os vídeos dela.
 - **Pergunte ao vídeo** (IA opcional). Obtenha um resumo, os pontos principais, capítulos clicáveis e respostas que levam ao momento em que o vídeo trata da sua pergunta. Funciona com Claude ou qualquer provedor compatível com OpenAI (Gemini, Groq, OpenRouter, Ollama).
 - **Aprenda inglês.** Toque em qualquer palavra para ver o significado, salve-a com a frase, revise depois e exporte para o Anki. Você também pode repetir uma frase, pausar após cada linha ou desfocar as legendas para se testar.
-- **Extensão de navegador.** Use as mesmas legendas e a mesma dublagem no próprio YouTube, em sites cujo player tem legendas (Coursera, Udemy e outros) ou em qualquer outro site, ouvindo o áudio da aba.
+- **Extensão de navegador.** Use as mesmas legendas e a mesma dublagem no próprio YouTube, em sites cujo player tem legendas (Coursera, Udemy e outros), em sites de filmes e animes que incorporam o player de outro site ou em qualquer outro site, ouvindo o áudio da aba.
+- **No celular.** Abra o aplicativo em qualquer celular conectado ao mesmo Wi-Fi.
 
 Outros idiomas também funcionam: francês, espanhol, alemão, turco e inglês já vêm como idiomas de destino.
+
+## Capturas de tela
+
+<table>
+  <tr>
+    <td width="50%"><img src="../screenshots/home.png" alt="Início: colar um link, enviar um vídeo, vídeos recentes e o status do computador"></td>
+    <td width="50%"><img src="../screenshots/watch-en.png" alt="Assistindo a um vídeo com legendas sincronizadas e a transcrição, em inglês e no tema claro"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/library.png" alt="Meus arquivos: tarefas, um lote de playlist, vídeos enviados e arquivos prontos"></td>
+    <td><img src="../screenshots/settings.png" alt="Configurações: provedor de IA, dicionário de pronúncia, padrões e aparência"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/extension-overlay.png" alt="A extensão exibindo legendas em árabe no YouTube"></td>
+    <td><img src="../screenshots/extension-welcome.png" alt="A página de boas-vindas da extensão, conectada ao aplicativo"></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="../screenshots/phone-home.png" alt="Início no celular" width="260">
+  <img src="../screenshots/phone-watch.png" alt="Assistindo no celular" width="260">
+</p>
 
 ## Início rápido
 
 Você precisa de **Python 3.11+** e **Node.js 20+**.
 
-**Windows:** clique duas vezes em `start.cmd`.
+**Windows:** clique duas vezes em `start.cmd`. Se o Windows perguntar se deve executar um script de um editor desconhecido, crie uma vez um atalho na área de trabalho com `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` e inicie o Tarjuman por ele; o atalho executa o mesmo script pelo próprio `cmd.exe` do Windows, então o aviso não aparece.
 
 **macOS / Linux:**
 
@@ -67,7 +90,9 @@ Você precisa de **Python 3.11+** e **Node.js 20+**.
 ./start.sh
 ```
 
-A primeira execução instala tudo: os pacotes Python, a voz árabe offline e um build do aplicativo web. Depois, o aplicativo abre em `http://127.0.0.1:4318`. Nas execuções seguintes, ele inicia em poucos segundos. Para usá-lo pelo celular, abra o endereço que ele mostra para o seu Wi-Fi.
+No Debian, Ubuntu e Kali, instale antes o `python3-venv` se ele estiver faltando (`sudo apt install python3-venv`).
+
+A primeira execução instala tudo: os pacotes Python, a voz árabe offline e um build do aplicativo web. Depois, o aplicativo abre em `http://127.0.0.1:4318`. Nas execuções seguintes, ele inicia em poucos segundos. Para usá-lo pelo celular, abra o endereço que ele mostra para o seu Wi-Fi. No Windows, se o celular não conseguir acessá-lo, execute `scripts/allow-phone.ps1` uma vez como administrador: ele marca o Wi-Fi da sua casa como rede privada e abre as portas do Tarjuman apenas em redes privadas.
 
 <details>
 <summary>Instalação manual</summary>
@@ -105,7 +130,7 @@ A extensão se comunica apenas com o aplicativo no seu computador. O kit para a 
 
 ## Como a dublagem fica sincronizada
 
-As linhas de legenda são unidas em frases completas e as palavras de preenchimento são removidas. Em seguida, a velocidade de cada frase é escolhida com base numa janela de antecipação de cerca de 12 segundos, de modo que uma frase folgada empresta tempo a uma apertada e a velocidade muda aos poucos, sem saltos. Antes que o navegador toque qualquer coisa, o servidor sintetiza e mede cada frase, então o plano se baseia em durações reais, e não em estimativas. Se mesmo assim a dublagem atrasar, as frases seguintes tocam um pouco mais rápido; o vídeo só pausa quando a diferença passa de uns dois segundos. Ao pular para qualquer ponto, a dublagem retoma exatamente ali.
+As linhas de legenda são unidas em frases completas e as palavras de preenchimento são removidas. Em seguida, a velocidade de cada frase é escolhida com base numa janela de antecipação de cerca de 12 segundos, de modo que uma frase folgada empresta tempo a uma apertada e a velocidade muda aos poucos, sem saltos. Antes que o navegador toque as primeiras frases de cada trecho, o servidor as sintetiza e mede, então o plano se baseia em durações reais, e não em estimativas, e ele prepara o trecho seguinte em segundo plano. Se mesmo assim a dublagem atrasar, o vídeo desacelera para 85% da sua velocidade até a voz alcançá-lo, e só pausa quando a diferença passa de uns dois segundos. O ritmo acompanha a sua velocidade de reprodução. Ao pular para qualquer ponto, a dublagem retoma exatamente ali. Quando os tradutores gratuitos limitam as requisições, um segundo endpoint do Google e, depois, a própria tradução do YouTube mantêm a dublagem falando.
 
 O design completo está em [docs/implementation.md](../implementation.md).
 
@@ -138,7 +163,7 @@ docs/        plan, specification, implementation notes, translated READMEs, scre
 
 ```sh
 # backend tests (offline)
-cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
+cd backend && ../.venv/bin/python -m pytest      # Windows: ..\.venv\Scripts\python
 
 # dub engine tests
 npm test

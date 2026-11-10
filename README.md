@@ -163,7 +163,7 @@ docs/        plan, specification, implementation notes, translated READMEs, scre
 
 ```sh
 # backend tests (offline)
-cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
+cd backend && ../.venv/bin/python -m pytest      # Windows: ..\.venv\Scripts\python
 
 # dub engine tests
 npm test

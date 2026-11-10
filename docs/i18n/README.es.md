@@ -43,23 +43,46 @@
 
 Pega un enlace de YouTube, sube un vídeo desde tu ordenador o dale un enlace de casi cualquier sitio.
 
-- **Subtítulos sincronizados.** Los subtítulos en árabe aparecen sobre el vídeo línea a línea, con el idioma original debajo si lo quieres. Los subtítulos generados automáticamente se reconstruyen en frases completas antes de traducirse.
-- **Doblaje en directo que suena a persona.** Una voz árabe neuronal pronuncia cada frase al ritmo del orador, en árabe egipcio, saudí, emiratí, sirio, jordano, libanés, marroquí o iraquí. Ninguna frase se corta ni se salta, y el vídeo solo se pausa cuando el doblaje se queda bastante atrás.
+- **Subtítulos sincronizados.** Los subtítulos en árabe aparecen sobre el vídeo línea a línea, con el idioma original debajo si lo quieres. Los subtítulos generados automáticamente se reconstruyen en frases completas antes de traducirse. Si no tienen ninguna puntuación, se cortan donde el orador hace pausas de verdad, usando los tiempos por palabra de YouTube.
+- **Doblaje en directo que suena a persona.** Una voz árabe neuronal pronuncia cada frase al ritmo del orador, en árabe egipcio, saudí, emiratí, sirio, jordano, libanés, marroquí o iraquí. Ninguna frase se corta ni se salta. Con un orador rápido, el vídeo se ralentiza un poco mientras la voz lo alcanza, en lugar de que la voz se acelere; si ralentizas tú el vídeo, la voz aprovecha ese tiempo extra. Las palabras que se escriben igual pero se leen distinto se pronuncian según el sentido de la frase (الجُمَل «las frases», no الجَمَل «el camello»), a partir del original en inglés.
 - **MP4 doblado.** Exporta el vídeo con la locución en árabe. Puede eliminar la voz del orador original conservando la música y los efectos, asignar a cada orador una voz masculina o femenina acorde, e incrustar o grabar los subtítulos en la imagen.
 - **¿Sin subtítulos? No pasa nada.** Whisper transcribe el audio en tu ordenador y después se traduce la transcripción.
 - **Archivos de subtítulos.** Descarga SRT, VTT o texto plano, en árabe o bilingüe, o un MP4 subtitulado listo para compartir.
 - **Listas de reproducción completas.** Dale el enlace de una lista o de un canal para crear subtítulos, vídeos subtitulados o vídeos doblados de todos sus vídeos.
 - **Pregúntale al vídeo** (IA opcional). Obtén un resumen, los puntos clave, capítulos en los que hacer clic y respuestas que saltan al momento en que el vídeo trata tu pregunta. Funciona con Claude o con cualquier proveedor compatible con OpenAI (Gemini, Groq, OpenRouter, Ollama).
 - **Aprende inglés.** Toca cualquier palabra para ver su significado, guárdala con su frase, repásala más tarde y expórtala a Anki. También puedes repetir una frase, pausar tras cada línea o difuminar los subtítulos para ponerte a prueba.
-- **Extensión de navegador.** Usa los mismos subtítulos y el mismo doblaje en el propio YouTube, en sitios cuyo reproductor tiene subtítulos (Coursera, Udemy y otros) o en cualquier otro sitio escuchando el audio de la pestaña.
+- **Extensión de navegador.** Usa los mismos subtítulos y el mismo doblaje en el propio YouTube, en sitios cuyo reproductor tiene subtítulos (Coursera, Udemy y otros), en sitios de películas y anime que incrustan su reproductor desde otro sitio o en cualquier otro sitio escuchando el audio de la pestaña.
+- **En tu móvil.** Abre la aplicación desde cualquier móvil conectado a la misma Wi-Fi.
 
 También funcionan otros idiomas: francés, español, alemán, turco e inglés vienen integrados como idiomas de destino.
+
+## Capturas de pantalla
+
+<table>
+  <tr>
+    <td width="50%"><img src="../screenshots/home.png" alt="Inicio: pegar un enlace, subir un vídeo, vídeos recientes y el estado del ordenador"></td>
+    <td width="50%"><img src="../screenshots/watch-en.png" alt="Viendo un vídeo con subtítulos sincronizados y la transcripción, en inglés y con el tema claro"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/library.png" alt="Mis archivos: tareas, un lote de una lista de reproducción, vídeos subidos y archivos terminados"></td>
+    <td><img src="../screenshots/settings.png" alt="Ajustes: proveedor de IA, diccionario de pronunciación, valores predeterminados y apariencia"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/extension-overlay.png" alt="La extensión mostrando subtítulos en árabe en YouTube"></td>
+    <td><img src="../screenshots/extension-welcome.png" alt="La página de bienvenida de la extensión, conectada a la aplicación"></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="../screenshots/phone-home.png" alt="Inicio en un móvil" width="260">
+  <img src="../screenshots/phone-watch.png" alt="Viendo un vídeo en un móvil" width="260">
+</p>
 
 ## Inicio rápido
 
 Necesitas **Python 3.11+** y **Node.js 20+**.
 
-**Windows:** haz doble clic en `start.cmd`.
+**Windows:** haz doble clic en `start.cmd`. Si Windows pregunta si quieres ejecutar un script de un editor desconocido, crea una sola vez un acceso directo en el escritorio con `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` e inicia Tarjuman desde él; ejecuta el mismo script a través del propio `cmd.exe` de Windows, así que el aviso no aparece.
 
 **macOS / Linux:**
 
@@ -67,7 +90,9 @@ Necesitas **Python 3.11+** y **Node.js 20+**.
 ./start.sh
 ```
 
-La primera ejecución lo instala todo: los paquetes de Python, la voz árabe sin conexión y una compilación de la aplicación web. Después, la aplicación se abre en `http://127.0.0.1:4318`. En las siguientes ejecuciones arranca en un par de segundos. Para usarla desde el móvil, abre la dirección que muestra para tu Wi-Fi.
+En Debian, Ubuntu y Kali, instala primero `python3-venv` si falta (`sudo apt install python3-venv`).
+
+La primera ejecución lo instala todo: los paquetes de Python, la voz árabe sin conexión y una compilación de la aplicación web. Después, la aplicación se abre en `http://127.0.0.1:4318`. En las siguientes ejecuciones arranca en un par de segundos. Para usarla desde el móvil, abre la dirección que muestra para tu Wi-Fi. En Windows, si el móvil no consigue conectarse, ejecuta `scripts/allow-phone.ps1` una vez como administrador: marca tu Wi-Fi de casa como privada y abre los puertos de Tarjuman solo en redes privadas.
 
 <details>
 <summary>Instalación manual</summary>
@@ -105,7 +130,7 @@ La extensión solo se comunica con la aplicación de tu ordenador. Su kit para C
 
 ## Cómo se mantiene sincronizado el doblaje
 
-Las líneas de subtítulos se unen en frases completas y se eliminan las muletillas. Después, la velocidad de cada frase se elige a partir de una ventana de anticipación de unos 12 segundos, de modo que una frase holgada le presta tiempo a una apretada y la velocidad cambia de forma gradual en lugar de dar saltos. Antes de que el navegador reproduzca nada, el servidor sintetiza y mide cada frase, así que el plan se basa en duraciones reales y no en estimaciones. Si aun así el doblaje se retrasa, las frases siguientes suenan un poco más rápido; el vídeo solo se pausa cuando el desfase supera unos dos segundos. Si saltas a cualquier punto, el doblaje se reanuda exactamente ahí.
+Las líneas de subtítulos se unen en frases completas y se eliminan las muletillas. Después, la velocidad de cada frase se elige a partir de una ventana de anticipación de unos 12 segundos, de modo que una frase holgada le presta tiempo a una apretada y la velocidad cambia de forma gradual en lugar de dar saltos. Antes de que el navegador reproduzca las primeras frases de cada tramo, el servidor las sintetiza y las mide, así que el plan se basa en duraciones reales y no en estimaciones, y prepara el tramo siguiente en segundo plano. Si aun así el doblaje se retrasa, el vídeo baja al 85 % de tu velocidad hasta que la voz lo alcanza, y solo se pausa cuando el desfase supera unos dos segundos. El ritmo sigue tu velocidad de reproducción. Si saltas a cualquier punto, el doblaje se reanuda exactamente ahí. Cuando los traductores gratuitos limitan las peticiones, un segundo endpoint de Google y, después, la propia traducción de YouTube mantienen el doblaje en marcha.
 
 El diseño completo está en [docs/implementation.md](../implementation.md).
 
@@ -138,7 +163,7 @@ docs/        plan, specification, implementation notes, translated READMEs, scre
 
 ```sh
 # backend tests (offline)
-cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
+cd backend && ../.venv/bin/python -m pytest      # Windows: ..\.venv\Scripts\python
 
 # dub engine tests
 npm test

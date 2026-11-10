@@ -43,23 +43,46 @@
 
 Bir YouTube bağlantısı yapıştırın, bilgisayarınızdan bir video yükleyin ya da neredeyse herhangi bir siteden bağlantı verin.
 
-- **Senkronize altyazılar.** Arapça altyazılar videonun üzerinde satır satır görünür; isterseniz altında orijinal dil de yer alır. Otomatik oluşturulan altyazılar çevrilmeden önce tam cümlelere dönüştürülür.
-- **İnsan gibi konuşan canlı seslendirme.** Nöral bir Arapça ses, her cümleyi konuşmacıyla aynı zamanlamada; Mısır, Suudi, Emirlik, Suriye, Ürdün, Lübnan, Fas veya Irak Arapçasıyla okur. Hiçbir cümle kesilmez ya da atlanmaz; video yalnızca seslendirme epey geride kaldığında duraklar.
+- **Senkronize altyazılar.** Arapça altyazılar videonun üzerinde satır satır görünür; isterseniz altında orijinal dil de yer alır. Otomatik oluşturulan altyazılar çevrilmeden önce tam cümlelere dönüştürülür. Hiç noktalama işareti yoksa, YouTube'un kelime bazındaki zamanlamaları kullanılarak konuşmacının gerçekten duraksadığı yerlerden bölünür.
+- **İnsan gibi konuşan canlı seslendirme.** Nöral bir Arapça ses, her cümleyi konuşmacıyla aynı zamanlamada; Mısır, Suudi, Emirlik, Suriye, Ürdün, Lübnan, Fas veya Irak Arapçasıyla okur. Hiçbir cümle kesilmez ya da atlanmaz. Konuşmacı hızlıysa ses yetişmek için acele etmez; bunun yerine ses yetişene kadar video biraz yavaşlar. Videoyu kendiniz yavaşlatırsanız bu ek süre sese kalır. Yazılışı aynı ama okunuşu farklı kelimeler, İngilizce asıl metne bakılarak cümlenin anlamına göre okunur (الجَمَل "deve" değil, الجُمَل "cümleler").
 - **Seslendirilmiş MP4.** Videoyu Arapça seslendirmeyle dışa aktarın. Müzik ve efektleri korurken orijinal konuşmacının sesini kaldırabilir, her konuşmacıya uygun bir erkek ya da kadın sesi atayabilir, altyazıları gömebilir veya görüntüye yakabilir.
 - **Altyazı yok mu? Sorun değil.** Whisper sesi bilgisayarınızda yazıya döker, ardından bu döküm çevrilir.
 - **Altyazı dosyaları.** SRT, VTT veya düz metin olarak, Arapça ya da iki dilli indirin; dilerseniz paylaşmaya hazır altyazılı bir MP4 alın.
 - **Oynatma listelerinin tamamı.** Bir oynatma listesi veya kanal bağlantısı verin; içindeki her video için altyazı, altyazılı video ya da seslendirilmiş video üretsin.
 - **Videoya sorun** (isteğe bağlı yapay zekâ). Bir özet, ana noktalar, tıklanabilir bölümler ve sizi videonun sorunuzu ele aldığı ana götüren yanıtlar alın. Claude veya OpenAI uyumlu herhangi bir sağlayıcıyla (Gemini, Groq, OpenRouter, Ollama) çalışır.
 - **İngilizce öğrenin.** Anlamını görmek için herhangi bir kelimeye dokunun, onu cümlesiyle birlikte kaydedin, daha sonra tekrar edin ve Anki'ye aktarın. Ayrıca bir cümleyi tekrarlayabilir, her satırdan sonra duraklatabilir ya da kendinizi sınamak için altyazıları bulanıklaştırabilirsiniz.
-- **Tarayıcı eklentisi.** Aynı altyazıları ve seslendirmeyi doğrudan YouTube'da, oynatıcısında altyazı bulunan sitelerde (Coursera, Udemy ve diğerleri) ya da sekmenin sesini dinleyerek başka herhangi bir sitede kullanın.
+- **Tarayıcı eklentisi.** Aynı altyazıları ve seslendirmeyi doğrudan YouTube'da, oynatıcısında altyazı bulunan sitelerde (Coursera, Udemy ve diğerleri), oynatıcısını başka bir siteden yerleştiren film ve anime sitelerinde ya da sekmenin sesini dinleyerek başka herhangi bir sitede kullanın.
+- **Telefonunuzda.** Uygulamayı aynı Wi-Fi ağındaki herhangi bir telefondan açın.
 
 Başka diller de çalışır: Fransızca, İspanyolca, Almanca, Türkçe ve İngilizce hedef dil olarak yerleşiktir.
+
+## Ekran görüntüleri
+
+<table>
+  <tr>
+    <td width="50%"><img src="../screenshots/home.png" alt="Ana sayfa: bağlantı yapıştırma, video yükleme, son videolar ve bilgisayarın durumu"></td>
+    <td width="50%"><img src="../screenshots/watch-en.png" alt="Senkronize altyazılar ve dökümle video izleme, İngilizce arayüz ve açık temada"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/library.png" alt="Dosyalarım: işler, bir oynatma listesi toplu işi, yüklenen videolar ve tamamlanan dosyalar"></td>
+    <td><img src="../screenshots/settings.png" alt="Ayarlar: yapay zekâ sağlayıcısı, telaffuz sözlüğü, varsayılanlar ve görünüm"></td>
+  </tr>
+  <tr>
+    <td><img src="../screenshots/extension-overlay.png" alt="YouTube'da Arapça altyazı gösteren eklenti"></td>
+    <td><img src="../screenshots/extension-welcome.png" alt="Eklentinin uygulamaya bağlı karşılama sayfası"></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="../screenshots/phone-home.png" alt="Telefonda ana sayfa" width="260">
+  <img src="../screenshots/phone-watch.png" alt="Telefonda izleme" width="260">
+</p>
 
 ## Hızlı başlangıç
 
 **Python 3.11+** ve **Node.js 20+** gerekir.
 
-**Windows:** `start.cmd` dosyasına çift tıklayın.
+**Windows:** `start.cmd` dosyasına çift tıklayın. Windows bilinmeyen bir yayıncının betiğini çalıştırmak isteyip istemediğinizi sorarsa, `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` ile bir kez masaüstü kısayolu oluşturun ve Tarjuman'ı oradan başlatın; kısayol aynı betiği Windows'un kendi `cmd.exe`'si üzerinden çalıştırdığı için bu soru çıkmaz.
 
 **macOS / Linux:**
 
@@ -67,7 +90,9 @@ Başka diller de çalışır: Fransızca, İspanyolca, Almanca, Türkçe ve İng
 ./start.sh
 ```
 
-İlk çalıştırma her şeyi kurar: Python paketlerini, çevrimdışı Arapça sesi ve web uygulamasının derlenmiş hâlini. Ardından uygulama `http://127.0.0.1:4318` adresinde açılır. Sonraki çalıştırmalarda birkaç saniyede başlar. Telefonunuzdan kullanmak için Wi-Fi ağınız için yazdırdığı adresi açın.
+Debian, Ubuntu ve Kali'de `python3-venv` eksikse önce onu kurun (`sudo apt install python3-venv`).
+
+İlk çalıştırma her şeyi kurar: Python paketlerini, çevrimdışı Arapça sesi ve web uygulamasının derlenmiş hâlini. Ardından uygulama `http://127.0.0.1:4318` adresinde açılır. Sonraki çalıştırmalarda birkaç saniyede başlar. Telefonunuzdan kullanmak için Wi-Fi ağınız için yazdırdığı adresi açın. Windows'ta telefon uygulamaya erişemiyorsa `scripts/allow-phone.ps1` betiğini bir kez yönetici olarak çalıştırın: ev Wi-Fi ağınızı Özel olarak işaretler ve Tarjuman'ın portlarını yalnızca özel ağlarda açar.
 
 <details>
 <summary>Elle kurulum</summary>
@@ -105,7 +130,7 @@ Eklenti yalnızca bilgisayarınızdaki uygulamayla iletişim kurar. Chrome Web S
 
 ## Seslendirme nasıl senkron kalır
 
-Altyazı satırları tam cümlelerde birleştirilir ve dolgu sözcükleri çıkarılır. Ardından her cümlenin hızı yaklaşık 12 saniyelik bir ileriye bakış penceresine göre seçilir; böylece rahat bir cümle sıkışık bir cümleye zaman ödünç verir ve hız sıçramak yerine kademeli olarak değişir. Tarayıcı herhangi bir şey çalmadan önce sunucu her cümleyi sentezler ve süresini ölçer; yani plan tahminlere değil gerçek sürelere dayanır. Seslendirme yine de geride kalırsa sonraki cümleler biraz daha hızlı çalınır; video yalnızca fark yaklaşık iki saniyeyi aştığında duraklar. Herhangi bir noktaya atladığınızda seslendirme tam o yerden devam eder.
+Altyazı satırları tam cümlelerde birleştirilir ve dolgu sözcükleri çıkarılır. Ardından her cümlenin hızı yaklaşık 12 saniyelik bir ileriye bakış penceresine göre seçilir; böylece rahat bir cümle sıkışık bir cümleye zaman ödünç verir ve hız sıçramak yerine kademeli olarak değişir. Tarayıcı her bölümün ilk cümlelerini çalmadan önce sunucu bu cümleleri sentezler ve sürelerini ölçer; yani plan tahminlere değil gerçek sürelere dayanır, sunucu da bir sonraki bölümü arka planda hazırlar. Seslendirme yine de geride kalırsa video, ses yetişene kadar sizin hızınızın %85'ine yavaşlar ve yalnızca fark yaklaşık iki saniyeyi aştığında duraklar. Tempo oynatma hızınızı izler. Herhangi bir noktaya atladığınızda seslendirme tam o yerden devam eder. Ücretsiz çeviri servisleri istekleri sınırladığında, ikinci bir Google uç noktası ve ardından YouTube'un kendi çevirisi seslendirmenin sürmesini sağlar.
 
 Tasarımın tamamı [docs/implementation.md](../implementation.md) dosyasındadır.
 
@@ -138,7 +163,7 @@ docs/        plan, specification, implementation notes, translated READMEs, scre
 
 ```sh
 # backend tests (offline)
-cd backend && ../.venv/bin/python -m pytest      # Windows: ...venvScriptspython
+cd backend && ../.venv/bin/python -m pytest      # Windows: ..\.venv\Scripts\python
 
 # dub engine tests
 npm test
