@@ -91,6 +91,8 @@ Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/M
 - Your videos, subtitles, settings and `.env` are kept in `%LOCALAPPDATA%\Tarjuman`, apart from the program. An update keeps them; uninstalling asks whether to delete them.
 - The Start menu has a shortcut to the extension folder, for *Load unpacked* in `chrome://extensions`.
 
+Something not working? See [Troubleshooting](docs/troubleshooting.md). What changed in each version is in the [Changelog](CHANGELOG.md).
+
 ### From source
 
 You need **Python 3.11+** and **Node.js 20+**.

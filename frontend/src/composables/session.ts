@@ -59,6 +59,8 @@ let player: Player | null = null;
 let ticker: number | undefined;
 let whisperPoll: JobPoll<WhisperJob> | null = null;
 let pendingSeek: number | null = null;
+let pendingPlay = false; // whether the pending seek should also start playing
+let soughtSinceAttach = false; // the user picked a position while the player was settling
 let learnFrom = -1;
 let loopCue = -1;
 let lastSavedAt = 0;
@@ -283,6 +285,7 @@ export async function editLine(i: number, text: string): Promise<void> {
 export function attachPlayer(p: Player, onReady?: () => void): void {
   player = markRaw(p);
   session.ready = true;
+  soughtSinceAttach = false;
   window.clearInterval(ticker);
   ticker = window.setInterval(tick, 120);
   // The YouTube player needs a moment after onReady before it honours seek and rate.
@@ -290,9 +293,11 @@ export function attachPlayer(p: Player, onReady?: () => void): void {
     if (player !== p) return;
     applySpeed();
     if (pendingSeek != null) {
-      seekTo(pendingSeek, false);
+      const at = pendingSeek;
       pendingSeek = null;
-    } else resumePosition();
+      seekTo(at, pendingPlay);
+      pendingPlay = false;
+    } else if (!soughtSinceAttach) resumePosition(); // never over a position the user just chose
     onReady?.();
   }, 600);
 }
@@ -388,7 +393,13 @@ export function applySpeed(): void {
 }
 
 export function seekTo(sec: number, play = true): void {
-  if (!player || !session.ready) return;
+  if (!player || !session.ready) {
+    // A line clicked before the video has loaded: go there as soon as the player is ready.
+    pendingSeek = Math.max(0, sec);
+    pendingPlay = play;
+    return;
+  }
+  soughtSinceAttach = true;
   player.seekTo(Math.max(0, sec), true);
   if (play) player.playVideo();
 }

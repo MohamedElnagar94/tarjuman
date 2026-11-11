@@ -55,8 +55,7 @@ test("a video from the library plays with its translated transcript", async () =
   await page.locator('.row[data-i="1"] .tr').filter({ hasText: SECOND_LINE }).waitFor();
   assert.match(await page.locator('.row[data-i="1"] .src').innerText(), /large language models/);
 
-  // Clicking a line's time moves the video there.
-  await page.waitForFunction(() => document.querySelector("video").readyState >= 1); // a seek before the video has loaded is lost
+  // Clicking a line's time moves the video there, also when clicked before the video has loaded.
   await page.locator('.row[data-i="1"] .tm').click();
   await page.waitForFunction(() => Math.abs(document.querySelector("video").currentTime - 3) < 0.6);
   assert.deepEqual(errors, []);
