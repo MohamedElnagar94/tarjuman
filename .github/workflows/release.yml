@@ -50,10 +50,15 @@ jobs:
 
       - name: Compile the installer
         shell: pwsh
+        env:
+          INNO_VERSION: "6.4.3"
         run: |
-          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
-          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
-          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          # Pinned on purpose. Installers built with Inno Setup 6.7.1 failed on a Windows 10 machine when
+          # started from Explorer ("unable to create the directory ...\Temp\is-*.tmp, access is denied"),
+          # before showing anything. Change the version only after testing a double-click install.
+          choco install innosetup --version=$env:INNO_VERSION --allow-downgrade -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "Could not install Inno Setup $env:INNO_VERSION" }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           $version = (Get-Content build\windows\version.txt).Trim()
           & $iscc "/DAppVersion=$version" installer\tarjuman.iss
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
