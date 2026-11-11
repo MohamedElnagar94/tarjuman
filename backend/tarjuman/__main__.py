@@ -104,13 +104,15 @@ def _pip(*args: str) -> bool:
     return subprocess.call([sys.executable, "-m", "pip", "--disable-pip-version-check", *args]) == 0
 
 
-def setup(_args: argparse.Namespace) -> None:
+def setup(args: argparse.Namespace) -> None:
     from .core import http
 
     config.ensure_dirs()
-    print("\n  Installing Python packages…")
-    if not _pip("install", "-r", str(config.REQUIREMENTS)):
-        raise SystemExit("  pip install failed")
+    voice_only = getattr(args, "voice_only", False)  # the installed app comes with its packages and web build
+    if not voice_only:
+        print("\n  Installing Python packages…")
+        if not _pip("install", "-r", str(config.REQUIREMENTS)):
+            raise SystemExit("  pip install failed")
     if not config.PIPER_MODEL.exists():
         print("  Downloading the offline Arabic voice (Piper, ~60 MB)…")
         try:
@@ -118,6 +120,8 @@ def setup(_args: argparse.Namespace) -> None:
             asyncio.run(http.download(config.PIPER_URL + ".onnx", config.PIPER_MODEL))
         except Exception as e:  # noqa: BLE001
             print(f"  Piper voice download failed ({e}); dubbing will use the online voices only.")
+    if voice_only:
+        return
     npm = shutil.which("npm")
     if npm and not config.FRONTEND_DIST.joinpath("index.html").exists():
         print("  Building the web app…")
@@ -185,7 +189,8 @@ def main(argv: list[str] | None = None) -> None:
     p_subs.add_argument("--lang", default="ar")
     p_subs.add_argument("--format", default="srt", help="srt,vtt,txt")
 
-    sub.add_parser("setup", help="install everything")
+    p_setup = sub.add_parser("setup", help="install everything")
+    p_setup.add_argument("--voice-only", action="store_true", help="only download the offline Arabic voice")
     sub.add_parser("update", help="update yt-dlp and edge-tts")
     sub.add_parser("doctor", help="check every component")
 

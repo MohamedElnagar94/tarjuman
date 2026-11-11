@@ -47,6 +47,9 @@ def _number(name: str, default: float) -> float:
 
 
 HOME = Path(os.environ.get("TARJUMAN_HOME") or PROJECT_ROOT)
+# The installed app keeps the user's .env next to their data, away from the program folder.
+if HOME != PROJECT_ROOT and os.environ.get("TARJUMAN_NO_ENV_FILE") != "1":
+    load_env_file(HOME / ".env")
 DATA = HOME / "data"
 
 CACHE = DATA / "cache"

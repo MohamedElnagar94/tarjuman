@@ -81,6 +81,17 @@ Other languages work too: French, Spanish, German, Turkish and English are built
 
 ## Quick start
 
+### Windows installer
+
+Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page and run it. It brings its own Python, every package, the web app and the browser extension, so you need neither Python nor Node.js. It installs for your user only (no administrator prompt) and doesn't touch the firewall.
+
+- The installer isn't code-signed yet, so Windows SmartScreen may say "unknown publisher": choose *More info → Run anyway*.
+- The first start downloads the offline Arabic voice (about 60 MB). The Whisper model downloads itself the first time a video needs it.
+- Your videos, subtitles, settings and `.env` are kept in `%LOCALAPPDATA%\Tarjuman`, apart from the program. An update keeps them; uninstalling asks whether to delete them.
+- The Start menu has a shortcut to the extension folder, for *Load unpacked* in `chrome://extensions`.
+
+### From source
+
 You need **Python 3.11+** and **Node.js 20+**.
 
 **Windows:** double-click `start.cmd`. If Windows asks whether to run a script from an unknown publisher, create a desktop shortcut once with `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` and start Tarjuman from it; it runs the same script through Windows' own `cmd.exe`, so the prompt doesn't appear.
@@ -198,6 +209,15 @@ npm --prefix extension run build && npm --prefix extension test && npm --prefix 
 ```
 
 Read [docs/specs.md](docs/specs.md) before changing an API route: the web app and the extension both depend on it.
+
+### Building the Windows installer
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build.ps1   # build\windows\app: Python, packages, web app, extension
+iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Tarjuman-Setup-3.0.0.exe (Inno Setup 6)
+```
+
+The *Windows installer* workflow does the same on GitHub: run it from the Actions tab, or push a tag like `v3.0.0` to attach the installer to a release. Before compiling, it starts the bundled app and checks that it answers.
 
 ## Built with
 

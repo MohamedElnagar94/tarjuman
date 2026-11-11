@@ -1,0 +1,74 @@
+name: Windows installer
+
+# Builds Tarjuman-Setup-<version>.exe: the app with its own Python, packages, web build and extension.
+# Run it by hand from the Actions tab, or push a tag like v3.0.0 to also attach it to a release.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  installer:
+    name: Build the installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build the app folder
+        shell: pwsh
+        run: ./installer/build.ps1 -Python python
+
+      - name: The bundled app starts and answers
+        shell: pwsh
+        run: |
+          $env:TARJUMAN_HOME = Join-Path $env:RUNNER_TEMP "tarjuman-home"
+          $env:TARJUMAN_NO_ENV_FILE = "1"
+          $app = "build\windows\app"
+          & "$app\python\python.exe" -m tarjuman doctor
+          $p = Start-Process -FilePath "$app\python\python.exe" -ArgumentList "-m", "tarjuman", "--no-open", "--host", "127.0.0.1", "--port", "4391" -WorkingDirectory $app -PassThru
+          try {
+            $ok = $false
+            foreach ($i in 1..60) {
+              try { $h = Invoke-RestMethod "http://127.0.0.1:4391/api/health" -TimeoutSec 2; if ($h.ok) { $ok = $true; break } } catch { Start-Sleep 1 }
+            }
+            if (-not $ok) { throw "The bundled app did not answer on /api/health" }
+            $page = Invoke-WebRequest "http://127.0.0.1:4391/" -UseBasicParsing
+            if ($page.Content -notmatch "<div id=`"app`"") { throw "The web app was not served" }
+          } finally { Stop-Process -Id $p.Id -Force }
+
+      - name: Compile the installer
+        shell: pwsh
+        run: |
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          $version = (Get-Content build\windows\version.txt).Trim()
+          & $iscc "/DAppVersion=$version" installer\tarjuman.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
+          Get-FileHash "build\windows\Tarjuman-Setup-$version.exe" -Algorithm SHA256 | Format-List
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tarjuman-Setup
+          path: build/windows/Tarjuman-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $file = (Get-ChildItem build\windows\Tarjuman-Setup-*.exe).FullName
+          gh release view $env:GITHUB_REF_NAME *> $null
+          if ($LASTEXITCODE -ne 0) { gh release create $env:GITHUB_REF_NAME --title "Tarjuman $env:GITHUB_REF_NAME" --generate-notes }
+          gh release upload $env:GITHUB_REF_NAME $file --clobber
