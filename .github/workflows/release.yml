@@ -51,7 +51,7 @@ jobs:
       - name: Compile the installer
         shell: pwsh
         env:
-          INNO_VERSION: "6.4.3"
+          INNO_VERSION: "6.4.0"
         run: |
           # Pinned on purpose. Installers built with Inno Setup 6.7.1 failed on a Windows 10 machine when
           # started from Explorer ("unable to create the directory ...\Temp\is-*.tmp, access is denied"),
