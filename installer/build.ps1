@@ -91,6 +91,8 @@ $bundled = Join-Path $app "python\python.exe"
 & $bundled -m compileall -q -j 0 $site (Join-Path $app "backend") | Out-Null
 & $bundled -c "import fastapi, uvicorn, tarjuman.api.app, tarjuman.desktop"
 if ($LASTEXITCODE -ne 0) { throw "The bundled Python cannot import Tarjuman" }
+& $bundled -m tarjuman --version | Out-Null  # the command line itself parses and starts
+if ($LASTEXITCODE -ne 0) { throw "The bundled Tarjuman command does not start" }
 
 $version = (& $Python -c "import re,sys; print(re.search(r'__version__ = .(.+?).$', open(sys.argv[1], encoding='utf-8').read(), re.M).group(1))" (Join-Path $root "backend\tarjuman\__init__.py")).Trim()
 Set-Content -Encoding ascii (Join-Path $out "version.txt") $version
