@@ -526,6 +526,12 @@ def start_batch(s: "Services", link: str, opts: dict) -> str:
         limit = min(200, max(1, int(opts.get("limit") or 50)))
     except (TypeError, ValueError):
         limit = 50
+    existing = next(
+        (j for j in s.jobs.jobs.values() if j.type == "batch" and j.active and j.opts.get("link") == link and j.opts.get("what") == what),
+        None,
+    )
+    if existing:
+        return existing.id
     job = s.jobs.new(
         "batch", "batch", link=link, what=what, lang=norm_lang(opts.get("tl")) or "ar", limit=limit,
         voice=opts.get("voice") or "auto", quality=_quality(opts.get("quality")), bgVolume=opts.get("bgVolume"),
@@ -560,12 +566,12 @@ async def run_batch(s: "Services", job: Job) -> None:
             else:
                 # Each video is its own job (it shows in "My files" and can be cancelled); the batch waits for it.
                 if o["what"] == "dub":
-                    sub = s.jobs.new("dub", item["id"], **dub_options({
+                    sub = s.jobs.child("dub", item["id"], **dub_options({
                         "lang": o["lang"], "voice": o["voice"], "quality": o["quality"], "bgVolume": o["bgVolume"],
                         "embedSubs": o["embedSubs"],
                     }))
                 else:
-                    sub = s.jobs.new("subvideo", item["id"], lang=o["lang"], mode="ar", quality=o["quality"])
+                    sub = s.jobs.child("subvideo", item["id"], lang=o["lang"], mode="ar", quality=o["quality"])
                 job.current = sub
                 sub.phase = "في انتظار انتهاء مهمة أخرى"
                 async with s.jobs.slot(sub.type):
@@ -595,7 +601,11 @@ def start_fetch(s: "Services", link: str) -> str:
     _need_python_tools()
     if not re.match(r"^https?://", link, re.I):
         raise AppError("BAD_URL")
-    job = s.jobs.new("fetch", "fetch-" + hashlib.sha1(link.encode()).hexdigest()[:10], link=link)
+    key = "fetch-" + hashlib.sha1(link.encode()).hexdigest()[:10]
+    existing = s.jobs.find_active("fetch", key)
+    if existing:  # a second click on the same link doesn't download it twice
+        return existing.id
+    job = s.jobs.new("fetch", key, link=link)
     s.jobs.start(job, lambda j: run_fetch(s, j, link))
     return job.id
 

@@ -28,3 +28,4 @@ models/
 Thumbs.db
 .env
 .env.*
+!.env.example

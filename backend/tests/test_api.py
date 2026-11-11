@@ -397,3 +397,26 @@ def test_a_code_saved_without_an_end_date_is_replaced_at_startup(tmp_path):
     p = Pairing(f)
     p.load()
     assert p.code != "an-old-code-that-never-ran-out" and p.code_expires > 0
+
+
+async def test_asking_twice_for_the_same_download_or_playlist_starts_it_once(services, monkeypatch):
+    import asyncio
+
+    from tarjuman.jobs import runners
+
+    release = asyncio.Event()
+
+    async def slow(*_a, **_k):
+        await release.wait()
+
+    monkeypatch.setattr(runners, "_need_python_tools", lambda: None)
+    monkeypatch.setattr(runners, "run_fetch", slow)
+    monkeypatch.setattr(runners, "run_batch", slow)
+    a = runners.start_fetch(services, "https://video.example/1")
+    assert runners.start_fetch(services, "https://video.example/1") == a
+    assert runners.start_fetch(services, "https://video.example/2") != a
+    b = runners.start_batch(services, "https://video.example/list", {"what": "subs"})
+    assert runners.start_batch(services, "https://video.example/list", {"what": "subs"}) == b
+    assert runners.start_batch(services, "https://video.example/list", {"what": "dub"}) != b, "another kind of work is another job"
+    services.jobs.cancel_all()
+    release.set()

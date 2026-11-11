@@ -89,7 +89,7 @@ The simulation tests in `shared/dub-engine/test/` replay these situations with a
 
 Every heavy step is a subprocess registered on the job, so **Cancel** kills it. Whisper runs in-process and checks `job.cancelled` between segments.
 
-Heavy jobs take turns: one Whisper, one dub, one subtitled video and one playlist batch at a time, plus two downloads. A job waiting its turn is `queued`, and it can be cancelled before it starts. A playlist batch takes the same turn for each video it dubs or subtitles.
+Heavy jobs take turns: one Whisper, one dub, one subtitled video and one playlist batch at a time, plus two downloads. On top of that, Whisper, dubbing and subtitled video are heavy: only `TARJUMAN_HEAVY_JOBS` of them (2 by default) run together, whatever their kinds, and at most `TARJUMAN_MAX_QUEUE` jobs wait (a new one beyond that gets `QUEUE_FULL`). Asking again for a download or playlist that is already under way returns the same job. A job waiting its turn is `queued`, and it can be cancelled before it starts. A playlist batch takes the same turn for each video it dubs or subtitles.
 
 The separator streams: it decodes a few seconds, separates them, appends them to the output WAV and moves on. Memory use stays at a few megabytes whatever the video's length, and the output is identical to separating the whole track at once (`tests/test_separator.py`).
 

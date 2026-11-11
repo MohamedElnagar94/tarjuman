@@ -141,6 +141,8 @@ Tarjuman is local-first. Your videos, subtitles, saved words, settings and API k
 
 ## Configuration
 
+Copy `.env.example` to `.env` in the project folder and edit it; every setting is explained there, in Arabic and English. The file is read at startup, so restart Tarjuman after a change. A variable set in the real environment wins over the file.
+
 | Environment variable | Default | Meaning |
 |---|---|---|
 | `TARJUMAN_HOME` | project folder | Where `data/` is kept |
@@ -151,6 +153,9 @@ Tarjuman is local-first. Your videos, subtitles, saved words, settings and API k
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Largest video you can upload |
 | `TARJUMAN_PAIR_MINUTES` | `15` | How long a phone pairing code (the QR) works; `0` = until you make a new one |
 | `TARJUMAN_FETCH_PRIVATE` | off | Set to `1` to allow downloading from addresses inside your own network |
+| `TARJUMAN_HEAVY_JOBS` | `2` | How many heavy jobs (Whisper, dubbing, burning subtitles) run together; use `1` on a computer with little memory |
+| `TARJUMAN_MAX_QUEUE` | `20` | Most jobs that may wait their turn |
+| `TARJUMAN_FORCE_ASR` | off | Set to `1` to always transcribe with Whisper, ignoring YouTube's captions |
 | `ANTHROPIC_API_KEY` | – | Used for Claude when no key is saved in the settings |
 
 ## Project layout

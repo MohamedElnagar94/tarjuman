@@ -7,6 +7,45 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def load_env_file(path: Path) -> dict[str, str]:
+    """Settings from a ``.env`` file (``NAME=value`` lines, ``#`` comments). A variable already set
+    in the real environment wins over the file. Returns what the file set."""
+    applied: dict[str, str] = {}
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except OSError:
+        return applied
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        name = name.removeprefix("export ").strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        elif " #" in value:
+            value = value.split(" #", 1)[0].rstrip()
+        if name and name not in os.environ:
+            os.environ[name] = applied[name] = value
+    return applied
+
+
+if os.environ.get("TARJUMAN_NO_ENV_FILE") != "1":
+    load_env_file(PROJECT_ROOT / ".env")
+
+
+def _number(name: str, default: float) -> float:
+    """A numeric setting; a value that isn't a number falls back to the default instead of stopping the app."""
+    try:
+        return float(os.environ.get(name) or default)
+    except ValueError:
+        print(f"  {name}={os.environ.get(name)!r} is not a number; using {default:g}", file=sys.stderr)
+        return default
+
+
 HOME = Path(os.environ.get("TARJUMAN_HOME") or PROJECT_ROOT)
 DATA = HOME / "data"
 
@@ -23,22 +62,26 @@ DUB_ENGINE_JS = PROJECT_ROOT / "shared" / "dub-engine" / "src" / "index.js"
 ICON_SVG = PROJECT_ROOT / "assets" / "brand" / "icon.svg"
 REQUIREMENTS = PROJECT_ROOT / "backend" / "requirements.txt"
 
-DEFAULT_PORT = int(os.environ.get("TARJUMAN_PORT") or 4318)
+DEFAULT_PORT = int(_number("TARJUMAN_PORT", 4318))
 PORT_TRIES = 10
 DEFAULT_HOST = os.environ.get("TARJUMAN_HOST") or "0.0.0.0"
 
 WHISPER_MODEL = os.environ.get("TARJUMAN_WHISPER_MODEL") or "base"
 
 # Uploads: at most this big, and never leaving less than DISK_RESERVE_BYTES free on the disk.
-MAX_UPLOAD_BYTES = int(float(os.environ.get("TARJUMAN_MAX_UPLOAD_GB") or 8) * (1 << 30))
+MAX_UPLOAD_BYTES = int(_number("TARJUMAN_MAX_UPLOAD_GB", 8) * (1 << 30))
 DISK_RESERVE_BYTES = 1 << 30
 # The voice clip cache (data/cache/tts) is kept under this size, least recently used clips first.
-VOICE_CACHE_BYTES = int(float(os.environ.get("TARJUMAN_VOICE_CACHE_GB") or 2) * 1e9)
+VOICE_CACHE_BYTES = int(_number("TARJUMAN_VOICE_CACHE_GB", 2) * 1e9)
 FORCE_ASR = os.environ.get("TARJUMAN_FORCE_ASR") == "1"
 # The pairing code (the QR) is replaced after this many minutes; 0 keeps it until a new one is asked for.
-PAIR_CODE_MINUTES = float(os.environ.get("TARJUMAN_PAIR_MINUTES") or 15)
+PAIR_CODE_MINUTES = _number("TARJUMAN_PAIR_MINUTES", 15)
 # Downloading from addresses inside the local network (a home media server) is off unless asked for.
 FETCH_PRIVATE = os.environ.get("TARJUMAN_FETCH_PRIVATE") == "1"
+# Whisper, dubbing and burning subtitles are heavy: this many of them run at once, whatever their kinds.
+HEAVY_JOBS = max(1, int(_number("TARJUMAN_HEAVY_JOBS", 2)))
+# Jobs waiting for their turn; a new one is refused beyond this.
+MAX_QUEUE = max(1, int(_number("TARJUMAN_MAX_QUEUE", 20)))
 
 PIPER_VOICE = "ar_JO-kareem-medium"
 PIPER_MODEL = MODELS / "piper" / f"{PIPER_VOICE}.onnx"

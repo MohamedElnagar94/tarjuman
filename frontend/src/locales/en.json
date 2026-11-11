@@ -618,7 +618,8 @@
     "DISK_FULL": "There isn't enough disk space for this file.",
     "EXTENSION_NOT_ALLOWED": "This extension isn't allowed. Allow it in the Tarjuman app under Settings, Extensions.",
     "JOBS_RUNNING": "Jobs are running. Wait for them to finish, then try again.",
-    "URL_NOT_ALLOWED": "This link points inside your local network, so nothing is downloaded from it."
+    "URL_NOT_ALLOWED": "This link points inside your local network, so nothing is downloaded from it.",
+    "QUEUE_FULL": "Too many jobs are waiting. Let some finish, or cancel the ones you don't need."
   },
   "phone": {
     "lead": "Open Tarjuman on your phone over the same Wi-Fi. Each device is paired once, and an unpaired device can't reach your files.",

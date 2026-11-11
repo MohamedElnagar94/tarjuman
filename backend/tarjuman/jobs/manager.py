@@ -10,6 +10,7 @@ import os
 import secrets
 import time
 from collections import deque
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Awaitable, Callable
@@ -77,6 +78,10 @@ class Job:
 # subtitles and Whisper each keep the CPU busy; running several together only makes all of them slow
 # and can run the computer out of memory.
 LIMITS = {"whisper": 1, "dub": 1, "subvideo": 1, "batch": 1, "fetch": 2}
+# The kinds above that load the processor and memory. Across all of them only config.HEAVY_JOBS run
+# together (a Whisper run next to a dub is fine on most computers; all three at once is not). A
+# download or a playlist batch (which only waits for its videos) is light and doesn't count.
+HEAVY = frozenset({"whisper", "dub", "subvideo"})
 QUEUED_PHASE = "في انتظار انتهاء مهمة أخرى"
 
 
@@ -84,14 +89,30 @@ class JobManager:
     def __init__(self) -> None:
         self.jobs: dict[str, Job] = {}
         self._slots: dict[str, asyncio.Semaphore] = {}
+        self._heavy = asyncio.Semaphore(config.HEAVY_JOBS)
 
-    def slot(self, type_: str) -> asyncio.Semaphore:
-        """The turn for one kind of job. A playlist batch takes it for each video it dubs or subtitles."""
+    @asynccontextmanager
+    async def slot(self, type_: str):
+        """The turn for one kind of job, and for a heavy kind also one of the heavy places. Always taken
+        in this order, so two jobs can't wait on each other. A playlist batch takes it for each video
+        it dubs or subtitles, and holds no heavy place itself."""
         if type_ not in self._slots:
             self._slots[type_] = asyncio.Semaphore(LIMITS.get(type_, 2))
-        return self._slots[type_]
+        async with self._slots[type_]:
+            if type_ in HEAVY:
+                async with self._heavy:
+                    yield
+            else:
+                yield
 
     def new(self, type_: str, video_id: str, **opts: Any) -> Job:
+        """A job asked for by the user. Refused when too many are already waiting."""
+        if sum(1 for j in self.jobs.values() if j.status == "queued") >= config.MAX_QUEUE:
+            raise AppError("QUEUE_FULL", "توجد مهام كثيرة في الانتظار. انتظر انتهاء بعضها أو ألغِ ما لا تحتاج إليه.")
+        return self.child(type_, video_id, **opts)
+
+    def child(self, type_: str, video_id: str, **opts: Any) -> Job:
+        """A job made by another job (a playlist's videos, one at a time): not counted against the queue."""
         jid = type_[0] + format(int(time.time() * 1000), "x") + secrets.token_hex(2)
         job = Job(id=jid, type=type_, videoId=video_id, opts=opts)
         self.jobs[jid] = job
