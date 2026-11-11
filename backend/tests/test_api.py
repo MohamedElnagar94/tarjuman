@@ -385,3 +385,15 @@ def test_fetch_refuses_links_into_the_local_network(client, services, monkeypatc
     assert started == [], "nothing was handed to the downloader"
     assert client.post("/api/media/fetch", json={"url": "https://video.example/watch"}).json()["id"] == "job1"
     assert started == ["https://video.example/watch"]
+
+
+def test_a_code_saved_without_an_end_date_is_replaced_at_startup(tmp_path):
+    import json
+
+    from tarjuman.api.pairing import Pairing
+
+    f = tmp_path / "pairing.json"
+    f.write_text(json.dumps({"code": "an-old-code-that-never-ran-out", "devices": []}), encoding="utf-8")
+    p = Pairing(f)
+    p.load()
+    assert p.code != "an-old-code-that-never-ran-out" and p.code_expires > 0

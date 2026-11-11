@@ -76,7 +76,8 @@ class Pairing:
         self.code = str(j.get("code") or j.get("secret") or "")
         self.code_expires = float(j.get("codeExpires") or 0)
         self.devices = [d for d in j.get("devices") or [] if isinstance(d, dict) and d.get("hash")]
-        if len(self.code) < 20 or self._expired():
+        # A code saved before codes ran out has no end date: it is replaced too.
+        if len(self.code) < 20 or self._expired() or (not self.code_expires and config.PAIR_CODE_MINUTES > 0):
             self._renew()
         self._legacy = str(j.get("secret") or "")
 
