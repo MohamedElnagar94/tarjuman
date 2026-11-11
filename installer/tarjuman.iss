@@ -38,9 +38,7 @@ CloseApplications=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-; Arabic.isl sits next to this script: the pinned Inno Setup does not ship it. It is the unofficial
-; translation from the Inno Setup repository (Files/Languages/Unofficial, tag is-6_4_0).
-Name: "arabic"; MessagesFile: "Arabic.isl"
+Name: "arabic"; MessagesFile: "compiler:Languages\Arabic.isl"
 
 [CustomMessages]
 english.DesktopIcon=Create a desktop shortcut
