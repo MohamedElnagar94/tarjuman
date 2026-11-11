@@ -487,7 +487,8 @@
       "shortcuts": "Shortcuts",
       "phone": "Phone",
       "extensions": "Extensions",
-      "storage": "Storage"
+      "storage": "Storage",
+      "privacy": "Privacy"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -685,5 +686,53 @@
     "clear": "Clear",
     "confirm": "Confirm",
     "cleared": "Cleared."
+  },
+  "privacy": {
+    "lead": "Your files stay on your computer. Some features send text or a request to an online service to work. This is the full list: what leaves, who receives it, and the alternative that sends nothing.",
+    "online": "Uses the internet",
+    "offline": "On your computer only",
+    "never": "No accounts, no usage statistics, no tracking. Video and audio are never uploaded to any service.",
+    "captions": {
+      "name": "YouTube captions",
+      "what": "The video link is sent to YouTube to fetch the captions that come with it.",
+      "local": "Alternative: upload a video file from your computer; its speech is transcribed locally."
+    },
+    "translate": {
+      "name": "Translation",
+      "what": "The video's sentences are sent as text to Google Translate, and to MyMemory when Google is unavailable. The result is saved here, so a sentence is not sent twice.",
+      "local": "There is no local alternative for translation yet. Without internet only saved sentences work."
+    },
+    "voice": {
+      "name": "Dub voice",
+      "what": "The text of each translated sentence and the chosen voice name are sent to Microsoft's Edge voice service, and to Google when nothing else works. The clip is saved here.",
+      "local": "Alternative: the local Arabic voice, Piper, works without internet and is used by itself when the service fails."
+    },
+    "fetch": {
+      "name": "Video download",
+      "what": "When you make an MP4 or download a video from a site, the video is requested from that site.",
+      "local": "Alternative: a file already on your computer."
+    },
+    "ai": {
+      "name": "AI (optional)",
+      "what": "Off until you turn it on. When on, the video's text, and your question if you ask one, are sent to the provider you chose.",
+      "local": "Alternative: leave it off, or choose a server that runs on your computer, such as Ollama."
+    },
+    "models": {
+      "name": "Model downloads",
+      "what": "The Whisper, local voice and music separation models are downloaded once from Hugging Face and GitHub. None of your data goes with the request.",
+      "local": "After the first download they work without internet."
+    },
+    "whisper": {
+      "name": "Speech recognition (Whisper)",
+      "what": "Speech is turned into text on your computer. The audio never leaves it."
+    },
+    "separate": {
+      "name": "Separating the speaker from the music",
+      "what": "Runs on your computer with a local model."
+    },
+    "files": {
+      "name": "Your files and settings",
+      "what": "Videos, subtitles, saved words, settings and the AI key stay in the data folder on your computer."
+    }
   }
 }

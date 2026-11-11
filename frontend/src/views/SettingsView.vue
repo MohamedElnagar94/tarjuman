@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { PhDeviceMobile, PhHardDrives, PhKeyboard, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh } from "@phosphor-icons/vue";
+import { PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
 import AiSettings from "@/components/settings/AiSettings.vue";
 import PhonePairing from "@/components/settings/PhonePairing.vue";
 import ExtensionTrust from "@/components/settings/ExtensionTrust.vue";
 import StorageSettings from "@/components/settings/StorageSettings.vue";
+import PrivacyFlow from "@/components/settings/PrivacyFlow.vue";
 import PronounceEditor from "@/components/settings/PronounceEditor.vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
@@ -30,6 +31,7 @@ const SECTIONS = [
   { id: "defaults", icon: PhSlidersHorizontal },
   { id: "appearance", icon: PhPaintBrush },
   { id: "storage", icon: PhHardDrives },
+  { id: "privacy", icon: PhShieldCheck },
   { id: "shortcuts", icon: PhKeyboard },
 ] as const;
 
@@ -154,6 +156,11 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
         <section id="storage" class="panel sec" aria-labelledby="h-storage">
           <h2 id="h-storage" class="panel__title">{{ t("settings.s.storage") }}</h2>
           <StorageSettings />
+        </section>
+
+        <section id="privacy" class="panel sec" aria-labelledby="h-privacy">
+          <h2 id="h-privacy" class="panel__title">{{ t("settings.s.privacy") }}</h2>
+          <PrivacyFlow />
         </section>
 
         <section id="shortcuts" class="panel sec" aria-labelledby="h-keys">

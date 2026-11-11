@@ -137,7 +137,19 @@ The full design is in [docs/implementation.md](docs/implementation.md).
 
 ## Privacy
 
-Tarjuman is local-first. Your videos, subtitles, saved words, settings and API key stay in the `data/` folder on your computer. The app contacts YouTube (captions and downloads), Google Translate and MyMemory (translation), Microsoft's Edge voice service (speech) and, only if you turn it on, the AI provider you choose. There are no accounts, analytics or tracking. The API refuses requests from other websites, and the AI settings can only be changed from the computer running the app.
+Tarjuman is local-first. Your videos, subtitles, saved words, settings and API key stay in the `data/` folder on your computer. The app contacts YouTube (captions and downloads), Google Translate and MyMemory (translation), Microsoft's Edge voice service (speech) and, only if you turn it on, the AI provider you choose. There are no accounts, analytics or tracking. Video and audio are never uploaded.
+
+| Feature | What leaves your computer | Sent to | Without sending anything |
+|---|---|---|---|
+| YouTube captions | The video link | YouTube | Upload a file; it is transcribed locally |
+| Translation | The video's sentences, as text | Google Translate, then MyMemory | None yet; saved sentences still work offline |
+| Dub voice | Each translated sentence and the voice name | Microsoft Edge voices, then Google | Piper, the local Arabic voice |
+| Video download | A request for the video | The site that hosts it | A file already on your computer |
+| AI (optional, off by default) | The video's text and your question | The provider you chose | Leave it off, or use a local server such as Ollama |
+| Model downloads | A download request, once | Hugging Face, GitHub | Nothing after the first download |
+| Speech recognition, music separation, your files | Nothing | – | Always local |
+
+The same table is in the app, under Settings → Privacy. The API refuses requests from other websites, and the AI settings can only be changed from the computer running the app.
 
 ## Configuration
 
