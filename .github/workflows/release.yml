@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
   push:
     tags: ["v*"]
+    # A change to the installer itself is built too, so a broken script shows up at once.
+    branches: [main]
+    paths: ["installer/**", ".github/workflows/release.yml"]
 
 permissions:
   contents: write
