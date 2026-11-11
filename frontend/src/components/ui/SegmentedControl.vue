@@ -36,6 +36,8 @@ function onKey(e: KeyboardEvent, options: { value: T }[]) {
 <style scoped>
 .seg {
   display: inline-flex;
+  flex-wrap: wrap; /* on a narrow screen the options go to a second row instead of widening the page */
+  max-width: 100%;
   padding: 3px;
   gap: 2px;
   border-radius: var(--r-sm);

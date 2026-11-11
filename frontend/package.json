@@ -9,6 +9,7 @@
     "build": "vue-tsc --build && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "e2e": "node e2e/run.mjs",
     "typecheck": "vue-tsc --build",
     "shots": "node scripts/screenshots.mjs"
   },

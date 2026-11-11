@@ -107,6 +107,7 @@ The server binds to `0.0.0.0` so a phone on the same Wi-Fi can use the app, whic
 | Suite | Run | Covers |
 |---|---|---|
 | Backend | `cd backend && ../.venv/bin/python -m pytest` | caption repair, formats, security, pacing, grouping, speakers, API (offline fakes) |
+| Browser | `cd frontend && npm run build && npm run e2e` | the real app in Chrome against an offline server (`backend/tests/e2e_server.py`): library, transcript, seeking, subtitles on the video, live dub requests, SRT download, upload, settings, a 320px phone |
 | Dub engine | `npm test` (repo root) | the engine with a fake clock and fake audio |
 | Web app | `npm --prefix frontend test` | helpers and player adapters |
 | Extension | `npm --prefix extension test` | helpers |

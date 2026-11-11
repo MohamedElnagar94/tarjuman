@@ -343,6 +343,7 @@ const isVideo = (f: LibraryItem) => f.name.toLowerCase().endsWith(".mp4");
 }
 .col {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-8);
   min-width: 0;
 }
@@ -535,7 +536,7 @@ const isVideo = (f: LibraryItem) => f.name.toLowerCase().endsWith(".mp4");
 }
 @media (max-width: 1023px) {
   .cols {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 480px) {
