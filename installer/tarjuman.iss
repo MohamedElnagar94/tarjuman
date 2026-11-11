@@ -3,7 +3,9 @@
 ;   2) iscc /DAppVersion=3.0.0 installer\tarjuman.iss
 ; Output: build\windows\Tarjuman-Setup-<version>.exe
 ;
-; It installs for the current user only (no administrator prompt), never touches the firewall, and
+; It asks for administrator rights (the usual Windows prompt) and installs into Program Files for
+; everyone on the computer; /CURRENTUSER on the command line installs for one user without the
+; prompt. It never touches the firewall, and
 ; keeps the user's data (%LOCALAPPDATA%\Tarjuman) apart from the program so updates don't lose it.
 
 #ifndef AppVersion
@@ -17,10 +19,11 @@ AppVersion={#AppVersion}
 AppPublisher=Tarjuman
 AppPublisherURL=https://github.com/MohamedElnagar94/tarjuman
 AppSupportURL=https://github.com/MohamedElnagar94/tarjuman/issues
-DefaultDirName={localappdata}\Programs\Tarjuman
+DefaultDirName={autopf}\Tarjuman
 DefaultGroupName=Tarjuman
 DisableProgramGroupPage=yes
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=commandline
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\build\windows
@@ -66,7 +69,7 @@ Type: filesandordirs; Name: "{app}\shared"
 ; A shortcut name is a file name: no quotes or other characters Windows forbids in it.
 Name: "{group}\Tarjuman"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"; AppUserModelID: "Tarjuman.Desktop"
 Name: "{group}\{cm:ExtensionFolder}"; Filename: "{app}\extension"
-Name: "{userdesktop}\Tarjuman"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"; AppUserModelID: "Tarjuman.Desktop"; Tasks: desktopicon
+Name: "{autodesktop}\Tarjuman"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"; AppUserModelID: "Tarjuman.Desktop"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; Description: "{cm:Launch}"; Flags: postinstall nowait skipifsilent
@@ -82,6 +85,7 @@ var
 begin
   if CurUninstallStep = usPostUninstall then
   begin
+    { The data of the user who runs the uninstaller; other users' data is left alone. }
     DataDir := ExpandConstant('{localappdata}\Tarjuman');
     if DirExists(DataDir) and not UninstallSilent then
       if MsgBox(FmtMessage(CustomMessage('KeepData'), [DataDir]), mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then

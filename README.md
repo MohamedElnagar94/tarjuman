@@ -83,7 +83,7 @@ Other languages work too: French, Spanish, German, Turkish and English are built
 
 ### Windows installer
 
-Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page and run it. It brings its own Python, every package, the web app and the browser extension, so you need neither Python nor Node.js. It installs for your user only (no administrator prompt) and doesn't touch the firewall. Tarjuman then opens in a window of its own, like any desktop app, with no console window and no browser tab; closing the window stops it. (The window is Microsoft Edge in app mode, which every Windows 10 and 11 has; nothing extra is installed.)
+Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page and run it. It brings its own Python, every package, the web app and the browser extension, so you need neither Python nor Node.js. It asks for administrator rights once, installs into Program Files, and doesn't touch the firewall. Tarjuman then opens in a window of its own, like any desktop app, with no console window and no browser tab; closing the window stops it. (The window is Microsoft Edge in app mode, which every Windows 10 and 11 has; nothing extra is installed.)
 
 - The installer isn't code-signed yet, so Windows SmartScreen may say "unknown publisher": choose *More info → Run anyway*.
 - The first start downloads the offline Arabic voice (about 60 MB) in the background. The Whisper model downloads itself the first time a video needs it.

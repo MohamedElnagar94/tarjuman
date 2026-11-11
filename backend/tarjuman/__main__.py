@@ -139,7 +139,13 @@ def setup(args: argparse.Namespace) -> None:
 
 
 def update(_args: argparse.Namespace) -> None:
-    raise SystemExit(0 if _pip("install", "-U", "yt-dlp", "edge-tts") else 1)
+    ok = _pip("install", "-U", "yt-dlp", "edge-tts")
+    if not ok and (config.PROJECT_ROOT / "installed.txt").exists():
+        # The installed app lives in Program Files, which only an administrator can change.
+        print("
+  Updating needs administrator rights: right-click Tarjuman.cmd in the install folder, "
+              "choose Run as administrator, and run it with:  update")
+    raise SystemExit(0 if ok else 1)
 
 
 def doctor(_args: argparse.Namespace) -> None:
