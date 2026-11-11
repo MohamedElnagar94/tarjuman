@@ -77,6 +77,8 @@ if (-not $SkipExtension) {
 
 # 6) The launcher and what a user may want to read or run.
 Copy-Item (Join-Path $PSScriptRoot "Tarjuman.cmd") $app
+# Marks this folder as the installed app: its data then lives in %LOCALAPPDATA%\Tarjuman.
+Set-Content -Encoding ascii (Join-Path $app "installed.txt") "Tarjuman, installed. Data: %LOCALAPPDATA%\Tarjuman"
 Copy-Item (Join-Path $root ".env.example") $app
 Copy-Item (Join-Path $root "LICENSE") (Join-Path $app "LICENSE.txt")
 Copy-Item (Join-Path $root "README.md") $app
@@ -87,7 +89,7 @@ Copy-Item (Join-Path $root "scripts\allow-phone.ps1") (Join-Path $app "scripts")
 #    computer spends minutes compiling thousands of files.
 $bundled = Join-Path $app "python\python.exe"
 & $bundled -m compileall -q -j 0 $site (Join-Path $app "backend") | Out-Null
-& $bundled -c "import fastapi, uvicorn, tarjuman.api.app"
+& $bundled -c "import fastapi, uvicorn, tarjuman.api.app, tarjuman.desktop"
 if ($LASTEXITCODE -ne 0) { throw "The bundled Python cannot import Tarjuman" }
 
 $version = (& $Python -c "import re,sys; print(re.search(r'__version__ = .(.+?).$', open(sys.argv[1], encoding='utf-8').read(), re.M).group(1))" (Join-Path $root "backend\tarjuman\__init__.py")).Trim()

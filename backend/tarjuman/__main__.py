@@ -62,6 +62,12 @@ def serve(args: argparse.Namespace) -> None:
     uvicorn.run(app, host=host, port=port, log_level="warning")
 
 
+def desktop(args: argparse.Namespace) -> None:
+    from . import desktop as d
+
+    d.run(args.host, args.port, _free_port)
+
+
 def subs(args: argparse.Namespace) -> None:
     from .captions.formats import SUB_FORMATS
     from .core import http
@@ -105,8 +111,6 @@ def _pip(*args: str) -> bool:
 
 
 def setup(args: argparse.Namespace) -> None:
-    from .core import http
-
     config.ensure_dirs()
     voice_only = getattr(args, "voice_only", False)  # the installed app comes with its packages and web build
     if not voice_only:
@@ -116,8 +120,9 @@ def setup(args: argparse.Namespace) -> None:
     if not config.PIPER_MODEL.exists():
         print("  Downloading the offline Arabic voice (Piper, ~60 MB)…")
         try:
-            asyncio.run(http.download(config.PIPER_URL + ".onnx.json", config.PIPER_MODEL.with_suffix(".onnx.json")))
-            asyncio.run(http.download(config.PIPER_URL + ".onnx", config.PIPER_MODEL))
+            from .desktop import download_voice
+
+            asyncio.run(download_voice())  # one event loop for both files: the HTTP client belongs to its loop
         except Exception as e:  # noqa: BLE001
             print(f"  Piper voice download failed ({e}); dubbing will use the online voices only.")
     if voice_only:
@@ -179,7 +184,8 @@ def main(argv: list[str] | None = None) -> None:
     sub = ap.add_subparsers(dest="cmd")
 
     p_serve = sub.add_parser("serve", help="start the app (default)")
-    for p in (ap, p_serve):
+    p_app = sub.add_parser("app", help="start the app in a window of its own instead of the browser")
+    for p in (ap, p_serve, p_app):
         p.add_argument("--port", type=int, default=config.DEFAULT_PORT)
         p.add_argument("--host", default=config.DEFAULT_HOST, help="127.0.0.1 = this computer only")
         p.add_argument("--no-open", action="store_true", help="don't open the browser")
@@ -195,7 +201,7 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("doctor", help="check every component")
 
     args = ap.parse_args(argv)
-    {"subs": subs, "setup": setup, "update": update, "doctor": doctor}.get(args.cmd or "serve", serve)(args)
+    {"subs": subs, "setup": setup, "update": update, "doctor": doctor, "app": desktop}.get(args.cmd or "serve", serve)(args)
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ english.Launch=Start Tarjuman
 arabic.Launch=شغّل ترجمان
 english.KeepData=Do you also want to delete your Tarjuman data (videos, subtitles, saved words and settings)?%n%n%1%n%nChoose No to keep it for a later install.
 arabic.KeepData=هل تريد حذف بيانات ترجمان أيضًا (الفيديوهات والترجمات والكلمات المحفوظة والإعدادات)؟%n%n%1%n%nاختر «لا» للاحتفاظ بها لتثبيت لاحق.
-english.ExtensionFolder=Browser extension folder (for "Load unpacked")
+english.ExtensionFolder=Browser extension folder
 arabic.ExtensionFolder=مجلد إضافة المتصفح
 
 [Tasks]
@@ -62,13 +62,14 @@ Type: filesandordirs; Name: "{app}\extension"
 Type: filesandordirs; Name: "{app}\shared"
 
 [Icons]
-; Through cmd.exe (signed by Microsoft), so Windows shows no "unknown publisher" prompt for the script.
-Name: "{group}\Tarjuman"; Filename: "{cmd}"; Parameters: "/c ""{app}\Tarjuman.cmd"""; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"
+; pythonw.exe: Tarjuman opens in a window of its own, with no console window behind it.
+; A shortcut name is a file name: no quotes or other characters Windows forbids in it.
+Name: "{group}\Tarjuman"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"; AppUserModelID: "Tarjuman.Desktop"
 Name: "{group}\{cm:ExtensionFolder}"; Filename: "{app}\extension"
-Name: "{userdesktop}\Tarjuman"; Filename: "{cmd}"; Parameters: "/c ""{app}\Tarjuman.cmd"""; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"; Tasks: desktopicon
+Name: "{userdesktop}\Tarjuman"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"; AppUserModelID: "Tarjuman.Desktop"; Tasks: desktopicon
 
 [Run]
-Filename: "{cmd}"; Parameters: "/c ""{app}\Tarjuman.cmd"""; WorkingDir: "{app}"; Description: "{cm:Launch}"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; Description: "{cm:Launch}"; Flags: postinstall nowait skipifsilent
 
 [UninstallDelete]
 ; What Python wrote next to the program while running (compiled files, updated packages).

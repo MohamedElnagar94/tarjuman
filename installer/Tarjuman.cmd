@@ -1,20 +1,13 @@
 @echo off
-rem Tarjuman, installed: starts the app with the Python that came with it.
-rem Your videos, settings and .env live in %LOCALAPPDATA%\Tarjuman, apart from the program,
-rem so an update or a reinstall never touches them.
+rem Tarjuman, installed, in a console: for the command line and for troubleshooting.
+rem The Start menu shortcut opens the app in its own window instead (pythonw -m tarjuman app).
+rem   Tarjuman.cmd            start the server and open the browser
+rem   Tarjuman.cmd app        the desktop window, with messages shown here
+rem   Tarjuman.cmd doctor     check every component
+rem   Tarjuman.cmd update     update yt-dlp and the voice client
+rem Your videos, settings and .env live in %LOCALAPPDATA%\Tarjuman, apart from the program.
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
-
-if not defined TARJUMAN_HOME set "TARJUMAN_HOME=%LOCALAPPDATA%\Tarjuman"
-if not exist "%TARJUMAN_HOME%" mkdir "%TARJUMAN_HOME%"
-if not exist "%TARJUMAN_HOME%\.env" copy /y ".env.example" "%TARJUMAN_HOME%\.env" >nul
-
-if not exist "%TARJUMAN_HOME%\data\models\piper\*.onnx" (
-  echo.
-  echo   First run: downloading the offline Arabic voice, about 60 MB...
-  "python\python.exe" -m tarjuman setup --voice-only
-)
-
 "python\python.exe" -m tarjuman %*
 if errorlevel 1 pause

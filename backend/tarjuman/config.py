@@ -46,7 +46,16 @@ def _number(name: str, default: float) -> float:
         return default
 
 
-HOME = Path(os.environ.get("TARJUMAN_HOME") or PROJECT_ROOT)
+def _default_home() -> Path:
+    # The installed Windows app (marked by installed.txt) keeps the user's data apart from the program,
+    # so an update or a reinstall never touches it.
+    local = os.environ.get("LOCALAPPDATA")
+    if local and (PROJECT_ROOT / "installed.txt").exists():
+        return Path(local) / "Tarjuman"
+    return PROJECT_ROOT
+
+
+HOME = Path(os.environ.get("TARJUMAN_HOME") or _default_home())
 # The installed app keeps the user's .env next to their data, away from the program folder.
 if HOME != PROJECT_ROOT and os.environ.get("TARJUMAN_NO_ENV_FILE") != "1":
     load_env_file(HOME / ".env")

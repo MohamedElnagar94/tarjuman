@@ -83,10 +83,10 @@ Other languages work too: French, Spanish, German, Turkish and English are built
 
 ### Windows installer
 
-Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page and run it. It brings its own Python, every package, the web app and the browser extension, so you need neither Python nor Node.js. It installs for your user only (no administrator prompt) and doesn't touch the firewall.
+Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page and run it. It brings its own Python, every package, the web app and the browser extension, so you need neither Python nor Node.js. It installs for your user only (no administrator prompt) and doesn't touch the firewall. Tarjuman then opens in a window of its own, like any desktop app, with no console window and no browser tab; closing the window stops it. (The window is Microsoft Edge in app mode, which every Windows 10 and 11 has; nothing extra is installed.)
 
 - The installer isn't code-signed yet, so Windows SmartScreen may say "unknown publisher": choose *More info → Run anyway*.
-- The first start downloads the offline Arabic voice (about 60 MB). The Whisper model downloads itself the first time a video needs it.
+- The first start downloads the offline Arabic voice (about 60 MB) in the background. The Whisper model downloads itself the first time a video needs it.
 - Your videos, subtitles, settings and `.env` are kept in `%LOCALAPPDATA%\Tarjuman`, apart from the program. An update keeps them; uninstalling asks whether to delete them.
 - The Start menu has a shortcut to the extension folder, for *Load unpacked* in `chrome://extensions`.
 
@@ -123,6 +123,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Command | What it does |
 |---|---|
 | `python -m tarjuman` | Start the app (`--port`, `--host 127.0.0.1` for this computer only, `--no-open`) |
+| `python -m tarjuman app` | Start the app in a window of its own (Edge or Chrome in app mode) instead of a browser tab; closing the window stops it |
 | `python -m tarjuman subs <link>` | Write subtitle files to `data/output` (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Install or repair everything |
 | `python -m tarjuman update` | Update yt-dlp and the voice client, if downloads or voices stop working |
