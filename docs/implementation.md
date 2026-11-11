@@ -40,7 +40,7 @@ When YouTube already has an Arabic track, the English track is still fetched to 
 
 1. User edits win, then the cache.
 2. The rest go out in chunks (up to 24 lines or 1,400 characters), joined by newlines, one Google gtx request per chunk. If the line count comes back different, that chunk is retried line by line.
-3. A 429 response puts Google on a five-minute cooldown, and MyMemory takes over meanwhile.
+3. A 429 response puts Google on a five-minute cooldown, and MyMemory takes over meanwhile. MyMemory accepts 500 bytes a query, so a longer text is sent in pieces cut at sentence or word ends and joined back.
 4. Lines that failed are left out of the result, so callers retry them later instead of caching an empty string.
 
 ## Voices

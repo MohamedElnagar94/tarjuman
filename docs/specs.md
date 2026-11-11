@@ -68,7 +68,7 @@ Environment variables:
 4. **Local only.** `/api/settings` and `/api/ai/test` answer only to loopback clients, because the settings hold an API key.
 5. **Pairing.** A client that isn't loopback (a phone on the Wi-Fi) gets `401 {code:"NOT_PAIRED"}` on every route except `/api/health` until it is paired. It is paired by opening `/pair?code=<invite>` once (the QR in Settings → Phone, also printed at startup). Each device gets its own key in the HttpOnly cookie `tarjuman_pair`; only its SHA-256 is stored, with a name from the User-Agent, `pairedAt`, `lastSeen` and `lastIp`. One invite pairs any number of devices. `GET /api/pairing` lists them; `POST /api/pairing/device {id, action:"remove"|"rename", name}` unpairs or renames one; `POST /api/pairing/reset` makes a new invite (the old QR stops working, paired devices stay); `POST /api/pairing/unpair-all` unpairs every device and makes a new invite. Every `/api/pairing*` route is local only. A device paired by the first version (one shared secret) is moved to its own key on its next request.
 6. **Extensions.** The first extension origin that connects is trusted. Any other gets `403 {code:"EXTENSION_NOT_ALLOWED"}` until it is allowed (`GET /api/extensions`, `POST /api/extensions/set {id, allow}`, both local only). `/api/health` still answers it, with `extensionAllowed:false`.
-7. **Uploads** are capped at `TARJUMAN_MAX_UPLOAD_GB` (default 8): `413 UPLOAD_TOO_LARGE`. They also stop before less than 1 GB would be left free on the disk: `507 DISK_FULL`. A refused upload leaves no file behind.
+7. **Uploads** are capped at `TARJUMAN_MAX_UPLOAD_GB` (default 8): `413 UPLOAD_TOO_LARGE`. They also stop before less than 1 GB would be left free on the disk: `507 DISK_FULL`. When the free space can't be measured the upload is refused too. A refused upload leaves no file behind.
 8. The API key is never returned. Responses carry `hasKey` and `keyHint` (`…abcd`) instead. Changing the provider or `baseUrl` clears the stored key, so a key is never sent to a server it wasn't entered for.
 
 Rejected requests get `403 {"ok":false,"code":"FORBIDDEN_ORIGIN"|"LOCAL_ONLY"}` or `415 {"ok":false,"code":"JSON_REQUIRED"}`.
@@ -80,6 +80,8 @@ Rejected requests get `403 {"ok":false,"code":"FORBIDDEN_ORIGIN"|"LOCAL_ONLY"}` 
 - Times are in seconds, as floats.
 - A **link** is a YouTube URL or ID, or `media:<12 hex>` for a video in the local library.
 - Language codes are normalised to their primary subtag (`ar-EG` → `ar`).
+
+An unexpected failure answers `500 {ok:false, code:"ERROR", message, ref}`. The message is generic; the exception itself is only in the server log, next to the same `ref`.
 
 ### Error codes
 

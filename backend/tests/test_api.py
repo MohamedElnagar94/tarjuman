@@ -288,3 +288,32 @@ def test_storage_reports_sizes_and_clears_caches_but_never_corrections(client, s
     assert services.translator.lookup("ar", "hello") is None
     assert services.translator.lookup("ar", "Hi") == "أهلًا", "the user's corrections are kept"
     assert client.post("/api/storage/clear", json={"what": "everything"}).status_code == 400
+
+
+def test_an_unexpected_error_does_not_leak_its_text(app, services, caplog):
+    class Broken:
+        @property
+        def items(self):
+            raise RuntimeError(r"cannot open C:\Users\someone\secret.db token=abc123")
+
+    services.vocab = Broken()
+    r = TestClient(app, headers=LOCAL, client=("127.0.0.1", 50000), raise_server_exceptions=False).get("/api/vocab")
+    j = r.json()
+    assert r.status_code == 500 and j["code"] == "ERROR"
+    assert "secret.db" not in r.text and "abc123" not in r.text
+    assert j["ref"] in j["message"], "the user can quote the reference"
+    assert any(j["ref"] in rec.getMessage() for rec in caplog.records), "and the log has it with the details"
+
+
+def test_upload_is_refused_when_free_space_cannot_be_measured(client, services, monkeypatch):
+    import shutil
+
+    def broken(_path):
+        raise OSError("no such device")
+
+    monkeypatch.setattr(shutil, "disk_usage", broken)
+    before = set(services.media.items)
+    headers = {"content-type": "application/octet-stream"}
+    r = client.post("/api/media/upload?name=a.mp4", content=b"x" * 500, headers=headers)
+    assert r.status_code == 507 and r.json()["code"] == "DISK_FULL"
+    assert set(services.media.items) == before, "nothing left behind"

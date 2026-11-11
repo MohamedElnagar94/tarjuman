@@ -102,17 +102,41 @@ class GoogleExtension(Google):
         return await self._request_many(texts, sl, tl)
 
 
+# MyMemory refuses a query longer than 500 bytes of UTF-8 (an Arabic letter is two bytes).
+MYMEMORY_MAX_BYTES = 480
+
+
+def split_bytes(text: str, limit: int) -> list[str]:
+    """``text`` in pieces of at most ``limit`` UTF-8 bytes, cut after a sentence when there is one,
+    else between words. Only a single word longer than the limit is cut inside. Nothing is dropped."""
+    pieces: list[str] = []
+    rest = text.strip()
+    while len(rest.encode()) > limit:
+        head = rest.encode()[:limit].decode("utf-8", "ignore")  # never ends inside a character
+        ends = [m.end() for m in re.finditer(r"[.!?؟。…؛;]+(?=\s)", head)]
+        cut = ends[-1] if ends and ends[-1] > len(head) // 3 else head.rfind(" ")
+        if cut <= 0:
+            cut = len(head)
+        pieces.append(rest[:cut].strip())
+        rest = rest[cut:].strip()
+    if rest:
+        pieces.append(rest)
+    return pieces
+
+
 class MyMemory:
     async def translate(self, text: str, sl: str, tl: str) -> str:
         src = (sl if sl and sl != "auto" else "en").split("-")[0]
         tgt = (tl or "ar").split("-")[0]
-        q = text[:480]
-        url = f"https://api.mymemory.translated.net/get?q={quote(q)}&langpair={quote(src + '|' + tgt)}"
-        j = await http.get_json(url, attempts=2, timeout=15)
-        out = str(((j or {}).get("responseData") or {}).get("translatedText") or "").strip()
-        if not out:
-            raise RuntimeError("MYMEMORY_EMPTY")
-        if re.search(r"MYMEMORY WARNING|QUOTA|INVALID", out, re.I):
-            raise RuntimeError("MYMEMORY_QUOTA")
-        await asyncio.sleep(0.12)
-        return out
+        parts = []
+        for q in split_bytes(text, MYMEMORY_MAX_BYTES):
+            url = f"https://api.mymemory.translated.net/get?q={quote(q)}&langpair={quote(src + '|' + tgt)}"
+            j = await http.get_json(url, attempts=2, timeout=15)
+            out = str(((j or {}).get("responseData") or {}).get("translatedText") or "").strip()
+            if not out:
+                raise RuntimeError("MYMEMORY_EMPTY")
+            if re.search(r"MYMEMORY WARNING|QUOTA|INVALID", out, re.I):
+                raise RuntimeError("MYMEMORY_QUOTA")
+            parts.append(out)
+            await asyncio.sleep(0.12)
+        return " ".join(parts)

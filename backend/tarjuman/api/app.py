@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import mimetypes
+import secrets
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -120,9 +121,15 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
         return JSONResponse({"ok": False, "code": e.code, "message": e.message}, status_code=status)
 
     @app.exception_handler(Exception)
-    async def unexpected(_request: Request, e: Exception):
-        log.exception("request failed")
-        return JSONResponse({"ok": False, "code": "ERROR", "message": str(e)[:300]}, status_code=500)
+    async def unexpected(request: Request, e: Exception):
+        # The details (which may hold a local path or an address) stay in the log. The client gets a
+        # reference to quote, so the two can be matched.
+        ref = secrets.token_hex(4)
+        log.error("request failed [%s] %s %s", ref, request.method, request.url.path, exc_info=e)
+        return JSONResponse(
+            {"ok": False, "code": "ERROR", "message": f"حدث خطأ غير متوقع. المرجع في السجل: {ref}", "ref": ref},
+            status_code=500,
+        )
 
     for r in (system.router, videos.router, jobs.router, media.router, learn.router, ai.router):
         app.include_router(r)

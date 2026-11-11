@@ -9,6 +9,7 @@ import asyncio
 import os
 import secrets
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Awaitable, Callable
@@ -162,6 +163,30 @@ class ProcError(AppError):
         self.stderr = stderr
 
 
+# A long ffmpeg or yt-dlp run can print for hours. What is kept of it is bounded: the end of stderr
+# (where the reason for a failure is) and far more stdout than any real answer needs.
+STDOUT_KEEP = 32 << 20
+STDERR_KEEP = 256 << 10
+
+
+class _Tail:
+    """The last ``limit`` characters of a stream of lines."""
+
+    def __init__(self, limit: int):
+        self.limit = limit
+        self.lines: deque[str] = deque()
+        self.size = 0
+
+    def add(self, line: str) -> None:
+        self.lines.append(line)
+        self.size += len(line)
+        while self.size > self.limit and len(self.lines) > 1:
+            self.size -= len(self.lines.popleft())
+
+    def text(self) -> str:
+        return "".join(self.lines)
+
+
 async def run_proc(
     job: Job,
     cmd: list[str],
@@ -181,13 +206,13 @@ async def run_proc(
         creationflags=0x08000000 if os.name == "nt" else 0,  # CREATE_NO_WINDOW
     )
     job.procs.add(proc)
-    out: list[str] = []
-    err: list[str] = []
+    out = _Tail(STDOUT_KEEP)
+    err = _Tail(STDERR_KEEP)
 
-    async def pump(stream, sink: list[str]) -> None:
+    async def pump(stream, sink: _Tail) -> None:
         async for raw in stream:
             line = raw.decode("utf-8", "replace")
-            sink.append(line)
+            sink.add(line)
             if on_line:
                 on_line(line)
 
@@ -199,5 +224,5 @@ async def run_proc(
     if job.cancelled:
         raise Cancelled()
     if code != 0:
-        raise ProcError(code, "".join(err)[-4000:])
-    return "".join(out)
+        raise ProcError(code, err.text()[-4000:])
+    return out.text()
