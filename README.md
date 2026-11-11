@@ -149,6 +149,8 @@ Tarjuman is local-first. Your videos, subtitles, saved words, settings and API k
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` or `medium` for more accurate transcription (slower) |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Size limit of the saved dub voices; the least recently used are removed first |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Largest video you can upload |
+| `TARJUMAN_PAIR_MINUTES` | `15` | How long a phone pairing code (the QR) works; `0` = until you make a new one |
+| `TARJUMAN_FETCH_PRIVATE` | off | Set to `1` to allow downloading from addresses inside your own network |
 | `ANTHROPIC_API_KEY` | – | Used for Claude when no key is saved in the settings |
 
 ## Project layout

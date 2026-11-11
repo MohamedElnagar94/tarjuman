@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
 
 from ... import config
+from ...core.net import ensure_public_url
 from ...jobs import runners
 from ..deps import body, content_disposition, fail, ok, services
 
@@ -84,7 +86,11 @@ async def subvideo(request: Request):
 @router.post("/api/batch")
 async def batch(request: Request):
     b = await body(request)
-    return ok(id=runners.start_batch(services(request), str(b.get("url") or "").strip(), b))
+    link = str(b.get("url") or "").strip()
+    if not re.match(r"^https?://", link, re.I):
+        return fail("BAD_URL")
+    await ensure_public_url(link)
+    return ok(id=runners.start_batch(services(request), link, b))
 
 
 @router.post("/api/job/cancel")

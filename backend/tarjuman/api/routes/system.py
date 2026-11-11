@@ -42,7 +42,7 @@ async def health(request: Request):
 
 
 def _pair_links(request: Request) -> list[str]:
-    code = request.app.state.pairing.code
+    code = request.app.state.pairing.current_code()
     port = request.app.state.port
     ip = lan_ip()
     return [f"http://{ip}:{port}/pair?code={code}"] if ip else []
@@ -50,7 +50,9 @@ def _pair_links(request: Request) -> list[str]:
 
 def _pairing_state(request: Request) -> dict:
     links = _pair_links(request)
-    return {"links": links, "lan": bool(links), "devices": request.app.state.pairing.public()}
+    p = request.app.state.pairing
+    # codeExpires is in milliseconds, like the other times; 0 means the code doesn't run out.
+    return {"links": links, "lan": bool(links), "devices": p.public(), "codeExpires": int(p.code_expires * 1000)}
 
 
 @router.get("/api/pairing")

@@ -10,6 +10,7 @@ const { t, locale } = useI18n();
 const link = ref("");
 const qr = ref("");
 const devices = ref<PairedDevice[]>([]);
+const minutesLeft = ref(0); // of the code on screen; 0 when it doesn't run out
 const state = ref<"loading" | "ready" | "nolan" | "remote" | "error">("loading");
 const confirming = ref(""); // "all", "code" or a device id waiting for a second tap
 const editing = ref("");
@@ -18,6 +19,7 @@ let timer: number | undefined;
 
 async function apply(s: PairingState) {
   devices.value = s.devices;
+  minutesLeft.value = s.codeExpires ? Math.max(1, Math.ceil((s.codeExpires - Date.now()) / 60000)) : 0;
   if (s.links[0] !== link.value) {
     link.value = s.links[0] || "";
     qr.value = link.value ? await QRCode.toString(link.value, { type: "svg", margin: 1, errorCorrectionLevel: "M" }) : "";
@@ -118,7 +120,11 @@ onBeforeUnmount(() => clearInterval(timer));
           {{ confirming === "code" ? t("phone.codeConfirm") : t("phone.newCode") }}
         </button>
       </div>
-      <p v-if="state === 'ready'" class="muted small">{{ t("phone.codeHint") }} {{ t("phone.firewall") }}</p>
+      <p v-if="state === 'ready'" class="muted small">
+        {{ t("phone.codeHint") }}
+        <template v-if="minutesLeft">{{ t("phone.codeLife", { n: minutesLeft }) }}</template>
+        {{ t("phone.firewall") }}
+      </p>
 
       <h3 class="sub">{{ t("phone.devices", { n: devices.length }) }}</h3>
       <p v-if="!devices.length" class="muted">{{ t("phone.noDevices") }}</p>

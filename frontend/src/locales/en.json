@@ -617,7 +617,8 @@
     "UPLOAD_TOO_LARGE": "The file is bigger than the upload limit.",
     "DISK_FULL": "There isn't enough disk space for this file.",
     "EXTENSION_NOT_ALLOWED": "This extension isn't allowed. Allow it in the Tarjuman app under Settings, Extensions.",
-    "JOBS_RUNNING": "Jobs are running. Wait for them to finish, then try again."
+    "JOBS_RUNNING": "Jobs are running. Wait for them to finish, then try again.",
+    "URL_NOT_ALLOWED": "This link points inside your local network, so nothing is downloaded from it."
   },
   "phone": {
     "lead": "Open Tarjuman on your phone over the same Wi-Fi. Each device is paired once, and an unpaired device can't reach your files.",
@@ -651,7 +652,8 @@
     "removeConfirm": "Confirm",
     "removed": "Device unpaired.",
     "online": "Online now",
-    "pairedAt": "Paired on {when}"
+    "pairedAt": "Paired on {when}",
+    "codeLife": "Minutes left for this code: {n}. Then a new one appears by itself."
   },
   "extensions": {
     "lead": "Browser extensions allowed to use Tarjuman. The first one that connects is trusted automatically; any other waits for your approval here.",

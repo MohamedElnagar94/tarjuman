@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
+import re
 import shutil
 
 from fastapi import APIRouter, Request
 
 from ... import config
 from ...core.errors import AppError
+from ...core.net import ensure_public_url
 from ...jobs import runners
 from ..deps import body, fail, ok, services
 from .jobs import send_file
@@ -77,7 +79,11 @@ async def upload(request: Request, name: str = "video"):
 @router.post("/api/media/fetch")
 async def fetch(request: Request):
     b = await body(request)
-    return ok(id=runners.start_fetch(services(request), str(b.get("url") or "").strip()))
+    link = str(b.get("url") or "").strip()
+    if not re.match(r"^https?://", link, re.I):
+        return fail("BAD_URL")
+    await ensure_public_url(link)
+    return ok(id=runners.start_fetch(services(request), link))
 
 
 @router.get("/api/media/job")

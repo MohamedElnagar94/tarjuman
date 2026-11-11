@@ -43,8 +43,16 @@ PAIR_FAILED_PAGE = """<!doctype html><html lang="ar" dir="rtl"><meta charset="ut
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>ترجمان</title>
 <body style="font:17px system-ui;max-width:34rem;margin:3rem auto;padding:0 1.2rem;line-height:1.8">
 <h1 style="font-size:1.4rem">رمز الربط غير صالح</h1>
-<p>ربما أُعيد إنشاء الرمز. افتح ترجمان على الحاسوب، ثم «الإعدادات ← الهاتف»، وامسح رمز QR الجديد.</p>
+<p>ربما انتهت مدة الرمز أو أُعيد إنشاؤه. افتح ترجمان على الحاسوب، ثم «الإعدادات ← الهاتف»، وامسح رمز QR الجديد.</p>
 <p dir="ltr" style="text-align:left;color:#555">This pairing code is no longer valid. On the computer, open Settings → Phone and scan the new QR code.</p>
+</body></html>"""
+
+PAIR_BLOCKED_PAGE = """<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>ترجمان</title>
+<body style="font:17px system-ui;max-width:34rem;margin:3rem auto;padding:0 1.2rem;line-height:1.8">
+<h1 style="font-size:1.4rem">محاولات كثيرة برمز غير صحيح</h1>
+<p>انتظر عشر دقائق، ثم امسح رمز QR الظاهر في «الإعدادات ← الهاتف» على الحاسوب.</p>
+<p dir="ltr" style="text-align:left;color:#555">Too many wrong codes from this device. Wait ten minutes, then scan the QR code shown in Settings → Phone.</p>
 </body></html>"""
 
 
@@ -137,11 +145,15 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
     @app.get("/pair", include_in_schema=False)
     async def pair(request: Request, code: str = ""):
         """Opened once on a phone (from the QR code): gives this device its own key, then opens the app."""
+        ip = request.client.host if request.client else ""
+        if pairing.blocked(ip):
+            return HTMLResponse(PAIR_BLOCKED_PAGE, status_code=429)
         if not pairing.valid_code(code):
+            pairing.failed(ip)
             return HTMLResponse(PAIR_FAILED_PAGE, status_code=403)
         res = RedirectResponse("/", status_code=303)
         if pairing.device(request.cookies.get(COOKIE)) is None:  # scanning twice doesn't list it twice
-            token = pairing.pair(request.headers.get("user-agent", ""), request.client.host if request.client else "")
+            token = pairing.pair(request.headers.get("user-agent", ""), ip)
             res.set_cookie(COOKIE, token, max_age=365 * 24 * 3600, httponly=True, samesite="lax")
         return res
 

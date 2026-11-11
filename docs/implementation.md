@@ -99,7 +99,7 @@ The server binds to `0.0.0.0` so a phone on the same Wi-Fi can use the app, whic
 
 - **Origin and Host checks** stop any website from driving the API through the browser, including through DNS rebinding.
 - **`/api/settings` answers only loopback clients**, so a device on the LAN can never read or change the AI key.
-- **Other devices must be paired.** The server listens on the Wi-Fi so a phone can use it. Any device other than the computer itself gets nothing until it has opened the pairing link (the QR in Settings → Phone) once. Each paired phone has its own key, so Settings → Phone lists them and any one can be unpaired without touching the others.
+- **Other devices must be paired.** The server listens on the Wi-Fi so a phone can use it. Any device other than the computer itself gets nothing until it has opened the pairing link (the QR in Settings → Phone) once. The pairing code runs out after 15 minutes and repeated wrong codes from one address are refused for a while. Each paired phone has its own key, so Settings → Phone lists them and any one can be unpaired without touching the others.
 - **Only approved extensions.** Any installed extension could call 127.0.0.1. The first one to connect is trusted, and the rest wait for approval in Settings → Extensions.
 
 ## Tests

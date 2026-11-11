@@ -317,3 +317,71 @@ def test_upload_is_refused_when_free_space_cannot_be_measured(client, services, 
     r = client.post("/api/media/upload?name=a.mp4", content=b"x" * 500, headers=headers)
     assert r.status_code == 507 and r.json()["code"] == "DISK_FULL"
     assert set(services.media.items) == before, "nothing left behind"
+
+
+def test_wrong_pairing_codes_from_one_address_are_refused_after_a_few(app, phone):
+    for _ in range(5):
+        assert phone.get("/pair?code=guess").status_code == 403
+    r = phone.get("/pair?code=" + app.state.pairing.code)
+    assert r.status_code == 429, "even the right code waits, so guessing can't be sped up"
+    with other_device(app, "192.168.0.77", IPHONE) as other:
+        assert other.get("/pair?code=" + app.state.pairing.code).status_code == 303, "other devices are not affected"
+
+
+def test_the_pairing_code_runs_out_and_settings_shows_a_new_one(app, client, phone):
+    import time
+
+    p = app.state.pairing
+    old = p.code
+    assert client.get("/api/pairing").json()["codeExpires"] > time.time() * 1000
+    p.code_expires = time.time() - 1
+    assert phone.get("/pair?code=" + old).status_code == 403, "a link from history no longer pairs"
+    j = client.get("/api/pairing").json()
+    assert old not in j["links"][0] and p.code in j["links"][0], "the computer shows a fresh code"
+    assert phone.get("/pair?code=" + p.code).status_code in (303, 429)
+
+
+def test_the_pairing_code_can_be_set_to_never_run_out(app, monkeypatch):
+    from tarjuman import config
+
+    monkeypatch.setattr(config, "PAIR_CODE_MINUTES", 0)
+    app.state.pairing.new_code()
+    assert app.state.pairing.code_expires == 0 and app.state.pairing.valid_code(app.state.pairing.code)
+
+
+def test_fetch_refuses_links_into_the_local_network(client, services, monkeypatch):
+    from tarjuman.core import net
+
+    hosts = {
+        "router.example": ["192.168.1.1"], "self.example": ["127.0.0.1"], "meta.example": ["169.254.169.254"],
+        "six.example": ["::1"], "mapped.example": ["::ffff:10.0.0.5"], "mixed.example": ["93.184.216.34", "10.0.0.5"],
+        "video.example": ["93.184.216.34"], "hop.example": ["93.184.216.34"],
+    }
+    redirects = {"http://hop.example/v": "http://router.example/admin"}
+
+    async def fake_resolve(host):
+        if host in hosts:
+            return hosts[host]
+        return [host]  # a literal address
+
+    async def fake_next_hop(url):
+        return redirects.get(url)
+
+    started = []
+    monkeypatch.setattr(net, "resolve", fake_resolve)
+    monkeypatch.setattr(net, "next_hop", fake_next_hop)
+    monkeypatch.setattr("tarjuman.jobs.runners.start_fetch", lambda _s, link: started.append(link) or "job1")
+    monkeypatch.setattr("tarjuman.jobs.runners.start_batch", lambda _s, link, _o: started.append(link) or "job2")
+
+    def code(url, path="/api/media/fetch"):
+        return client.post(path, json={"url": url}).json().get("code")
+
+    for bad in ("http://router.example/x", "http://self.example:4318/api/library", "http://meta.example/latest",
+                "http://six.example/", "http://mapped.example/", "http://mixed.example/", "http://127.0.0.1:4318/",
+                "http://[::1]/", "http://10.1.2.3/", "http://hop.example/v"):
+        assert code(bad) == "URL_NOT_ALLOWED", bad
+    assert code("http://router.example/list", "/api/batch") == "URL_NOT_ALLOWED"
+    assert code("file:///etc/passwd") == "BAD_URL" and code("ftp://video.example/a") == "BAD_URL"
+    assert started == [], "nothing was handed to the downloader"
+    assert client.post("/api/media/fetch", json={"url": "https://video.example/watch"}).json()["id"] == "job1"
+    assert started == ["https://video.example/watch"]

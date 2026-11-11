@@ -5,6 +5,9 @@ The computer running the app is always allowed. Another device opens ``/pair?cod
 HttpOnly cookie, so every paired device is listed and can be removed on its own. The invite code
 pairs any number of devices; a new invite code stops the old QR from pairing more, without unpairing
 anyone. Only a hash of each device key is stored.
+
+The invite code lives for a limited time (``TARJUMAN_PAIR_MINUTES``), so a link left in a browser's
+history can't pair a device later. An address that keeps sending wrong codes is refused for a while.
 """
 
 from __future__ import annotations
@@ -16,10 +19,13 @@ import secrets
 import time
 from pathlib import Path
 
+from .. import config
 from ..core.store import Debounced, read_json, write_json
 
 COOKIE = "tarjuman_pair"
 HEADER = "x-tarjuman-pair"
+MAX_FAILS = 5  # wrong codes from one address...
+FAIL_WINDOW = 600.0  # ...within this many seconds, before it is refused
 
 
 def _hash(token: str) -> str:
@@ -59,6 +65,8 @@ class Pairing:
     def __init__(self, file: Path):
         self.file = file
         self.code = ""
+        self.code_expires = 0.0  # epoch seconds; 0 = never
+        self._fails: dict[str, list[float]] = {}
         self.devices: list[dict] = []
         self._legacy = ""  # the single shared secret of the first version, accepted once to migrate
         self._save_soon = Debounced(self._save, 30)
@@ -66,28 +74,60 @@ class Pairing:
     def load(self) -> None:
         j = read_json(self.file, {})
         self.code = str(j.get("code") or j.get("secret") or "")
-        self._legacy = str(j.get("secret") or "")
+        self.code_expires = float(j.get("codeExpires") or 0)
         self.devices = [d for d in j.get("devices") or [] if isinstance(d, dict) and d.get("hash")]
-        if len(self.code) < 20:
-            self.new_code()
+        if len(self.code) < 20 or self._expired():
+            self._renew()
+        self._legacy = str(j.get("secret") or "")
 
     def _save(self) -> None:
-        write_json(self.file, {"code": self.code, "devices": self.devices}, private=True)
+        write_json(self.file, {"code": self.code, "codeExpires": self.code_expires, "devices": self.devices}, private=True)
 
     def flush(self) -> None:
         self._save_soon.flush()
 
     # ---------------- invite code ----------------
 
+    def _expired(self) -> bool:
+        return bool(self.code_expires) and time.time() >= self.code_expires
+
+    def _renew(self) -> None:
+        self.code = secrets.token_urlsafe(18)
+        self.code_expires = time.time() + config.PAIR_CODE_MINUTES * 60 if config.PAIR_CODE_MINUTES > 0 else 0.0
+        self._save()
+
     def new_code(self) -> str:
         """A new invite: the old QR stops pairing new devices. Paired devices stay paired."""
-        self.code = secrets.token_urlsafe(18)
+        self._renew()
         self._legacy = ""
-        self._save()
+        return self.code
+
+    def current_code(self) -> str:
+        """The code to show on the computer: replaced by a new one once it has run out."""
+        if self._expired():
+            self._renew()
         return self.code
 
     def valid_code(self, candidate: str | None) -> bool:
-        return bool(candidate) and bool(self.code) and hmac.compare_digest(str(candidate), self.code)
+        if not candidate or not self.code or self._expired():
+            return False
+        return hmac.compare_digest(str(candidate), self.code)
+
+    # ---------------- wrong codes ----------------
+
+    def blocked(self, ip: str) -> bool:
+        now = time.time()
+        recent = [t for t in self._fails.get(ip, ()) if now - t < FAIL_WINDOW]
+        if recent:
+            self._fails[ip] = recent
+        else:
+            self._fails.pop(ip, None)
+        return len(recent) >= MAX_FAILS
+
+    def failed(self, ip: str) -> None:
+        if len(self._fails) > 2000:  # a flood of addresses must not grow this without end
+            self._fails.clear()
+        self._fails.setdefault(ip, []).append(time.time())
 
     # ---------------- devices ----------------
 

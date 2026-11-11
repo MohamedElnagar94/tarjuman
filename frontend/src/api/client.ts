@@ -38,6 +38,8 @@ export interface PairingState {
   links: string[];
   lan: boolean;
   devices: PairedDevice[];
+  /** When the code stops pairing (ms); 0 when it doesn't run out. */
+  codeExpires: number;
 }
 
 export class ApiError extends Error {

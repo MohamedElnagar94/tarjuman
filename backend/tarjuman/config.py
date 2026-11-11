@@ -35,6 +35,10 @@ DISK_RESERVE_BYTES = 1 << 30
 # The voice clip cache (data/cache/tts) is kept under this size, least recently used clips first.
 VOICE_CACHE_BYTES = int(float(os.environ.get("TARJUMAN_VOICE_CACHE_GB") or 2) * 1e9)
 FORCE_ASR = os.environ.get("TARJUMAN_FORCE_ASR") == "1"
+# The pairing code (the QR) is replaced after this many minutes; 0 keeps it until a new one is asked for.
+PAIR_CODE_MINUTES = float(os.environ.get("TARJUMAN_PAIR_MINUTES") or 15)
+# Downloading from addresses inside the local network (a home media server) is off unless asked for.
+FETCH_PRIVATE = os.environ.get("TARJUMAN_FETCH_PRIVATE") == "1"
 
 PIPER_VOICE = "ar_JO-kareem-medium"
 PIPER_MODEL = MODELS / "piper" / f"{PIPER_VOICE}.onnx"
