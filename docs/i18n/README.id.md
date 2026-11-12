@@ -80,6 +80,20 @@ Bahasa lain juga bisa: Prancis, Spanyol, Jerman, Turki, dan Inggris sudah tersed
 
 ## Mulai cepat
 
+### Penginstal Windows
+
+Unduh `Tarjuman-Setup-<version>.exe` dari halaman [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) lalu jalankan. Penginstal ini membawa Python sendiri, semua paket, aplikasi web, dan ekstensi browser, jadi Anda tidak memerlukan Python maupun Node.js. Penginstal meminta hak administrator satu kali, memasang ke Program Files, dan tidak menyentuh firewall. Setelah itu Tarjuman terbuka di jendelanya sendiri, seperti aplikasi desktop lainnya, tanpa jendela konsol dan tanpa tab browser; menutup jendela itu menghentikannya. (Jendela tersebut adalah Microsoft Edge dalam mode aplikasi, yang ada di setiap Windows 10 dan 11; tidak ada tambahan yang dipasang.)
+
+- Jika Setup langsung berhenti dengan pesan "unable to create the directory ...\Temp\is-*.tmp, access is denied", berkas penginstal berada di folder yang ditandai berintegritas rendah (beberapa alat sandbox menandai folder kerjanya seperti ini; `icacls <file>` lalu menampilkan `Low Mandatory Level`). Windows menjalankan berkas semacam itu dengan hak yang lebih sedikit. Salin ke folder lain, misalnya Downloads, lalu jalankan salinannya.
+- Penginstal belum ditandatangani secara digital, jadi Windows SmartScreen mungkin menampilkan "penerbit tak dikenal": pilih *Info selengkapnya → Tetap jalankan*.
+- Proses pertama mengunduh suara Arab luring (sekitar 60 MB) di latar belakang. Model Whisper terunduh sendiri saat pertama kali sebuah video memerlukannya.
+- Video, subtitle, pengaturan, dan `.env` Anda disimpan di `%LOCALAPPDATA%\Tarjuman`, terpisah dari programnya. Pembaruan mempertahankannya; saat mencopot pemasangan, Anda ditanya apakah ingin menghapusnya.
+- Menu Start memiliki pintasan ke folder ekstensi, untuk *Muat yang belum dibuka* di `chrome://extensions`.
+
+Ada yang tidak berfungsi? Lihat [Pemecahan masalah](../troubleshooting.md). Perubahan di setiap versi ada di [Changelog](../../CHANGELOG.md).
+
+### Dari kode sumber
+
 Anda memerlukan **Python 3.11+** dan **Node.js 20+**.
 
 **Windows:** klik dua kali `start.cmd`. Jika Windows bertanya apakah akan menjalankan skrip dari penerbit tak dikenal, buat pintasan desktop sekali saja dengan `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` lalu jalankan Tarjuman dari pintasan itu; pintasan ini menjalankan skrip yang sama lewat `cmd.exe` bawaan Windows, sehingga pertanyaan itu tidak muncul.
@@ -111,6 +125,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Perintah | Fungsinya |
 |---|---|
 | `python -m tarjuman` | Menjalankan aplikasi (`--port`, `--host 127.0.0.1` khusus komputer ini, `--no-open`) |
+| `python -m tarjuman app` | Menjalankan aplikasi di jendelanya sendiri (Edge atau Chrome dalam mode aplikasi), bukan di tab browser; menutup jendela itu menghentikannya |
 | `python -m tarjuman subs <link>` | Menulis berkas subtitle ke `data/output` (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Memasang atau memperbaiki semuanya |
 | `python -m tarjuman update` | Memperbarui yt-dlp dan klien suara, jika unduhan atau suara berhenti berfungsi |
@@ -136,9 +151,23 @@ Desain lengkapnya ada di [docs/implementation.md](../implementation.md).
 
 ## Privasi
 
-Tarjuman mengutamakan pemrosesan lokal. Video, subtitle, kata tersimpan, pengaturan, dan kunci API Anda tetap berada di folder `data/` di komputer Anda. Aplikasi menghubungi YouTube (teks dan unduhan), Google Translate dan MyMemory (terjemahan), layanan suara Edge milik Microsoft (ucapan), dan, hanya jika Anda mengaktifkannya, penyedia AI pilihan Anda. Tidak ada akun, analitik, atau pelacakan. API menolak permintaan dari situs web lain, dan pengaturan AI hanya dapat diubah dari komputer yang menjalankan aplikasi.
+Tarjuman mengutamakan pemrosesan lokal. Video, subtitle, kata tersimpan, pengaturan, dan kunci API Anda tetap berada di folder `data/` di komputer Anda. Aplikasi menghubungi YouTube (teks dan unduhan), Google Translate dan MyMemory (terjemahan), layanan suara Edge milik Microsoft (ucapan), dan, hanya jika Anda mengaktifkannya, penyedia AI pilihan Anda. Tidak ada akun, analitik, atau pelacakan. Video dan audio tidak pernah diunggah.
+
+| Fitur | Yang keluar dari komputer Anda | Dikirim ke | Tanpa mengirim apa pun |
+|---|---|---|---|
+| Teks YouTube | Tautan video | YouTube | Unggah berkas; ditranskripsikan secara lokal |
+| Terjemahan | Kalimat-kalimat video, sebagai teks | Google Translate, lalu MyMemory | Belum ada; kalimat yang tersimpan tetap berfungsi secara luring |
+| Suara sulih suara | Setiap kalimat terjemahan dan nama suara | Suara Microsoft Edge, lalu Google | Piper, suara Arab lokal |
+| Unduhan video | Permintaan untuk video tersebut | Situs yang menampungnya | Berkas yang sudah ada di komputer Anda |
+| AI (opsional, nonaktif secara bawaan) | Teks video dan pertanyaan Anda | Penyedia yang Anda pilih | Biarkan nonaktif, atau gunakan server lokal seperti Ollama |
+| Unduhan model | Permintaan unduhan, satu kali | Hugging Face, GitHub | Tidak ada setelah unduhan pertama |
+| Pengenalan ucapan, pemisahan musik, berkas Anda | Tidak ada | – | Selalu lokal |
+
+Tabel yang sama ada di aplikasi, di Pengaturan → Privasi. API menolak permintaan dari situs web lain, dan pengaturan AI hanya dapat diubah dari komputer yang menjalankan aplikasi.
 
 ## Konfigurasi
+
+Salin `.env.example` menjadi `.env` di folder proyek lalu sunting; setiap setelan dijelaskan di sana, dalam bahasa Arab dan Inggris. Berkas ini dibaca saat aplikasi dimulai, jadi mulai ulang Tarjuman setelah ada perubahan. Variabel yang disetel di lingkungan sebenarnya lebih diutamakan daripada berkas ini.
 
 | Variabel lingkungan | Bawaan | Arti |
 |---|---|---|
@@ -148,6 +177,11 @@ Tarjuman mengutamakan pemrosesan lokal. Video, subtitle, kata tersimpan, pengatu
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` atau `medium` untuk transkripsi yang lebih akurat (lebih lambat) |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Batas ukuran suara dubbing yang disimpan; yang paling lama tidak dipakai dihapus lebih dulu |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Ukuran video terbesar yang bisa kamu unggah |
+| `TARJUMAN_PAIR_MINUTES` | `15` | Berapa lama kode penyandingan ponsel (QR) berlaku; `0` = sampai Anda membuat yang baru |
+| `TARJUMAN_FETCH_PRIVATE` | nonaktif | Setel ke `1` untuk mengizinkan pengunduhan dari alamat di dalam jaringan Anda sendiri |
+| `TARJUMAN_HEAVY_JOBS` | `2` | Berapa banyak tugas berat (Whisper, sulih suara, menempelkan subtitle) yang berjalan bersamaan; gunakan `1` di komputer dengan memori kecil |
+| `TARJUMAN_MAX_QUEUE` | `20` | Jumlah tugas terbanyak yang boleh menunggu giliran |
+| `TARJUMAN_FORCE_ASR` | nonaktif | Setel ke `1` agar selalu mentranskripsikan dengan Whisper, mengabaikan teks YouTube |
 | `ANTHROPIC_API_KEY` | – | Dipakai untuk Claude jika tidak ada kunci yang tersimpan di pengaturan |
 
 ## Struktur proyek
@@ -178,6 +212,15 @@ npm --prefix extension run build && npm --prefix extension test && npm --prefix 
 ```
 
 Baca [docs/specs.md](../specs.md) sebelum mengubah rute API: aplikasi web dan ekstensi sama-sama bergantung padanya.
+
+### Membuat penginstal Windows
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build.ps1   # build\windows\app: Python, packages, web app, extension
+iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Tarjuman-Setup-3.0.0.exe (Inno Setup 6)
+```
+
+Workflow *Windows installer* melakukan hal yang sama di GitHub: jalankan dari tab Actions, atau dorong tag seperti `v3.0.0` untuk melampirkan penginstal ke sebuah rilis. Sebelum mengompilasi, workflow ini menjalankan aplikasi yang dibundel dan memeriksa bahwa aplikasi itu merespons.
 
 ## Dibangun dengan
 

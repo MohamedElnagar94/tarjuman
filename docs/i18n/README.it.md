@@ -80,6 +80,20 @@ Funzionano anche altre lingue: francese, spagnolo, tedesco, turco e inglese sono
 
 ## Avvio rapido
 
+### Programma di installazione per Windows
+
+Scarica `Tarjuman-Setup-<version>.exe` dalla pagina [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) ed eseguilo. Include il proprio Python, tutti i pacchetti, l'app web e l'estensione per il browser, quindi non ti servono né Python né Node.js. Chiede i diritti di amministratore una sola volta, si installa in Program Files e non tocca il firewall. Tarjuman si apre poi in una finestra propria, come qualsiasi app desktop, senza finestra della console e senza scheda del browser; chiudendo la finestra l'app si arresta. (La finestra è Microsoft Edge in modalità app, presente in ogni Windows 10 e 11; non viene installato nient'altro.)
+
+- Se l'installazione si interrompe subito con "unable to create the directory ...\Temp\is-*.tmp, access is denied", il file del programma di installazione si trova in una cartella contrassegnata a bassa integrità (alcuni strumenti di sandboxing contrassegnano così le loro cartelle di lavoro; `icacls <file>` mostra allora `Low Mandatory Level`). Windows esegue un file del genere con meno diritti. Copialo in un'altra cartella, ad esempio Download, ed esegui la copia.
+- Il programma di installazione non è ancora firmato digitalmente, quindi Windows SmartScreen può segnalare un "autore sconosciuto": scegli *Ulteriori informazioni → Esegui comunque*.
+- Il primo avvio scarica in background la voce araba offline (circa 60 MB). Il modello Whisper si scarica da solo la prima volta che un video ne ha bisogno.
+- I tuoi video, sottotitoli, impostazioni e il file `.env` sono conservati in `%LOCALAPPDATA%\Tarjuman`, separati dal programma. Un aggiornamento li mantiene; la disinstallazione chiede se eliminarli.
+- Il menu Start ha un collegamento alla cartella dell'estensione, da usare con *Carica estensione non pacchettizzata* in `chrome://extensions`.
+
+Qualcosa non funziona? Consulta la [Risoluzione dei problemi](../troubleshooting.md). Le novità di ogni versione sono nel [Changelog](../../CHANGELOG.md).
+
+### Dal codice sorgente
+
 Ti servono **Python 3.11+** e **Node.js 20+**.
 
 **Windows:** fai doppio clic su `start.cmd`. Se Windows chiede se eseguire uno script di un autore sconosciuto, crea una volta sola un collegamento sul desktop con `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` e avvia Tarjuman da lì: esegue lo stesso script tramite il `cmd.exe` di Windows, quindi la richiesta non compare.
@@ -111,6 +125,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Comando | Cosa fa |
 |---|---|
 | `python -m tarjuman` | Avvia l'app (`--port`, `--host 127.0.0.1` solo per questo computer, `--no-open`) |
+| `python -m tarjuman app` | Avvia l'app in una finestra propria (Edge o Chrome in modalità app) invece che in una scheda del browser; chiudendo la finestra l'app si arresta |
 | `python -m tarjuman subs <link>` | Scrive i file di sottotitoli in `data/output` (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Installa o ripara tutto |
 | `python -m tarjuman update` | Aggiorna yt-dlp e il client delle voci, se i download o le voci smettono di funzionare |
@@ -136,9 +151,23 @@ Il progetto completo è descritto in [docs/implementation.md](../implementation.
 
 ## Privacy
 
-Tarjuman è pensato per funzionare in locale. I tuoi video, sottotitoli, parole salvate, impostazioni e chiave API restano nella cartella `data/` del tuo computer. L'app contatta YouTube (sottotitoli e download), Google Translate e MyMemory (traduzione), il servizio vocale Edge di Microsoft (sintesi vocale) e, solo se lo attivi, il provider di IA che scegli. Niente account, statistiche o tracciamento. L'API rifiuta le richieste provenienti da altri siti, e le impostazioni dell'IA si possono modificare solo dal computer su cui gira l'app.
+Tarjuman è pensato per funzionare in locale. I tuoi video, sottotitoli, parole salvate, impostazioni e chiave API restano nella cartella `data/` del tuo computer. L'app contatta YouTube (sottotitoli e download), Google Translate e MyMemory (traduzione), il servizio vocale Edge di Microsoft (sintesi vocale) e, solo se lo attivi, il provider di IA che scegli. Niente account, statistiche o tracciamento. Video e audio non vengono mai caricati online.
+
+| Funzione | Cosa esce dal tuo computer | Inviato a | Senza inviare nulla |
+|---|---|---|---|
+| Sottotitoli di YouTube | Il link del video | YouTube | Carica un file; viene trascritto in locale |
+| Traduzione | Le frasi del video, come testo | Google Translate, poi MyMemory | Ancora nessuna alternativa; le frasi salvate funzionano comunque offline |
+| Voce del doppiaggio | Ogni frase tradotta e il nome della voce | Le voci di Microsoft Edge, poi Google | Piper, la voce araba locale |
+| Download del video | Una richiesta del video | Il sito che lo ospita | Un file già presente sul tuo computer |
+| IA (facoltativa, disattivata per impostazione predefinita) | Il testo del video e la tua domanda | Il provider che hai scelto | Lasciala disattivata, oppure usa un server locale come Ollama |
+| Download dei modelli | Una richiesta di download, una sola volta | Hugging Face, GitHub | Nulla dopo il primo download |
+| Riconoscimento vocale, separazione della musica, i tuoi file | Nulla | – | Sempre in locale |
+
+La stessa tabella si trova nell'app, in Impostazioni → Privacy. L'API rifiuta le richieste provenienti da altri siti, e le impostazioni dell'IA si possono modificare solo dal computer su cui gira l'app.
 
 ## Configurazione
+
+Copia `.env.example` in `.env` nella cartella del progetto e modificalo; ogni impostazione vi è spiegata, in arabo e in inglese. Il file viene letto all'avvio, quindi riavvia Tarjuman dopo una modifica. Una variabile impostata nell'ambiente reale ha la precedenza sul file.
 
 | Variabile d'ambiente | Predefinito | Significato |
 |---|---|---|
@@ -148,6 +177,11 @@ Tarjuman è pensato per funzionare in locale. I tuoi video, sottotitoli, parole 
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` o `medium` per una trascrizione più accurata (più lenta) |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Limite di spazio per le voci di doppiaggio salvate; si eliminano prima quelle usate meno di recente |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Dimensione massima del video che puoi caricare |
+| `TARJUMAN_PAIR_MINUTES` | `15` | Per quanto tempo resta valido un codice di abbinamento del telefono (il QR); `0` = finché non ne crei uno nuovo |
+| `TARJUMAN_FETCH_PRIVATE` | disattivato | Imposta `1` per consentire il download da indirizzi interni alla tua rete |
+| `TARJUMAN_HEAVY_JOBS` | `2` | Quante attività pesanti (Whisper, doppiaggio, impressione dei sottotitoli) girano insieme; usa `1` su un computer con poca memoria |
+| `TARJUMAN_MAX_QUEUE` | `20` | Numero massimo di attività che possono attendere il proprio turno |
+| `TARJUMAN_FORCE_ASR` | disattivato | Imposta `1` per trascrivere sempre con Whisper, ignorando i sottotitoli di YouTube |
 | `ANTHROPIC_API_KEY` | – | Usata per Claude quando nelle impostazioni non è salvata alcuna chiave |
 
 ## Struttura del progetto
@@ -178,6 +212,15 @@ npm --prefix extension run build && npm --prefix extension test && npm --prefix 
 ```
 
 Leggi [docs/specs.md](../specs.md) prima di modificare una route dell'API: sia l'app web sia l'estensione ne dipendono.
+
+### Creare il programma di installazione per Windows
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build.ps1   # build\windows\app: Python, packages, web app, extension
+iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Tarjuman-Setup-3.0.0.exe (Inno Setup 6)
+```
+
+Il workflow *Windows installer* fa lo stesso su GitHub: avvialo dalla scheda Actions, oppure invia un tag come `v3.0.0` per allegare il programma di installazione a una release. Prima di compilare, avvia l'app inclusa nel pacchetto e verifica che risponda.
 
 ## Realizzato con
 

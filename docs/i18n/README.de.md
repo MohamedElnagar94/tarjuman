@@ -80,6 +80,20 @@ Auch andere Sprachen funktionieren: Französisch, Spanisch, Deutsch, Türkisch u
 
 ## Schnellstart
 
+### Windows-Installer
+
+Lade `Tarjuman-Setup-<version>.exe` von der Seite [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) herunter und führe die Datei aus. Der Installer bringt sein eigenes Python, alle Pakete, die Web-App und die Browser-Erweiterung mit, du brauchst also weder Python noch Node.js. Er fragt einmal nach Administratorrechten, installiert nach Program Files und rührt die Firewall nicht an. Tarjuman öffnet sich danach in einem eigenen Fenster, wie jede Desktop-App, ohne Konsolenfenster und ohne Browser-Tab; schließt du das Fenster, wird Tarjuman beendet. (Das Fenster ist Microsoft Edge im App-Modus, das jedes Windows 10 und 11 mitbringt; es wird nichts Zusätzliches installiert.)
+
+- Bricht das Setup sofort mit „unable to create the directory ...\Temp\is-*.tmp, access is denied“ ab, liegt die Installer-Datei in einem Ordner, der mit niedriger Integritätsstufe gekennzeichnet ist (manche Sandboxing-Tools kennzeichnen ihre Arbeitsordner so; `icacls <file>` zeigt dann `Low Mandatory Level`). Windows führt eine solche Datei mit weniger Rechten aus. Kopiere sie in einen anderen Ordner, etwa Downloads, und führe die Kopie aus.
+- Der Installer ist noch nicht codesigniert, deshalb meldet Windows SmartScreen möglicherweise „Unbekannter Herausgeber“: Wähle *Weitere Informationen → Trotzdem ausführen*.
+- Beim ersten Start wird die arabische Offline-Stimme (etwa 60 MB) im Hintergrund heruntergeladen. Das Whisper-Modell lädt sich selbst herunter, sobald ein Video es zum ersten Mal braucht.
+- Deine Videos, Untertitel, Einstellungen und die `.env` liegen in `%LOCALAPPDATA%\Tarjuman`, getrennt vom Programm. Ein Update behält sie; bei der Deinstallation wirst du gefragt, ob sie gelöscht werden sollen.
+- Im Startmenü gibt es eine Verknüpfung zum Ordner der Erweiterung, für *Entpackte Erweiterung laden* in `chrome://extensions`.
+
+Etwas funktioniert nicht? Siehe [Fehlerbehebung](../troubleshooting.md). Was sich in jeder Version geändert hat, steht im [Changelog](../../CHANGELOG.md).
+
+### Aus dem Quellcode
+
 Du brauchst **Python 3.11+** und **Node.js 20+**.
 
 **Windows:** Doppelklick auf `start.cmd`. Fragt Windows, ob ein Skript eines unbekannten Herausgebers ausgeführt werden soll, erstelle einmalig mit `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` eine Desktop-Verknüpfung und starte Tarjuman darüber; sie führt dasselbe Skript über das Windows-eigene `cmd.exe` aus, sodass die Abfrage nicht erscheint.
@@ -111,6 +125,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Befehl | Funktion |
 |---|---|
 | `python -m tarjuman` | Startet die App (`--port`, `--host 127.0.0.1` nur für diesen Rechner, `--no-open`) |
+| `python -m tarjuman app` | Startet die App in einem eigenen Fenster (Edge oder Chrome im App-Modus) statt in einem Browser-Tab; schließt du das Fenster, wird sie beendet |
 | `python -m tarjuman subs <link>` | Schreibt Untertiteldateien nach `data/output` (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Installiert oder repariert alles |
 | `python -m tarjuman update` | Aktualisiert yt-dlp und den Sprach-Client, falls Downloads oder Stimmen nicht mehr funktionieren |
@@ -136,9 +151,23 @@ Das vollständige Design steht in [docs/implementation.md](../implementation.md)
 
 ## Datenschutz
 
-Tarjuman arbeitet lokal. Deine Videos, Untertitel, gespeicherten Wörter, Einstellungen und dein API-Schlüssel bleiben im Ordner `data/` auf deinem Rechner. Die App kontaktiert YouTube (Untertitel und Downloads), Google Translate und MyMemory (Übersetzung), den Edge-Sprachdienst von Microsoft (Sprachausgabe) und, nur wenn du es aktivierst, den KI-Anbieter deiner Wahl. Es gibt keine Konten, keine Analysen und kein Tracking. Die API lehnt Anfragen von anderen Websites ab, und die KI-Einstellungen lassen sich nur an dem Rechner ändern, auf dem die App läuft.
+Tarjuman arbeitet lokal. Deine Videos, Untertitel, gespeicherten Wörter, Einstellungen und dein API-Schlüssel bleiben im Ordner `data/` auf deinem Rechner. Die App kontaktiert YouTube (Untertitel und Downloads), Google Translate und MyMemory (Übersetzung), den Edge-Sprachdienst von Microsoft (Sprachausgabe) und, nur wenn du es aktivierst, den KI-Anbieter deiner Wahl. Es gibt keine Konten, keine Analysen und kein Tracking. Video und Ton werden niemals hochgeladen.
+
+| Funktion | Was deinen Rechner verlässt | Gesendet an | Ohne etwas zu senden |
+|---|---|---|---|
+| YouTube-Untertitel | Der Videolink | YouTube | Lade eine Datei hoch; sie wird lokal transkribiert |
+| Übersetzung | Die Sätze des Videos, als Text | Google Translate, dann MyMemory | Noch nichts; gespeicherte Sätze funktionieren weiterhin offline |
+| Synchronstimme | Jeder übersetzte Satz und der Name der Stimme | Microsoft-Edge-Stimmen, dann Google | Piper, die lokale arabische Stimme |
+| Video-Download | Eine Anfrage nach dem Video | Die Website, die es hostet | Eine Datei, die schon auf deinem Rechner liegt |
+| KI (optional, standardmäßig aus) | Der Text des Videos und deine Frage | Der von dir gewählte Anbieter | Lass sie aus oder nutze einen lokalen Server wie Ollama |
+| Modell-Downloads | Eine Download-Anfrage, einmalig | Hugging Face, GitHub | Nichts nach dem ersten Download |
+| Spracherkennung, Musiktrennung, deine Dateien | Nichts | – | Immer lokal |
+
+Dieselbe Tabelle findest du in der App unter Einstellungen → Datenschutz. Die API lehnt Anfragen von anderen Websites ab, und die KI-Einstellungen lassen sich nur an dem Rechner ändern, auf dem die App läuft.
 
 ## Konfiguration
+
+Kopiere `.env.example` im Projektordner nach `.env` und bearbeite die Datei; jede Einstellung ist dort auf Arabisch und Englisch erklärt. Die Datei wird beim Start gelesen, starte Tarjuman also nach einer Änderung neu. Eine Variable, die in der echten Umgebung gesetzt ist, hat Vorrang vor der Datei.
 
 | Umgebungsvariable | Standard | Bedeutung |
 |---|---|---|
@@ -148,6 +177,11 @@ Tarjuman arbeitet lokal. Deine Videos, Untertitel, gespeicherten Wörter, Einste
 | `TARJUMAN_WHISPER_MODEL` | `base` | `small` oder `medium` für genauere Transkription (langsamer) |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Größenlimit für gespeicherte Synchronstimmen; die am längsten nicht genutzten werden zuerst gelöscht |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Größtes Video, das du hochladen kannst |
+| `TARJUMAN_PAIR_MINUTES` | `15` | Wie lange ein Kopplungscode fürs Handy (der QR-Code) gültig ist; `0` = bis du einen neuen erzeugst |
+| `TARJUMAN_FETCH_PRIVATE` | aus | Auf `1` setzen, um Downloads von Adressen in deinem eigenen Netzwerk zu erlauben |
+| `TARJUMAN_HEAVY_JOBS` | `2` | Wie viele aufwendige Aufträge (Whisper, Synchronisation, Einbrennen von Untertiteln) gleichzeitig laufen; nimm `1` auf einem Rechner mit wenig Arbeitsspeicher |
+| `TARJUMAN_MAX_QUEUE` | `20` | Höchstzahl der Aufträge, die in der Warteschlange stehen dürfen |
+| `TARJUMAN_FORCE_ASR` | aus | Auf `1` setzen, um immer mit Whisper zu transkribieren und die Untertitel von YouTube zu ignorieren |
 | `ANTHROPIC_API_KEY` | – | Wird für Claude verwendet, wenn in den Einstellungen kein Schlüssel gespeichert ist |
 
 ## Projektstruktur
@@ -178,6 +212,15 @@ npm --prefix extension run build && npm --prefix extension test && npm --prefix 
 ```
 
 Lies [docs/specs.md](../specs.md), bevor du eine API-Route änderst: Sowohl die Web-App als auch die Erweiterung hängen davon ab.
+
+### Den Windows-Installer bauen
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build.ps1   # build\windows\app: Python, packages, web app, extension
+iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Tarjuman-Setup-3.0.0.exe (Inno Setup 6)
+```
+
+Der Workflow *Windows installer* erledigt dasselbe auf GitHub: Starte ihn im Tab Actions oder pushe ein Tag wie `v3.0.0`, um den Installer an ein Release anzuhängen. Vor dem Kompilieren startet er die gebündelte App und prüft, ob sie antwortet.
 
 ## Erstellt mit
 

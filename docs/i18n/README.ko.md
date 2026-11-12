@@ -80,6 +80,20 @@ YouTube 링크를 붙여 넣거나, 컴퓨터에서 영상을 업로드하거나
 
 ## 빠른 시작
 
+### Windows 설치 프로그램
+
+[Releases](https://github.com/MohamedElnagar94/tarjuman/releases) 페이지에서 `Tarjuman-Setup-<version>.exe`를 내려받아 실행하세요. 자체 Python, 모든 패키지, 웹 앱, 브라우저 확장 프로그램이 함께 들어 있어 Python도 Node.js도 필요 없습니다. 관리자 권한을 한 번 요청하고, Program Files에 설치되며, 방화벽은 건드리지 않습니다. 그런 다음 Tarjuman은 여느 데스크톱 앱처럼 자체 창에서 열리며, 콘솔 창도 브라우저 탭도 없습니다. 창을 닫으면 앱이 종료됩니다. (이 창은 앱 모드로 실행되는 Microsoft Edge이며, 모든 Windows 10과 11에 들어 있습니다. 추가로 설치되는 것은 없습니다.)
+
+- 설치 프로그램이 "unable to create the directory ...\Temp\is-*.tmp, access is denied"라는 메시지와 함께 바로 멈춘다면, 설치 파일이 낮은 무결성으로 표시된 폴더에 있는 것입니다(일부 샌드박스 도구는 작업 폴더를 이렇게 표시하며, 이때 `icacls <file>`에 `Low Mandatory Level`이 나옵니다). Windows는 이런 파일을 더 적은 권한으로 실행합니다. 다운로드 폴더 같은 다른 폴더로 복사한 뒤 복사본을 실행하세요.
+- 설치 프로그램은 아직 코드 서명이 되어 있지 않아 Windows SmartScreen이 "알 수 없는 게시자"라고 표시할 수 있습니다. *추가 정보 → 실행*을 선택하세요.
+- 처음 시작할 때 오프라인 아랍어 음성(약 60 MB)을 백그라운드에서 내려받습니다. Whisper 모델은 영상에 처음 필요해질 때 자동으로 내려받습니다.
+- 영상, 자막, 설정, `.env`는 프로그램과 분리된 `%LOCALAPPDATA%\Tarjuman`에 보관됩니다. 업데이트해도 그대로 유지되며, 제거할 때는 삭제할지 묻습니다.
+- 시작 메뉴에 확장 프로그램 폴더 바로 가기가 있어, `chrome://extensions`의 *압축해제된 확장 프로그램을 로드합니다*에 사용할 수 있습니다.
+
+문제가 있나요? [문제 해결](../troubleshooting.md)을 참고하세요. 버전별 변경 사항은 [Changelog](../../CHANGELOG.md)에 있습니다.
+
+### 소스에서 실행
+
 **Python 3.11+**와 **Node.js 20+**가 필요합니다.
 
 **Windows:** `start.cmd`를 더블클릭하세요. Windows가 알 수 없는 게시자의 스크립트를 실행할지 묻는다면 `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1`로 바탕 화면 바로 가기를 한 번 만들고 거기서 Tarjuman을 실행하세요. 같은 스크립트를 Windows 자체의 `cmd.exe`로 실행하므로 확인 창이 나타나지 않습니다.
@@ -111,6 +125,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | 명령어 | 하는 일 |
 |---|---|
 | `python -m tarjuman` | 앱 시작 (`--port`, 이 컴퓨터에서만 쓰려면 `--host 127.0.0.1`, `--no-open`) |
+| `python -m tarjuman app` | 브라우저 탭 대신 자체 창(앱 모드의 Edge 또는 Chrome)에서 앱 시작. 창을 닫으면 종료 |
 | `python -m tarjuman subs <link>` | 자막 파일을 `data/output`에 저장 (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | 모든 것을 설치하거나 복구 |
 | `python -m tarjuman update` | 다운로드나 음성이 작동하지 않을 때 yt-dlp와 음성 클라이언트를 업데이트 |
@@ -136,9 +151,23 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 
 ## 개인정보 보호
 
-Tarjuman은 로컬 우선입니다. 영상, 자막, 저장한 단어, 설정, API 키는 내 컴퓨터의 `data/` 폴더에 남습니다. 앱은 YouTube(자막과 다운로드), Google Translate와 MyMemory(번역), Microsoft의 Edge 음성 서비스(음성), 그리고 직접 켠 경우에만 선택한 AI 제공자에 연결합니다. 계정, 분석, 추적은 없습니다. API는 다른 웹사이트에서 온 요청을 거부하며, AI 설정은 앱을 실행 중인 컴퓨터에서만 변경할 수 있습니다.
+Tarjuman은 로컬 우선입니다. 영상, 자막, 저장한 단어, 설정, API 키는 내 컴퓨터의 `data/` 폴더에 남습니다. 앱은 YouTube(자막과 다운로드), Google Translate와 MyMemory(번역), Microsoft의 Edge 음성 서비스(음성), 그리고 직접 켠 경우에만 선택한 AI 제공자에 연결합니다. 계정, 분석, 추적은 없습니다. 영상과 오디오는 절대 업로드되지 않습니다.
+
+| 기능 | 내 컴퓨터 밖으로 나가는 것 | 보내는 곳 | 아무것도 보내지 않으려면 |
+|---|---|---|---|
+| YouTube 자막 | 영상 링크 | YouTube | 파일을 업로드하세요. 로컬에서 받아씁니다 |
+| 번역 | 영상의 문장(텍스트) | Google Translate, 그다음 MyMemory | 아직 없음. 저장된 문장은 오프라인에서도 작동합니다 |
+| 더빙 음성 | 번역된 각 문장과 음성 이름 | Microsoft Edge 음성, 그다음 Google | 로컬 아랍어 음성 Piper |
+| 영상 다운로드 | 영상 요청 | 영상을 호스팅하는 사이트 | 이미 내 컴퓨터에 있는 파일 |
+| AI (선택 사항, 기본적으로 꺼짐) | 영상의 텍스트와 내 질문 | 선택한 제공자 | 꺼 두거나 Ollama 같은 로컬 서버 사용 |
+| 모델 다운로드 | 다운로드 요청, 한 번만 | Hugging Face, GitHub | 첫 다운로드 이후에는 없음 |
+| 음성 인식, 음악 분리, 내 파일 | 없음 | – | 항상 로컬 |
+
+같은 표가 앱의 설정 → 개인정보 보호에도 있습니다. API는 다른 웹사이트에서 온 요청을 거부하며, AI 설정은 앱을 실행 중인 컴퓨터에서만 변경할 수 있습니다.
 
 ## 설정
+
+프로젝트 폴더에서 `.env.example`을 `.env`로 복사한 뒤 수정하세요. 모든 설정이 그 파일에 아랍어와 영어로 설명되어 있습니다. 이 파일은 시작할 때 읽히므로 변경한 뒤에는 Tarjuman을 다시 시작하세요. 실제 환경에 설정된 변수가 파일보다 우선합니다.
 
 | 환경 변수 | 기본값 | 의미 |
 |---|---|---|
@@ -148,6 +177,11 @@ Tarjuman은 로컬 우선입니다. 영상, 자막, 저장한 단어, 설정, AP
 | `TARJUMAN_WHISPER_MODEL` | `base` | 더 정확한(대신 느린) 받아쓰기를 원하면 `small` 또는 `medium` |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | 저장된 더빙 음성의 용량 한도. 가장 오래 사용하지 않은 것부터 삭제됩니다 |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | 업로드할 수 있는 최대 영상 크기 |
+| `TARJUMAN_PAIR_MINUTES` | `15` | 휴대폰 페어링 코드(QR)의 유효 시간. `0` = 새 코드를 만들 때까지 |
+| `TARJUMAN_FETCH_PRIVATE` | 꺼짐 | 내 네트워크 내부 주소에서 다운로드를 허용하려면 `1`로 설정 |
+| `TARJUMAN_HEAVY_JOBS` | `2` | 동시에 실행되는 무거운 작업(Whisper, 더빙, 자막 입히기)의 수. 메모리가 적은 컴퓨터에서는 `1` 사용 |
+| `TARJUMAN_MAX_QUEUE` | `20` | 차례를 기다릴 수 있는 최대 작업 수 |
+| `TARJUMAN_FORCE_ASR` | 꺼짐 | YouTube 자막을 무시하고 항상 Whisper로 받아쓰려면 `1`로 설정 |
 | `ANTHROPIC_API_KEY` | – | 설정에 저장된 키가 없을 때 Claude에 사용 |
 
 ## 프로젝트 구조
@@ -178,6 +212,15 @@ npm --prefix extension run build && npm --prefix extension test && npm --prefix 
 ```
 
 API 경로를 바꾸기 전에 [docs/specs.md](../specs.md)를 읽어 주세요. 웹 앱과 확장 프로그램 모두 이 문서에 의존합니다.
+
+### Windows 설치 프로그램 빌드
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build.ps1   # build\windows\app: Python, packages, web app, extension
+iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Tarjuman-Setup-3.0.0.exe (Inno Setup 6)
+```
+
+*Windows installer* 워크플로가 GitHub에서 같은 작업을 합니다. Actions 탭에서 실행하거나, `v3.0.0` 같은 태그를 푸시해 설치 프로그램을 릴리스에 첨부하세요. 컴파일하기 전에 번들된 앱을 시작해 응답하는지 확인합니다.
 
 ## 사용 기술
 

@@ -80,6 +80,20 @@
 
 ## 快速开始
 
+### Windows 安装程序
+
+从 [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) 页面下载 `Tarjuman-Setup-<version>.exe` 并运行。它自带 Python、所有软件包、Web 应用和浏览器扩展，因此你既不需要 Python，也不需要 Node.js。它只会请求一次管理员权限，安装到 Program Files，并且不会改动防火墙。之后 Tarjuman 会像普通桌面应用一样在自己的窗口中打开，没有控制台窗口，也没有浏览器标签页；关闭窗口即停止运行。（这个窗口是应用模式下的 Microsoft Edge，每台 Windows 10 和 11 都自带，不会额外安装任何东西。）
+
+- 如果 Setup 一启动就停止并提示 "unable to create the directory ...\Temp\is-*.tmp, access is denied"，说明安装程序文件位于被标记为低完整性的文件夹中（有些沙盒工具会这样标记自己的工作文件夹；此时 `icacls <file>` 会显示 `Low Mandatory Level`）。Windows 会以较低的权限运行这样的文件。请把它复制到其他文件夹（例如 Downloads），然后运行副本。
+- 安装程序尚未进行代码签名，因此 Windows SmartScreen 可能会提示“未知发布者”：请选择*更多信息 → 仍要运行*。
+- 首次启动时会在后台下载离线阿拉伯语语音（约 60 MB）。Whisper 模型会在第一次有视频需要它时自动下载。
+- 你的视频、字幕、设置和 `.env` 保存在 `%LOCALAPPDATA%\Tarjuman` 中，与程序分开存放。更新时会保留它们；卸载时会询问是否删除。
+- 开始菜单中有一个指向扩展文件夹的快捷方式，用于在 `chrome://extensions` 中*加载已解压的扩展程序*。
+
+遇到问题？请参阅[故障排除](../troubleshooting.md)。每个版本的变更见[更新日志](../../CHANGELOG.md)。
+
+### 从源码运行
+
 你需要 **Python 3.11+** 和 **Node.js 20+**。
 
 **Windows：** 双击 `start.cmd`。如果 Windows 询问是否运行来自未知发布者的脚本，请用 `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` 创建一次桌面快捷方式，之后从它启动 Tarjuman；它通过 Windows 自带的 `cmd.exe` 运行同一个脚本，因此不会出现这个提示。
@@ -111,6 +125,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | 命令 | 作用 |
 |---|---|
 | `python -m tarjuman` | 启动应用（`--port`、`--host 127.0.0.1` 仅限本机访问、`--no-open`） |
+| `python -m tarjuman app` | 在独立窗口中启动应用（应用模式下的 Edge 或 Chrome），而不是浏览器标签页；关闭窗口即停止运行 |
 | `python -m tarjuman subs <link>` | 将字幕文件写入 `data/output`（`--lang`、`--format srt,vtt,txt`） |
 | `python -m tarjuman setup` | 安装或修复所有组件 |
 | `python -m tarjuman update` | 当下载或语音失效时，更新 yt-dlp 和语音客户端 |
@@ -136,9 +151,23 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 
 ## 隐私
 
-Tarjuman 以本地为先。你的视频、字幕、保存的单词、设置和 API 密钥都保存在你电脑上的 `data/` 文件夹中。应用会连接 YouTube（字幕和下载）、Google Translate 和 MyMemory（翻译）、微软的 Edge 语音服务（语音合成），以及仅在你开启时连接你选择的 AI 服务商。没有账户、没有统计分析、没有追踪。API 会拒绝来自其他网站的请求，AI 设置也只能在运行应用的那台电脑上修改。
+Tarjuman 以本地为先。你的视频、字幕、保存的单词、设置和 API 密钥都保存在你电脑上的 `data/` 文件夹中。应用会连接 YouTube（字幕和下载）、Google Translate 和 MyMemory（翻译）、微软的 Edge 语音服务（语音合成），以及仅在你开启时连接你选择的 AI 服务商。没有账户、没有统计分析、没有追踪。视频和音频绝不会被上传。
+
+| 功能 | 离开你电脑的内容 | 发送到 | 不发送任何内容的做法 |
+|---|---|---|---|
+| YouTube 字幕 | 视频链接 | YouTube | 上传文件；它会在本地转写 |
+| 翻译 | 视频中的句子（文本形式） | Google Translate，其次是 MyMemory | 暂无；已保存的句子仍可离线使用 |
+| 配音语音 | 每个译好的句子和语音名称 | Microsoft Edge 语音，其次是 Google | Piper，本地阿拉伯语语音 |
+| 视频下载 | 对该视频的请求 | 托管该视频的网站 | 使用电脑上已有的文件 |
+| AI（可选，默认关闭） | 视频的文本和你的问题 | 你选择的服务商 | 保持关闭，或使用 Ollama 等本地服务器 |
+| 模型下载 | 一次下载请求，仅一次 | Hugging Face、GitHub | 首次下载之后不再发送任何内容 |
+| 语音识别、音乐分离、你的文件 | 无 | – | 始终在本地 |
+
+应用内的“设置 → 隐私”中也有同一张表。API 会拒绝来自其他网站的请求，AI 设置也只能在运行应用的那台电脑上修改。
 
 ## 配置
+
+在项目文件夹中把 `.env.example` 复制为 `.env` 并进行编辑；每项设置都在其中用阿拉伯语和英语作了说明。该文件在启动时读取，因此修改后请重启 Tarjuman。在真实环境中设置的变量优先于该文件。
 
 | 环境变量 | 默认值 | 含义 |
 |---|---|---|
@@ -148,6 +177,11 @@ Tarjuman 以本地为先。你的视频、字幕、保存的单词、设置和 A
 | `TARJUMAN_WHISPER_MODEL` | `base` | 使用 `small` 或 `medium` 可获得更准确（但更慢）的转写 |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | 已保存配音语音的大小上限；最久未使用的先删除 |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | 可上传视频的最大大小 |
+| `TARJUMAN_PAIR_MINUTES` | `15` | 手机配对码（二维码）的有效时长（分钟）；`0` = 一直有效，直到你生成新的 |
+| `TARJUMAN_FETCH_PRIVATE` | 关闭 | 设为 `1` 可允许从你自己网络内的地址下载 |
+| `TARJUMAN_HEAVY_JOBS` | `2` | 同时运行的重型任务（Whisper、配音、烧录字幕）数量；内存较小的电脑请设为 `1` |
+| `TARJUMAN_MAX_QUEUE` | `20` | 最多可排队等待的任务数 |
+| `TARJUMAN_FORCE_ASR` | 关闭 | 设为 `1` 可始终使用 Whisper 转写，忽略 YouTube 的字幕 |
 | `ANTHROPIC_API_KEY` | – | 设置中未保存密钥时，用于 Claude |
 
 ## 项目结构
@@ -178,6 +212,15 @@ npm --prefix extension run build && npm --prefix extension test && npm --prefix 
 ```
 
 修改 API 路由前请先阅读 [docs/specs.md](../specs.md)：Web 应用和扩展都依赖它。
+
+### 构建 Windows 安装程序
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build.ps1   # build\windows\app: Python, packages, web app, extension
+iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Tarjuman-Setup-3.0.0.exe (Inno Setup 6)
+```
+
+*Windows installer* 工作流会在 GitHub 上完成同样的事情：从 Actions 标签页运行它，或者推送形如 `v3.0.0` 的标签，把安装程序附加到发布版本中。编译之前，它会启动打包好的应用并检查其是否有响应。
 
 ## 使用的技术
 

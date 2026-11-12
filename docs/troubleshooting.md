@@ -63,7 +63,7 @@ The online voices come from Microsoft's Edge voice service. When it fails, Tarju
 It is downloaded once (about 60 MB): by `python -m tarjuman setup` from source, in the background on the first start of the installed app. `doctor` shows whether it is there.
 
 **A word is pronounced wrong.**
-Add it to Settings → Pronunciation dictionary.
+Add it in Settings → Pronunciation.
 
 ## Downloads and files
 

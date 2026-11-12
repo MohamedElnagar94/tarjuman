@@ -80,6 +80,20 @@ Başka diller de çalışır: Fransızca, İspanyolca, Almanca, Türkçe ve İng
 
 ## Hızlı başlangıç
 
+### Windows yükleyicisi
+
+[Releases](https://github.com/MohamedElnagar94/tarjuman/releases) sayfasından `Tarjuman-Setup-<version>.exe` dosyasını indirip çalıştırın. Kendi Python'ını, bütün paketleri, web uygulamasını ve tarayıcı eklentisini beraberinde getirir; bu yüzden ne Python'a ne de Node.js'e ihtiyacınız olur. Bir kez yönetici yetkisi ister, Program Files klasörüne kurulur ve güvenlik duvarına dokunmaz. Ardından Tarjuman, herhangi bir masaüstü uygulaması gibi kendi penceresinde açılır; konsol penceresi de tarayıcı sekmesi de yoktur. Pencereyi kapatmak uygulamayı durdurur. (Bu pencere, her Windows 10 ve 11'de bulunan Microsoft Edge'in uygulama modudur; ek bir şey kurulmaz.)
+
+- Setup hemen "unable to create the directory ...\Temp\is-*.tmp, access is denied" hatasıyla durursa, yükleyici dosyası düşük bütünlük düzeyiyle işaretlenmiş bir klasörde duruyordur (bazı korumalı alan araçları çalışma klasörlerini böyle işaretler; bu durumda `icacls <file>` çıktısında `Low Mandatory Level` görünür). Windows böyle bir dosyayı daha az yetkiyle çalıştırır. Dosyayı Downloads gibi başka bir klasöre kopyalayın ve kopyayı çalıştırın.
+- Yükleyici henüz kod imzalı değildir; bu yüzden Windows SmartScreen "bilinmeyen yayıncı" diyebilir: *Ek bilgi → Yine de çalıştır* seçeneğini seçin.
+- İlk başlatmada çevrimdışı Arapça ses (yaklaşık 60 MB) arka planda indirilir. Whisper modeli, bir video ona ilk kez ihtiyaç duyduğunda kendiliğinden indirilir.
+- Videolarınız, altyazılarınız, ayarlarınız ve `.env` dosyası programdan ayrı olarak `%LOCALAPPDATA%\Tarjuman` klasöründe tutulur. Güncelleme bunları korur; kaldırma sırasında silinip silinmeyecekleri sorulur.
+- Başlat menüsünde, `chrome://extensions` sayfasındaki *Paketlenmemiş öğe yükle* için eklenti klasörüne giden bir kısayol bulunur.
+
+Bir şey çalışmıyor mu? [Sorun giderme](../troubleshooting.md) belgesine bakın. Her sürümde nelerin değiştiği [değişiklik günlüğünde](../../CHANGELOG.md) yer alır.
+
+### Kaynak koddan
+
 **Python 3.11+** ve **Node.js 20+** gerekir.
 
 **Windows:** `start.cmd` dosyasına çift tıklayın. Windows bilinmeyen bir yayıncının betiğini çalıştırmak isteyip istemediğinizi sorarsa, `powershell -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1` ile bir kez masaüstü kısayolu oluşturun ve Tarjuman'ı oradan başlatın; kısayol aynı betiği Windows'un kendi `cmd.exe`'si üzerinden çalıştırdığı için bu soru çıkmaz.
@@ -111,6 +125,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Komut | Ne yapar |
 |---|---|
 | `python -m tarjuman` | Uygulamayı başlatır (`--port`, yalnızca bu bilgisayar için `--host 127.0.0.1`, `--no-open`) |
+| `python -m tarjuman app` | Uygulamayı tarayıcı sekmesi yerine kendi penceresinde başlatır (uygulama modunda Edge veya Chrome); pencereyi kapatmak uygulamayı durdurur |
 | `python -m tarjuman subs <link>` | Altyazı dosyalarını `data/output` klasörüne yazar (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Her şeyi kurar veya onarır |
 | `python -m tarjuman update` | İndirmeler ya da sesler çalışmaz olursa yt-dlp'yi ve ses istemcisini günceller |
@@ -136,9 +151,23 @@ Tasarımın tamamı [docs/implementation.md](../implementation.md) dosyasındad�
 
 ## Gizlilik
 
-Tarjuman önce yerel çalışacak şekilde tasarlanmıştır. Videolarınız, altyazılarınız, kaydettiğiniz kelimeler, ayarlarınız ve API anahtarınız bilgisayarınızdaki `data/` klasöründe kalır. Uygulama YouTube (altyazılar ve indirmeler), Google Translate ve MyMemory (çeviri), Microsoft'un Edge ses hizmeti (konuşma) ve yalnızca siz açarsanız seçtiğiniz yapay zekâ sağlayıcısıyla iletişim kurar. Hesap, analiz veya izleme yoktur. API diğer web sitelerinden gelen istekleri reddeder ve yapay zekâ ayarları yalnızca uygulamayı çalıştıran bilgisayardan değiştirilebilir.
+Tarjuman önce yerel çalışacak şekilde tasarlanmıştır. Videolarınız, altyazılarınız, kaydettiğiniz kelimeler, ayarlarınız ve API anahtarınız bilgisayarınızdaki `data/` klasöründe kalır. Uygulama YouTube (altyazılar ve indirmeler), Google Translate ve MyMemory (çeviri), Microsoft'un Edge ses hizmeti (konuşma) ve yalnızca siz açarsanız seçtiğiniz yapay zekâ sağlayıcısıyla iletişim kurar. Hesap, analiz veya izleme yoktur. Video ve ses hiçbir zaman dışarıya yüklenmez.
+
+| Özellik | Bilgisayarınızdan ne çıkar | Nereye gönderilir | Hiçbir şey göndermeden |
+|---|---|---|---|
+| YouTube altyazıları | Video bağlantısı | YouTube | Bir dosya yükleyin; yerel olarak yazıya dökülür |
+| Çeviri | Videonun cümleleri, metin olarak | Google Translate, ardından MyMemory | Henüz yok; kaydedilmiş cümleler çevrimdışı çalışmayı sürdürür |
+| Seslendirme sesi | Çevrilen her cümle ve sesin adı | Microsoft Edge sesleri, ardından Google | Piper, yerel Arapça ses |
+| Video indirme | Video için bir istek | Videoyu barındıran site | Bilgisayarınızda zaten bulunan bir dosya |
+| Yapay zekâ (isteğe bağlı, varsayılan olarak kapalı) | Videonun metni ve sorunuz | Seçtiğiniz sağlayıcı | Kapalı bırakın ya da Ollama gibi yerel bir sunucu kullanın |
+| Model indirmeleri | Bir kereliğine bir indirme isteği | Hugging Face, GitHub | İlk indirmeden sonra hiçbir şey |
+| Konuşma tanıma, müzik ayırma, dosyalarınız | Hiçbir şey | – | Her zaman yerel |
+
+Aynı tablo uygulamada, Ayarlar → Gizlilik altında da bulunur. API diğer web sitelerinden gelen istekleri reddeder ve yapay zekâ ayarları yalnızca uygulamayı çalıştıran bilgisayardan değiştirilebilir.
 
 ## Yapılandırma
+
+Proje klasöründeki `.env.example` dosyasını `.env` olarak kopyalayın ve düzenleyin; her ayar orada Arapça ve İngilizce olarak açıklanmıştır. Dosya başlangıçta okunur, bu yüzden bir değişiklikten sonra Tarjuman'ı yeniden başlatın. Gerçek ortamda tanımlanmış bir değişken dosyadakinin önüne geçer.
 
 | Ortam değişkeni | Varsayılan | Anlamı |
 |---|---|---|
@@ -148,6 +177,11 @@ Tarjuman önce yerel çalışacak şekilde tasarlanmıştır. Videolarınız, al
 | `TARJUMAN_WHISPER_MODEL` | `base` | Daha doğru (ama daha yavaş) yazıya dökme için `small` veya `medium` |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Kaydedilen dublaj seslerinin boyut sınırı; en uzun süredir kullanılmayanlar önce silinir |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Yükleyebileceğin en büyük video |
+| `TARJUMAN_PAIR_MINUTES` | `15` | Telefon eşleştirme kodunun (QR) kaç dakika geçerli olduğu; `0` = siz yenisini oluşturana kadar |
+| `TARJUMAN_FETCH_PRIVATE` | kapalı | Kendi ağınızdaki adreslerden indirmeye izin vermek için `1` yapın |
+| `TARJUMAN_HEAVY_JOBS` | `2` | Aynı anda kaç ağır işin (Whisper, seslendirme, altyazıları görüntüye yakma) çalışacağı; belleği az bir bilgisayarda `1` kullanın |
+| `TARJUMAN_MAX_QUEUE` | `20` | Sırasını bekleyebilecek en fazla iş sayısı |
+| `TARJUMAN_FORCE_ASR` | kapalı | YouTube'un altyazılarını yok sayıp her zaman Whisper ile yazıya dökmek için `1` yapın |
 | `ANTHROPIC_API_KEY` | – | Ayarlarda kayıtlı anahtar yoksa Claude için kullanılır |
 
 ## Proje yapısı
@@ -178,6 +212,15 @@ npm --prefix extension run build && npm --prefix extension test && npm --prefix 
 ```
 
 Bir API rotasını değiştirmeden önce [docs/specs.md](../specs.md) dosyasını okuyun: hem web uygulaması hem de eklenti ona bağlıdır.
+
+### Windows yükleyicisini derleme
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build.ps1   # build\windows\app: Python, packages, web app, extension
+iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Tarjuman-Setup-3.0.0.exe (Inno Setup 6)
+```
+
+*Windows installer* iş akışı aynısını GitHub'da yapar: Actions sekmesinden çalıştırın ya da yükleyiciyi bir sürüme eklemek için `v3.0.0` gibi bir etiket gönderin. Derlemeden önce paketlenmiş uygulamayı başlatır ve yanıt verdiğini denetler.
 
 ## Kullanılan teknolojiler
 
