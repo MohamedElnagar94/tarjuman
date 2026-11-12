@@ -1,6 +1,9 @@
 """The desktop app's lifecycle settings and its sign-in entry (with a fake registry)."""
 
+import os
+
 import pytest
+
 from tarjuman import desktop_settings as ds
 from tarjuman.desktop_settings import DesktopSettings, after_window_closed
 
@@ -54,7 +57,9 @@ def test_start_with_windows_writes_and_removes_the_sign_in_entry(tmp_path, monke
     s = DesktopSettings(tmp_path / "desktop.json").load()
     s.update({"startWithWindows": True})
     cmd = reg.values["Tarjuman"]
-    assert "pythonw" in cmd.lower() and "'--background'" in cmd and "tarjuman.__main__" in cmd
+    assert "'--background'" in cmd and "tarjuman.__main__" in cmd
+    if os.name == "nt":
+        assert "pythonw" in cmd.lower(), "no console window at sign-in"
     assert s.public()["startWithWindows"] is True
     s.update({"startWithWindows": False})
     assert reg.values == {} and s.public()["startWithWindows"] is False

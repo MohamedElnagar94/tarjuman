@@ -61,7 +61,7 @@ jobs:
           #   (Get-FileHash Tarjuman-Setup-<version>.exe -Algorithm SHA256).Hash
           $exe = "build\windows\Tarjuman-Setup-$version.exe"
           $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
-          Set-Content -Encoding ascii -NoNewline "$exe.sha256" "$hash  Tarjuman-Setup-$version.exe`n"
+          Set-Content -Path "$($exe).sha256" -Value "$hash  Tarjuman-Setup-$version.exe" -Encoding ascii
           Write-Host "SHA-256: $hash"
 
       - uses: actions/upload-artifact@v4
