@@ -89,7 +89,7 @@ Copy-Item (Join-Path $root "scripts\allow-phone.ps1") (Join-Path $app "scripts")
 #    computer spends minutes compiling thousands of files.
 $bundled = Join-Path $app "python\python.exe"
 & $bundled -m compileall -q -j 0 $site (Join-Path $app "backend") | Out-Null
-& $bundled -c "import fastapi, uvicorn, tarjuman.api.app, tarjuman.desktop"
+& $bundled -c "import fastapi, uvicorn, pystray, PIL, psutil, tarjuman.api.app, tarjuman.desktop, tarjuman.tray"
 if ($LASTEXITCODE -ne 0) { throw "The bundled Python cannot import Tarjuman" }
 & $bundled -m tarjuman --version | Out-Null  # the command line itself parses and starts
 if ($LASTEXITCODE -ne 0) { throw "The bundled Tarjuman command does not start" }

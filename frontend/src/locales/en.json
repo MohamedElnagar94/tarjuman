@@ -488,7 +488,8 @@
       "phone": "Phone",
       "extensions": "Extensions",
       "storage": "Storage",
-      "privacy": "Privacy"
+      "privacy": "Privacy",
+      "desktop": "Desktop"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -665,7 +666,8 @@
     "allow": "Allow",
     "dismiss": "Dismiss",
     "remove": "Remove",
-    "getIt": "Get it from the Chrome Web Store."
+    "getIt": "Get the Chrome extension",
+    "getItHint": "Its page opens in the Chrome Web Store, where you add it."
   },
   "storage": {
     "lead": "What Tarjuman keeps on this computer. Clearing a cache is safe: it is rebuilt when needed, and your translation corrections are never cleared.",
@@ -735,5 +737,19 @@
       "name": "Your files and settings",
       "what": "Videos, subtitles, saved words, settings and the AI key stay in the data folder on your computer."
     }
+  },
+  "desktop": {
+    "lead": "What happens when you minimize or close the Tarjuman window, and whether it starts with Windows. Each choice is independent.",
+    "windowsOnly": "These settings are for the Windows app.",
+    "notApp": "These settings are saved now, but they work only when Tarjuman runs as the desktop app: from the installed shortcut, or with this command:",
+    "minimizeToTray": "Minimize to the notification area",
+    "minimizeToTrayHint": "The window is hidden when you minimize it, and the Tarjuman icon stays next to the clock.",
+    "closeToTray": "Close to the notification area",
+    "closeToTrayHint": "Tarjuman stays in the notification area when you close the window. To exit, choose Quit Tarjuman from the icon's menu.",
+    "startWithWindows": "Start with Windows",
+    "startWithWindowsHint": "Tarjuman starts in the notification area when you sign in, without opening a window.",
+    "keepEngine": "Keep the engine running after the window closes",
+    "keepEngineHint": "Translation and dubbing stay available to the browser extension, and running jobs finish. The Tarjuman icon stays so you can quit it.",
+    "extensionNeedsEngine": "The browser extension's features need the engine running. When it is stopped, the extension shows \"Not connected\"."
   }
 }

@@ -5,16 +5,22 @@ from __future__ import annotations
 import asyncio
 import base64
 import binascii
+import re
+import threading
+import webbrowser
 
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse, Response
 
-from ... import APP_ID, __version__, config, storage
+from ... import APP_ID, __version__, config, desktop_settings, storage
 from ...asr import installed as whisper_installed
 from ...core.deps import has
 from ...core.net import lan_ip
 from ...media import ffmpeg
 from ..deps import body, fail, ok, services
+
+# The protocol version in /api/health (see docs/specs.md).
+API_VERSION = 1
 
 router = APIRouter()
 
@@ -38,7 +44,54 @@ async def health(request: Request):
         jobs=s.jobs.running_count(),
         paired=bool(getattr(request.state, "paired", True)),
         extensionAllowed=bool(getattr(request.state, "extension_allowed", True)),
+        # The protocol the web app and the extension speak with this server. Raised only when a
+        # change would break an older client; a client that knows a lower number asks to update.
+        api=API_VERSION,
     )
+
+
+def _desktop_state(request: Request) -> dict:
+    return {
+        "available": request.app.state.desktop is not None,
+        "supported": desktop_settings.supported(),
+        "settings": request.app.state.desktop_settings.public(),
+    }
+
+
+@router.get("/api/desktop")
+async def desktop_get(request: Request):
+    """The four desktop settings (Settings → Desktop). "available" says whether this server runs inside
+    the desktop app, where they take effect; "supported" whether this system has them at all."""
+    return ok(**_desktop_state(request))
+
+
+@router.post("/api/desktop")
+async def desktop_set(request: Request):
+    """{minimizeToTray, closeToTray, startWithWindows, keepEngine}: any of them."""
+    b = await body(request)
+    await asyncio.to_thread(request.app.state.desktop_settings.update, b)
+    return ok(**_desktop_state(request))
+
+
+@router.post("/api/desktop/open")
+async def desktop_open(request: Request):
+    """{url}: opens a web page in the user's default browser. The app window is a separate browser
+    profile, so a link opened inside it (the Chrome Web Store, for one) would land in the wrong place."""
+    url = str((await body(request)).get("url") or "")
+    if not re.match(r"^https?://[^\s]+$", url, re.I):
+        return fail("BAD_URL", status=400)
+    threading.Thread(target=webbrowser.open, args=(url,), daemon=True).start()
+    return ok()
+
+
+@router.post("/api/desktop/show")
+async def desktop_show(request: Request):
+    """Brings the app window up. A second start of the app asks the running one this, then exits."""
+    d = request.app.state.desktop
+    if d is None:
+        return ok(shown=False)
+    threading.Thread(target=d.show_window, daemon=True).start()
+    return ok(shown=True)
 
 
 def _pair_links(request: Request) -> list[str]:

@@ -34,10 +34,7 @@ onMounted(load);
     <p class="panel__lead">{{ t("extensions.lead") }}</p>
     <p v-if="remote" class="muted">{{ t("phone.remote") }}</p>
     <template v-else>
-      <p v-if="!allowed.length && !pending.length" class="muted">
-        {{ t("extensions.none") }}
-        <a :href="STORE_URL" target="_blank" rel="noopener">{{ t("extensions.getIt") }}</a>
-      </p>
+      <p v-if="!allowed.length && !pending.length" class="muted">{{ t("extensions.none") }}</p>
       <ul class="list">
         <li v-for="id in pending" :key="'p' + id" class="row row--pending">
           <code dir="ltr" class="mono">{{ id }}</code>
@@ -51,11 +48,22 @@ onMounted(load);
           <button type="button" class="btn btn--quiet btn--sm" @click="set(id, false)">{{ t("extensions.remove") }}</button>
         </li>
       </ul>
+      <div class="get">
+        <a class="btn btn--outline btn--sm" :href="STORE_URL" target="_blank" rel="noopener">{{ t("extensions.getIt") }}</a>
+        <small class="muted">{{ t("extensions.getItHint") }}</small>
+      </div>
     </template>
   </div>
 </template>
 
 <style scoped>
+.get {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
 .list {
   list-style: none;
   margin: var(--s-3) 0 0;

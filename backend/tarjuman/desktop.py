@@ -1,5 +1,7 @@
 """Tarjuman as a desktop app: the server runs inside this process and the web app shows in a window
-of its own instead of a browser tab. Closing the window stops the app.
+of its own instead of a browser tab. On Windows the app also has a notification-area icon and the
+settings for minimizing, closing and starting with Windows (``tray``). Elsewhere, closing the window
+stops the app.
 
 The window is Edge (on every Windows 10 and 11) or Chrome in "app" mode: no address bar, no tabs, its
 own taskbar button with Tarjuman's icon, and its own profile kept next to the data. Nothing extra is
@@ -169,12 +171,34 @@ def open_window(url: str) -> subprocess.Popen | None:
         return None
 
 
-def run(host: str, port: int, free_port) -> None:
+def show_running(url: str) -> bool:
+    """Asks a Tarjuman already running here to bring its window up. False when it can't (it was
+    started without the desktop app, for example with ``python -m tarjuman``)."""
+    import httpx
+
+    try:
+        r = httpx.post(url + "/api/desktop/show", json={}, timeout=3)
+        return bool(r.json().get("shown"))
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def run(host: str, port: int, free_port, background: bool = False) -> None:
     import uvicorn
 
     log_to_file()
     ensure_env_file()
     url = running_instance(port)
+    if url is not None and show_running(url):
+        return  # one Tarjuman at a time: the running one shows its window
+    from . import tray
+
+    if url is None and tray.available():
+        from .desktop_settings import DesktopSettings
+
+        settings = DesktopSettings(config.DATA / "desktop.json").load()
+        tray.DesktopApp(host, port, free_port, settings).run(background=background)
+        return
     server = None
     if url is None:
         from .api.app import create_app

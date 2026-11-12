@@ -83,7 +83,7 @@ Other languages work too: French, Spanish, German, Turkish and English are built
 
 ### Windows installer
 
-Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page and run it. It brings its own Python, every package, the web app and the browser extension, so you need neither Python nor Node.js. It asks for administrator rights once, installs into Program Files, and doesn't touch the firewall. Tarjuman then opens in a window of its own, like any desktop app, with no console window and no browser tab; closing the window stops it. (The window is Microsoft Edge in app mode, which every Windows 10 and 11 has; nothing extra is installed.)
+Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page and run it. It brings its own Python, every package, the web app and the browser extension, so you need neither Python nor Node.js. It asks for administrator rights once, installs into Program Files, and doesn't touch the firewall. Tarjuman then opens in a window of its own, like any desktop app, with no console window and no browser tab. By default closing the window stops it; Settings → Desktop can keep it in the notification area instead, keep the engine running for the browser extension, and start it with Windows. (The window is Microsoft Edge in app mode, which every Windows 10 and 11 has; nothing extra is installed.)
 
 - If Setup stops at once with "unable to create the directory ...\Temp\is-*.tmp, access is denied", the installer file sits in a folder marked low-integrity (some sandboxing tools mark their working folders this way; `icacls <file>` then shows `Low Mandatory Level`). Windows runs such a file with fewer rights. Copy it to another folder, such as Downloads, and run the copy.
 - The installer isn't code-signed yet, so Windows SmartScreen may say "unknown publisher": choose *More info → Run anyway*.
@@ -126,7 +126,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Command | What it does |
 |---|---|
 | `python -m tarjuman` | Start the app (`--port`, `--host 127.0.0.1` for this computer only, `--no-open`) |
-| `python -m tarjuman app` | Start the app in a window of its own (Edge or Chrome in app mode) instead of a browser tab; closing the window stops it |
+| `python -m tarjuman app` | Start the app in a window of its own (Edge or Chrome in app mode) instead of a browser tab; on Windows with a notification-area icon (`--background` starts it there without a window) |
 | `python -m tarjuman subs <link>` | Write subtitle files to `data/output` (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Install or repair everything |
 | `python -m tarjuman update` | Update yt-dlp and the voice client, if downloads or voices stop working |

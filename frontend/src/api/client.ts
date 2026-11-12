@@ -42,6 +42,21 @@ export interface PairingState {
   codeExpires: number;
 }
 
+export interface DesktopSettings {
+  minimizeToTray: boolean;
+  closeToTray: boolean;
+  startWithWindows: boolean;
+  keepEngine: boolean;
+}
+export interface DesktopState {
+  ok: true;
+  /** This server runs inside the desktop app, where the settings take effect. */
+  available: boolean;
+  /** The system has them at all (Windows). */
+  supported: boolean;
+  settings: DesktopSettings;
+}
+
 export class ApiError extends Error {
   constructor(
     public code: string,
@@ -216,6 +231,9 @@ export const api = {
   extensions: () => get<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions"),
   setExtension: (id: string, allow: boolean) =>
     post<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions/set", { id, allow }),
+  desktop: () => get<DesktopState>("/api/desktop"),
+  setDesktop: (changes: Partial<DesktopSettings>) => post<DesktopState>("/api/desktop", changes),
+  openExternal: (url: string) => post<{ ok: true }>("/api/desktop/open", { url }),
   storage: () => get<{ ok: true; usage: Record<string, { bytes: number; files: number }>; voiceLimit: number }>("/api/storage"),
   clearStorage: (what: string) => post<{ ok: true; usage: Record<string, { bytes: number; files: number }> }>("/api/storage/clear", { what }),
   pairing: () => get<PairingState>("/api/pairing"),

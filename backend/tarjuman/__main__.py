@@ -65,7 +65,7 @@ def serve(args: argparse.Namespace) -> None:
 def desktop(args: argparse.Namespace) -> None:
     from . import desktop as d
 
-    d.run(args.host, args.port, _free_port)
+    d.run(args.host, args.port, _free_port, background=getattr(args, "background", False))
 
 
 def subs(args: argparse.Namespace) -> None:
@@ -190,6 +190,7 @@ def main(argv: list[str] | None = None) -> None:
 
     p_serve = sub.add_parser("serve", help="start the app (default)")
     p_app = sub.add_parser("app", help="start the app in a window of its own instead of the browser")
+    p_app.add_argument("--background", action="store_true", help="start in the notification area, without a window")
     for p in (ap, p_serve, p_app):
         p.add_argument("--port", type=int, default=config.DEFAULT_PORT)
         p.add_argument("--host", default=config.DEFAULT_HOST, help="127.0.0.1 = this computer only")

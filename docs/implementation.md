@@ -102,6 +102,10 @@ The server binds to `0.0.0.0` so a phone on the same Wi-Fi can use the app, whic
 - **Other devices must be paired.** The server listens on the Wi-Fi so a phone can use it. Any device other than the computer itself gets nothing until it has opened the pairing link (the QR in Settings → Phone) once. The pairing code runs out after 15 minutes and repeated wrong codes from one address are refused for a while. Each paired phone has its own key, so Settings → Phone lists them and any one can be unpaired without touching the others.
 - **Only approved extensions.** Any installed extension could call 127.0.0.1. The first one to connect is trusted, and the rest wait for approval in Settings → Extensions.
 
+## The desktop app
+
+`python -m tarjuman app` runs the server in its own process and shows the web app in an Edge (or Chrome) window in app mode, with its own profile under `data/window`. On Windows, `tray.py` adds a notification-area icon and four independent settings (`desktop_settings.py`): minimize to tray, close to tray, start with Windows, and keep the engine running after the window closes. The browser window can't be told what its buttons do, so the app watches it twice a second, locally: a minimized window is hidden when that setting is on, and when the window closes, `after_window_closed` decides between quitting, staying in the tray with the engine running, or staying with the engine stopped, and asks first when jobs are running. The browser's lock on its profile folder tells whether the window is open, because Edge hands the window to another process at once. A second start asks the running app to show its window and exits.
+
 ## Tests
 
 | Suite | Run | Covers |

@@ -57,12 +57,19 @@ jobs:
           $version = (Get-Content build\windows\version.txt).Trim()
           & $iscc "/DAppVersion=$version" installer\tarjuman.iss
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
-          Get-FileHash "build\windows\Tarjuman-Setup-$version.exe" -Algorithm SHA256 | Format-List
+          # A checksum file next to the installer, so a download can be verified:
+          #   (Get-FileHash Tarjuman-Setup-<version>.exe -Algorithm SHA256).Hash
+          $exe = "build\windows\Tarjuman-Setup-$version.exe"
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
+          Set-Content -Encoding ascii -NoNewline "$exe.sha256" "$hash  Tarjuman-Setup-$version.exe`n"
+          Write-Host "SHA-256: $hash"
 
       - uses: actions/upload-artifact@v4
         with:
           name: Tarjuman-Setup
-          path: build/windows/Tarjuman-Setup-*.exe
+          path: |
+            build/windows/Tarjuman-Setup-*.exe
+            build/windows/Tarjuman-Setup-*.exe.sha256
           if-no-files-found: error
 
       - name: Attach to the release
@@ -71,7 +78,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $file = (Get-ChildItem build\windows\Tarjuman-Setup-*.exe).FullName
+          $files = (Get-ChildItem build\windows\Tarjuman-Setup-*.exe*).FullName
           gh release view $env:GITHUB_REF_NAME *> $null
           if ($LASTEXITCODE -ne 0) { gh release create $env:GITHUB_REF_NAME --title "Tarjuman $env:GITHUB_REF_NAME" --generate-notes }
-          gh release upload $env:GITHUB_REF_NAME $file --clobber
+          gh release upload $env:GITHUB_REF_NAME @files --clobber

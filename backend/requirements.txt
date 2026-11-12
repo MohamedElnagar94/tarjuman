@@ -11,3 +11,7 @@ imageio-ffmpeg
 numpy
 av>=12,<19  # faster-whisper 1.2 passes metadata_errors to av.open (removed in PyAV 19)
 onnxruntime
+# The Windows desktop app's notification-area icon (python -m tarjuman app)
+pystray>=0.19; sys_platform == "win32"
+Pillow>=10; sys_platform == "win32"
+psutil>=5.9; sys_platform == "win32"

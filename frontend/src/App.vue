@@ -1,15 +1,36 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { RouterView } from "vue-router";
 import { PhDeviceMobile } from "@phosphor-icons/vue";
 import { useHealth } from "@/composables/health";
 import AppHeader from "@/components/AppHeader.vue";
 import BottomNav from "@/components/BottomNav.vue";
 import ToastHost from "@/components/ToastHost.vue";
+import { api } from "@/api/client";
 
 // Another device on the Wi-Fi that hasn't been paired gets this page instead of a wall of errors.
 const { health } = useHealth();
 const unpaired = computed(() => health.value?.paired === false);
+
+// In the desktop app the window is a browser profile of its own: a link to another site would open
+// there, away from the user's browser (and its extensions). Send such links to the default browser.
+onMounted(async () => {
+  try {
+    if (!(await api.desktop()).available) return;
+  } catch {
+    return; // a phone, or a server without the desktop app
+  }
+  document.addEventListener(
+    "click",
+    (e) => {
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target !== "_blank" || a.origin === location.origin || !/^https?:$/.test(a.protocol)) return;
+      e.preventDefault();
+      api.openExternal(a.href).catch(() => window.open(a.href, "_blank", "noopener"));
+    },
+    true,
+  );
+});
 </script>
 
 <template>

@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__, config, storage
 from ..core import http
 from ..core.errors import AppError
+from ..desktop_settings import DesktopSettings
 from ..services import Services
 from .deps import fail
 from .extensions import ExtensionTrust, extension_id
@@ -56,7 +57,9 @@ PAIR_BLOCKED_PAGE = """<!doctype html><html lang="ar" dir="rtl"><meta charset="u
 </body></html>"""
 
 
-def create_app(services: Services | None = None, *, port: int = config.DEFAULT_PORT, warm: bool = True) -> FastAPI:
+def create_app(
+    services: Services | None = None, *, port: int = config.DEFAULT_PORT, warm: bool = True, desktop=None
+) -> FastAPI:
     s = services or Services()
 
     @asynccontextmanager
@@ -77,6 +80,9 @@ def create_app(services: Services | None = None, *, port: int = config.DEFAULT_P
                   openapi_url="/api/openapi.json")
     app.state.services = s
     app.state.port = port
+    # The desktop app (tray icon and window) when this server runs inside it; None otherwise.
+    app.state.desktop = desktop
+    app.state.desktop_settings = desktop.settings if desktop is not None else DesktopSettings(config.DATA / "desktop.json").load()
     pairing = app.state.pairing = Pairing(config.DATA / "pairing.json")
     pairing.load()
     trust = app.state.extensions = ExtensionTrust(config.DATA / "extensions.json")

@@ -83,6 +83,10 @@ Rejected requests get `403 {"ok":false,"code":"FORBIDDEN_ORIGIN"|"LOCAL_ONLY"}` 
 
 **Downloads** (`/api/media/fetch`, `/api/batch`) take only `http(s)` links whose host resolves to public addresses, checked again on each redirect (up to 5): a link to this computer, the local network, link-local or reserved ranges gets `URL_NOT_ALLOWED`. `TARJUMAN_FETCH_PRIVATE=1` turns this off, for a media server at home. The check runs before yt-dlp starts; requests yt-dlp makes later on its own are not inspected.
 
+**Desktop app (Windows).** `GET /api/desktop` answers `{available, supported, settings:{minimizeToTray, closeToTray, startWithWindows, keepEngine}}`; `available` is true when the server runs inside the desktop app (`python -m tarjuman app`), where the settings take effect. `POST /api/desktop` changes any of them; `startWithWindows` adds or removes the value `Tarjuman` under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` at once. `POST /api/desktop/show` brings the app window up (a second start of the app sends it and exits). `POST /api/desktop/open {url}` opens an `http(s)` page in the user's default browser, since the app window is a browser profile of its own. All four are local only.
+
+**Protocol version.** `/api/health` includes `api` (now `1`). It is raised only for a change that breaks an older client; a client built for a lower number should ask the user to update.
+
 An unexpected failure answers `500 {ok:false, code:"ERROR", message, ref}`. The message is generic; the exception itself is only in the server log, next to the same `ref`.
 
 ### Error codes

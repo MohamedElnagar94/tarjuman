@@ -2,6 +2,21 @@
 
 Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__init__.py`.
 
+## 3.1.0 (2026-11-13)
+
+### Desktop app (Windows)
+
+- A notification-area icon, with Open, the engine's state, the extension's state, the data folder, and Quit.
+- Settings → Desktop, four independent choices: minimize to the notification area, close to the notification area, start with Windows (in the notification area, without a window), and keep the engine running after the window closes, so the browser extension keeps working. Closing or quitting while jobs run asks first.
+- Starting Tarjuman again brings up the running one instead of starting a second copy.
+- Links to other sites open in your own browser, not inside the app window.
+- Settings → Extensions has a button to get the extension from the Chrome Web Store.
+
+### For developers
+
+- `/api/health` reports the protocol version (`api`), for clients to check compatibility.
+- Each release has a SHA-256 checksum file next to the installer.
+
 ## 3.0.0 (2026-11-11)
 
 The first release of the rewrite: a Python backend, a Vue web app, a browser extension, and a Windows installer.

@@ -420,3 +420,36 @@ async def test_asking_twice_for_the_same_download_or_playlist_starts_it_once(ser
     assert runners.start_batch(services, "https://video.example/list", {"what": "dub"}) != b, "another kind of work is another job"
     services.jobs.cancel_all()
     release.set()
+
+
+def test_desktop_api_is_for_this_computer_only(app, phone, monkeypatch):
+    from tarjuman import desktop_settings as ds
+
+    monkeypatch.setattr(ds, "supported", lambda: False)  # never touch this machine's sign-in list
+    client = TestClient(app, headers=LOCAL, client=("127.0.0.1", 50000))
+    j = client.get("/api/desktop").json()
+    assert j["available"] is False and j["settings"]["closeToTray"] is False
+    j = client.post("/api/desktop", json={"closeToTray": True}).json()
+    assert j["settings"]["closeToTray"] is True
+    assert client.post("/api/desktop/show", json={}).json()["shown"] is False, "no desktop app around this server"
+    assert phone.get("/api/desktop").status_code == 403
+    assert phone.post("/api/desktop/show", json={}).status_code == 403
+
+
+def test_health_names_the_api_version(client):
+    assert client.get("/api/health").json()["api"] == 1
+
+
+def test_desktop_open_takes_only_web_addresses_and_only_from_this_computer(client, phone, monkeypatch):
+    import webbrowser
+
+    opened = []
+    monkeypatch.setattr(webbrowser, "open", lambda url: opened.append(url))
+    assert client.post("/api/desktop/open", json={"url": "file:///C:/Windows/system.ini"}).status_code == 400
+    assert client.post("/api/desktop/open", json={"url": "javascript:alert(1)"}).status_code == 400
+    assert client.post("/api/desktop/open", json={"url": "https://chromewebstore.google.com/detail/x"}).json()["ok"]
+    assert phone.post("/api/desktop/open", json={"url": "https://example.com"}).status_code == 403
+    import time
+
+    time.sleep(0.2)
+    assert opened == ["https://chromewebstore.google.com/detail/x"]

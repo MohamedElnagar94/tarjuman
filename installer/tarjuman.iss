@@ -74,6 +74,11 @@ Name: "{autodesktop}\Tarjuman"; Filename: "{app}\python\pythonw.exe"; Parameters
 [Run]
 Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; Description: "{cm:Launch}"; Flags: postinstall nowait skipifsilent
 
+[Registry]
+; "Start with Windows" (Settings → Desktop) is a value under Run that the app itself adds or removes.
+; Uninstalling removes it, for the user who uninstalls; Setup never creates it.
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "Tarjuman"; Flags: uninsdeletevalue
+
 [UninstallDelete]
 ; What Python wrote next to the program while running (compiled files, updated packages).
 Type: filesandordirs; Name: "{app}"
