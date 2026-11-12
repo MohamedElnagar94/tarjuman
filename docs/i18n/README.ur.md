@@ -145,6 +145,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. `chrome://extensions` (یا `edge://extensions`) کھولیں، **ڈویلپر موڈ** آن کریں، **ان پیکڈ لوڈ کریں** پر کلک کریں، اور `extension/dist` منتخب کریں۔
 3. ایپ چلتی رہنے دیں، کوئی ویڈیو کھولیں، اور ترجمان کے آئیکن پر کلک کریں، یا <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> دبائیں۔
 
+اگر Chrome یہ انتباہ دکھائے *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*، تو اس کی وجہ یہ ہے کہ ناشر Chrome ویب اسٹور پر نیا ہے: Chrome ہر نئے ناشر کے لیے یہ اس وقت تک دکھاتا ہے جب تک وہ چند مہینے اسٹور کی پالیسیوں پر عمل نہ کر لے، اور صرف انہیں جنہوں نے بہتر تحفظ آن کیا ہو۔ ایکسٹینشن اسٹور کا جائزہ پاس کر چکی ہے اور اس کا [سورس کوڈ](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) کھلا ہے۔ *Continue to install* منتخب کریں۔
+
 ایکسٹینشن صرف آپ کے کمپیوٹر پر موجود ایپ سے بات کرتی ہے۔ اس کی Chrome Web Store کٹ (لسٹنگ کا متن، اجازتوں کا جواز، رازداری کی پالیسی، تشہیری تصاویر) [`extension/store`](../../extension/store) میں ہے۔
 
 ## ڈبنگ ہم وقت کیسے رہتی ہے

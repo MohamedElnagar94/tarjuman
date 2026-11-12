@@ -47,6 +47,8 @@ HOW TO START
 
 This extension needs the Tarjuman app running on your computer. Without it, the popup shows "Not connected".
 
+If Chrome warns that this extension is not trusted by Enhanced Safe Browsing: that is shown for every new publisher during their first months on the store. The source code is open: https://github.com/MohamedElnagar94/tarjuman
+
 PRIVATE BY DESIGN
 
 The extension talks only to the Tarjuman app on your own computer (127.0.0.1). There is no account, no analytics and no tracking, and the extension never sends your browsing to anyone. See the privacy policy for what the app itself contacts to translate and speak.

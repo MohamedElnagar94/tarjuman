@@ -143,6 +143,8 @@ Doğrudan [Chrome Web Mağazası](https://chromewebstore.google.com/detail/gcfno
 2. `chrome://extensions` (veya `edge://extensions`) sayfasını açın, **Geliştirici modu**'nu etkinleştirin, **Paketlenmemiş öğe yükle**'ye tıklayın ve `extension/dist` klasörünü seçin.
 3. Uygulamayı açık tutun, bir video açın ve Tarjuman simgesine tıklayın ya da <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> tuşlarına basın.
 
+Chrome *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing* uyarısı gösterirse, bunun nedeni yayıncının Chrome Web Mağazası'nda yeni olmasıdır: Chrome bu uyarıyı her yeni yayıncı için, mağaza politikalarına birkaç ay uyana kadar ve yalnızca gelişmiş korumayı açanlara gösterir. Uzantı mağazanın incelemesinden geçti ve [kaynak kodu](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) açıktır. *Continue to install* seçeneğini seçin.
+
 Eklenti yalnızca bilgisayarınızdaki uygulamayla iletişim kurar. Chrome Web Store kiti (mağaza metni, izin gerekçeleri, gizlilik politikası, tanıtım görselleri) [`extension/store`](../../extension/store) klasöründedir.
 
 ## Seslendirme nasıl senkron kalır

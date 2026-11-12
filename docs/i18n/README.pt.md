@@ -143,6 +143,8 @@ Instale-a diretamente da [Chrome Web Store](https://chromewebstore.google.com/de
 2. Abra `chrome://extensions` (ou `edge://extensions`), ative o **Modo do desenvolvedor**, clique em **Carregar sem compactação** e escolha `extension/dist`.
 3. Mantenha o aplicativo rodando, abra um vídeo e clique no ícone do Tarjuman, ou pressione <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
 
+Se o Chrome mostrar *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, é porque o editor é novo na Chrome Web Store: o Chrome mostra isso para todo editor novo até que ele cumpra as políticas da loja por alguns meses, e só para quem ativou a proteção aprimorada. A extensão passou na revisão da loja e o seu [código-fonte](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) é aberto. Escolha *Continue to install*.
+
 A extensão se comunica apenas com o aplicativo no seu computador. O kit para a Chrome Web Store (texto da página, justificativas das permissões, política de privacidade, imagens promocionais) está em [`extension/store`](../../extension/store).
 
 ## Como a dublagem fica sincronizada

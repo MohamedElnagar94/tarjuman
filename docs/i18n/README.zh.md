@@ -143,6 +143,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. 打开 `chrome://extensions`（或 `edge://extensions`），开启**开发者模式**，点击**加载已解压的扩展程序**，然后选择 `extension/dist`。
 3. 保持应用运行，打开一个视频，点击 Tarjuman 图标，或按 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>。
 
+如果 Chrome 显示 *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*，这是因为发布者刚加入 Chrome 应用商店：Chrome 会对每个新发布者显示此提示，直到其遵守商店政策几个月为止，而且只对开启了增强型保护的用户显示。该扩展已通过商店审核，其[源代码](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension)是公开的。请选择 *Continue to install*。
+
 扩展只与你电脑上的应用通信。它的 Chrome Web Store 上架材料（商品描述、权限说明、隐私政策、宣传图片）位于 [`extension/store`](../../extension/store)。
 
 ## 配音如何保持同步

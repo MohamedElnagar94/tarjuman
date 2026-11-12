@@ -145,6 +145,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. `chrome://extensions` (یا `edge://extensions`) را باز کنید، **حالت برنامه‌نویس** را روشن کنید، روی **بارگیری بسته‌نشده** کلیک کنید و `extension/dist` را انتخاب کنید.
 3. برنامه را در حال اجرا نگه دارید، ویدیویی باز کنید و روی نماد ترجمان کلیک کنید، یا <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> را بزنید.
 
+اگر Chrome هشدار *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing* را نشان داد، به این دلیل است که ناشر در فروشگاه وب Chrome تازه‌وارد است: Chrome این هشدار را برای هر ناشر تازه نشان می‌دهد تا چند ماه از قوانین فروشگاه پیروی کند، و فقط به کسانی که محافظت پیشرفته را روشن کرده‌اند. افزونه بازبینی فروشگاه را گذرانده و [کد منبع](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) آن باز است. *Continue to install* را انتخاب کنید.
+
 افزونه فقط با برنامه‌ی روی رایانه‌ی شما ارتباط دارد. بسته‌ی Chrome Web Store آن (متن صفحه، توجیه مجوزها، سیاست حریم خصوصی، تصاویر تبلیغاتی) در [`extension/store`](../../extension/store) است.
 
 ## دوبله چگونه هم‌زمان می‌ماند

@@ -145,6 +145,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. افتح `chrome://extensions` (أو `edge://extensions`)، وفعّل **وضع مطوّر البرامج**، وانقر **تحميل إضافة غير مضغوطة**، واختر `extension/dist`.
 3. أبقِ التطبيق يعمل، وافتح فيديو، وانقر أيقونة ترجمان، أو اضغط <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
 
+إن عرض Chrome تحذير *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*، فسببه أن الناشر جديد على سوق Chrome الإلكتروني: يعرضه Chrome لكل ناشر جديد حتى يلتزم بسياسات المتجر بضعة أشهر، ولا يراه إلا من فعّل الحماية المحسّنة. اجتازت الإضافة مراجعة المتجر، و[كودها](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) مفتوح المصدر. اختر *Continue to install*.
+
 لا تتواصل الإضافة إلا مع التطبيق الموجود على جهازك. وحزمة متجر Chrome Web Store الخاصة بها (نص الصفحة، ومبررات الأذونات، وسياسة الخصوصية، والصور الترويجية) موجودة في [`extension/store`](../../extension/store).
 
 ## كيف تبقى الدبلجة متزامنة

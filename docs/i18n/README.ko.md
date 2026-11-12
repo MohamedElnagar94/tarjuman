@@ -143,6 +143,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. `chrome://extensions`(또는 `edge://extensions`)를 열고, **개발자 모드**를 켠 뒤, **압축해제된 확장 프로그램을 로드합니다**를 클릭하고 `extension/dist`를 선택합니다.
 3. 앱을 실행한 채로 영상을 열고 Tarjuman 아이콘을 클릭하거나 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>를 누릅니다.
 
+Chrome에 *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*가 표시되면, 게시자가 Chrome 웹 스토어에 새로 등록되었기 때문입니다. Chrome은 새 게시자가 몇 달 동안 스토어 정책을 지킬 때까지 이 경고를 표시하며, 향상된 보호를 켠 사용자에게만 보입니다. 확장 프로그램은 스토어 검토를 통과했고 [소스 코드](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension)는 공개되어 있습니다. *Continue to install*을 선택하세요.
+
 확장 프로그램은 내 컴퓨터의 앱과만 통신합니다. Chrome Web Store 등록 키트(등록 문구, 권한 사유, 개인정보처리방침, 홍보 이미지)는 [`extension/store`](../../extension/store)에 있습니다.
 
 ## 더빙이 동기화를 유지하는 방법

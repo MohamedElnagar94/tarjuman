@@ -143,6 +143,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. `chrome://extensions` (या `edge://extensions`) खोलें, **डेवलपर मोड** चालू करें, **अनपैक्ड लोड करें** पर क्लिक करें, और `extension/dist` चुनें।
 3. ऐप चलता रहने दें, कोई वीडियो खोलें, और Tarjuman आइकन पर क्लिक करें, या <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> दबाएँ।
 
+अगर Chrome *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing* दिखाए, तो इसका कारण यह है कि प्रकाशक Chrome Web Store पर नया है: Chrome यह हर नए प्रकाशक के लिए तब तक दिखाता है जब तक वह कुछ महीनों तक स्टोर की नीतियों का पालन न कर ले, और केवल उन्हें जिन्होंने उन्नत सुरक्षा चालू की है। एक्सटेंशन ने स्टोर की समीक्षा पास की है, और इसका [सोर्स कोड](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) खुला है। *Continue to install* चुनें।
+
 एक्सटेंशन सिर्फ़ आपके कंप्यूटर पर चल रहे ऐप से बात करता है। इसकी Chrome Web Store किट (लिस्टिंग टेक्स्ट, अनुमतियों का औचित्य, प्राइवेसी पॉलिसी, प्रचार चित्र) [`extension/store`](../../extension/store) में है।
 
 ## डब सिंक में कैसे रहता है

@@ -143,6 +143,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. `chrome://extensions`（または `edge://extensions`）を開き、**デベロッパー モード**をオンにして、**パッケージ化されていない拡張機能を読み込む**をクリックし、`extension/dist` を選びます。
 3. アプリを起動したまま動画を開き、Tarjuman のアイコンをクリックするか、<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> を押します。
 
+Chrome に *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing* と表示された場合、それは公開者が Chrome ウェブストアに新しく参加したためです。Chrome は新しい公開者がストアのポリシーを数か月守るまでこの表示を出し、保護強化機能を有効にしている人にだけ表示します。拡張機能はストアの審査を通過しており、[ソースコード](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) は公開されています。*Continue to install* を選んでください。
+
 拡張機能はあなたのパソコン上のアプリとだけ通信します。Chrome Web Store 用のキット（掲載文、権限の説明、プライバシーポリシー、プロモーション画像）は [`extension/store`](../../extension/store) にあります。
 
 ## 吹き替えが同期を保つしくみ

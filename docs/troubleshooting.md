@@ -84,6 +84,9 @@ Uploads are limited to 8 GB (`TARJUMAN_MAX_UPLOAD_GB`) and stop before less than
 
 ## Browser extension
 
+**"Proceed with caution: this extension is not trusted by Enhanced Safe Browsing."**
+The publisher is new to the Chrome Web Store. Chrome shows this for every new publisher until it has followed the store's policies for a few months, and only to people who turned on Enhanced Safe Browsing. The extension passed the store's review and its [source code](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) is open. Choose *Continue to install*.
+
 **The popup says it is not connected.**
 Tarjuman must be running on this computer. The extension finds it on ports 4318 to 4327 by itself.
 

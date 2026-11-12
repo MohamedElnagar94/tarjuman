@@ -143,6 +143,8 @@ Installiere sie direkt aus dem [Chrome Web Store](https://chromewebstore.google.
 2. Öffne `chrome://extensions` (oder `edge://extensions`), aktiviere den **Entwicklermodus**, klicke auf **Entpackte Erweiterung laden** und wähle `extension/dist`.
 3. Lass die App laufen, öffne ein Video und klicke auf das Tarjuman-Symbol oder drücke <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
 
+Zeigt Chrome *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, liegt das daran, dass der Herausgeber neu im Chrome Web Store ist: Chrome zeigt den Hinweis bei jedem neuen Herausgeber, bis er einige Monate lang die Richtlinien des Stores eingehalten hat, und nur Nutzern mit aktiviertem erweitertem Schutz. Die Erweiterung hat die Prüfung des Stores bestanden, und ihr [Quellcode](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) ist offen. Wähle *Continue to install*.
+
 Die Erweiterung kommuniziert ausschließlich mit der App auf deinem Rechner. Ihr Kit für den Chrome Web Store (Eintragstext, Begründungen der Berechtigungen, Datenschutzerklärung, Werbebilder) liegt in [`extension/store`](../../extension/store).
 
 ## Wie die Synchronisation im Takt bleibt

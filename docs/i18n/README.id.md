@@ -143,6 +143,8 @@ Pasang langsung dari [Chrome Web Store](https://chromewebstore.google.com/detail
 2. Buka `chrome://extensions` (atau `edge://extensions`), aktifkan **Mode developer**, klik **Muat yang belum dibuka**, lalu pilih `extension/dist`.
 3. Biarkan aplikasi tetap berjalan, buka video, lalu klik ikon Tarjuman atau tekan <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
 
+Jika Chrome menampilkan *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, itu karena penerbitnya baru di Chrome Web Store: Chrome menampilkannya untuk setiap penerbit baru sampai ia mematuhi kebijakan toko selama beberapa bulan, dan hanya kepada yang mengaktifkan perlindungan yang ditingkatkan. Ekstensi ini lolos peninjauan toko dan [kode sumbernya](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) terbuka. Pilih *Continue to install*.
+
 Ekstensi hanya berkomunikasi dengan aplikasi di komputer Anda. Kit Chrome Web Store-nya (teks listing, alasan izin, kebijakan privasi, gambar promosi) ada di [`extension/store`](../../extension/store).
 
 ## Cara sulih suara tetap sinkron

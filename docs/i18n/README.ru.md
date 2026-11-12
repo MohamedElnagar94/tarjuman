@@ -143,6 +143,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 2. Откройте `chrome://extensions` (или `edge://extensions`), включите **Режим разработчика**, нажмите **Загрузить распакованное расширение** и выберите `extension/dist`.
 3. Не закрывайте приложение, откройте видео и нажмите на значок Tarjuman или нажмите <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
 
+Если Chrome показывает *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, это потому, что издатель недавно появился в Chrome Web Store: Chrome показывает это предупреждение для каждого нового издателя, пока тот несколько месяцев соблюдает правила магазина, и только тем, кто включил улучшенную защиту. Расширение прошло проверку магазина, а его [исходный код](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) открыт. Выберите *Continue to install*.
+
 Расширение общается только с приложением на вашем компьютере. Его комплект для Chrome Web Store (текст страницы, обоснование разрешений, политика конфиденциальности, рекламные изображения) лежит в [`extension/store`](../../extension/store).
 
 ## Как дубляж остаётся синхронным
