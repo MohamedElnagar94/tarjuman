@@ -20,32 +20,39 @@ English and Arabic (the listing, the extension UI and the overlay follow the bro
 
 ## Detailed description
 
+*(Plain text, ready to paste: the store's description box does not render Markdown.)*
+
+```text
 Watch any video in Arabic.
 
 Tarjuman puts synced Arabic subtitles on YouTube videos and on almost any other video site, and can dub the speaker with a natural Arabic voice in real time. Everything is processed by the free Tarjuman app running on your own computer; the extension is its remote control and display.
 
-**What it does**
+WHAT IT DOES
 
-• YouTube — fetches the video's captions, translates them and shows them perfectly in sync. If a video has no captions, one click transcribes it with Whisper.
-• Course sites (Coursera, Udemy and any player with its own subtitles) — translates the player's own captions, with the same exact timing.
-• Any other video — listens to the tab's audio and shows live Arabic subtitles a few seconds behind the speaker.
-• Live dubbing — the speaker talks in Arabic. Sentences are never cut off: a late sentence speaks a little faster, and the video waits a moment if it must. The original sound is lowered while the dub plays.
-• Bilingual mode — the original line above the translation, for language learners.
-• Your look — text size, position (top or bottom), background strength. Big, high-contrast subtitles that stay readable on any video, including in fullscreen.
+• YouTube: fetches the video's captions, translates them and shows them perfectly in sync. If a video has no captions, one click transcribes it with Whisper.
+• Course sites (Coursera, Udemy and any player with its own subtitles): translates the player's own captions, with the same exact timing.
+• Movie and anime sites: works on players that sit inside a frame from another site.
+• Any other video: listens to the tab's audio and shows live Arabic subtitles a few seconds behind the speaker.
+• Live dubbing: the speaker talks in Arabic. Sentences are never cut off: a late sentence speaks a little faster, and the video waits a moment if it must. The original sound is lowered while the dub plays.
+• Bilingual mode: the original line above the translation, for language learners.
+• Your look: text size, position (top or bottom), background strength. Big, high-contrast subtitles that stay readable on any video, including in fullscreen.
 • A small toolbar on the video (on hover) and the Alt+Shift+A shortcut.
 • Other target languages: English, French, Spanish, German, Turkish.
 
-**How to start**
+HOW TO START
 
-1. Get the free Tarjuman app: https://github.com/MohamedElnagar94/tarjuman
+1. Get the free Tarjuman app. On Windows, download the installer from https://github.com/MohamedElnagar94/tarjuman/releases . On macOS and Linux, follow the README at https://github.com/MohamedElnagar94/tarjuman
 2. Start it on your computer.
-3. Open a video, click the Tarjuman icon, and press “Translate this video”.
+3. Open a video, click the Tarjuman icon, and press "Translate this video".
 
-**Private by design**
+This extension needs the Tarjuman app running on your computer. Without it, the popup shows "Not connected".
+
+PRIVATE BY DESIGN
 
 The extension talks only to the Tarjuman app on your own computer (127.0.0.1). There is no account, no analytics and no tracking, and the extension never sends your browsing to anyone. See the privacy policy for what the app itself contacts to translate and speak.
 
 Tarjuman is free and open source.
+```
 
 ## Single purpose
 
