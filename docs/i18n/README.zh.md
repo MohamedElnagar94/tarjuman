@@ -137,6 +137,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="Tarjuman 扩展的弹出窗口" width="320">
 </p>
 
+可直接从 [Chrome 应用商店](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) 安装，或按以下步骤从源码构建：
+
 1. 构建一次：`npm --prefix extension install && npm --prefix extension run build`。
 2. 打开 `chrome://extensions`（或 `edge://extensions`），开启**开发者模式**，点击**加载已解压的扩展程序**，然后选择 `extension/dist`。
 3. 保持应用运行，打开一个视频，点击 Tarjuman 图标，或按 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>。

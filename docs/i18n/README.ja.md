@@ -137,6 +137,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="Tarjuman 拡張機能のポップアップ" width="320">
 </p>
 
+[Chrome ウェブストア](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) から直接インストールできます。ソースからビルドする場合は次の手順です。
+
 1. 一度だけビルドします：`npm --prefix extension install && npm --prefix extension run build`。
 2. `chrome://extensions`（または `edge://extensions`）を開き、**デベロッパー モード**をオンにして、**パッケージ化されていない拡張機能を読み込む**をクリックし、`extension/dist` を選びます。
 3. アプリを起動したまま動画を開き、Tarjuman のアイコンをクリックするか、<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> を押します。

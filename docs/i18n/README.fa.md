@@ -139,6 +139,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="پنجره‌ی بازشوی افزونه‌ی ترجمان" width="320">
 </p>
 
+آن را مستقیم از [فروشگاه وب Chrome](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) نصب کنید، یا با مراحل زیر از کد منبع بسازید:
+
 1. یک بار آن را بسازید: `npm --prefix extension install && npm --prefix extension run build`.
 2. `chrome://extensions` (یا `edge://extensions`) را باز کنید، **حالت برنامه‌نویس** را روشن کنید، روی **بارگیری بسته‌نشده** کلیک کنید و `extension/dist` را انتخاب کنید.
 3. برنامه را در حال اجرا نگه دارید، ویدیویی باز کنید و روی نماد ترجمان کلیک کنید، یا <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> را بزنید.

@@ -137,6 +137,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="La ventana emergente de la extensión Tarjuman" width="320">
 </p>
 
+Instálala directamente desde la [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp), o compílala desde el código fuente con estos pasos:
+
 1. Compílala una vez: `npm --prefix extension install && npm --prefix extension run build`.
 2. Abre `chrome://extensions` (o `edge://extensions`), activa el **Modo de desarrollador**, haz clic en **Cargar descomprimida** y elige `extension/dist`.
 3. Deja la aplicación en marcha, abre un vídeo y haz clic en el icono de Tarjuman, o pulsa <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.

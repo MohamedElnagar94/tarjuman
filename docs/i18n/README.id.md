@@ -137,6 +137,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="Popup ekstensi Tarjuman" width="320">
 </p>
 
+Pasang langsung dari [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp), atau bangun dari kode sumber dengan langkah berikut:
+
 1. Build sekali: `npm --prefix extension install && npm --prefix extension run build`.
 2. Buka `chrome://extensions` (atau `edge://extensions`), aktifkan **Mode developer**, klik **Muat yang belum dibuka**, lalu pilih `extension/dist`.
 3. Biarkan aplikasi tetap berjalan, buka video, lalu klik ikon Tarjuman atau tekan <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.

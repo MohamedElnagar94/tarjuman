@@ -139,6 +139,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="النافذة المنبثقة لإضافة ترجمان" width="320">
 </p>
 
+ثبّتها مباشرة من [سوق Chrome الإلكتروني](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp)، أو ابنِها من المصدر بالخطوات التالية:
+
 1. ابنِها مرة واحدة: `npm --prefix extension install && npm --prefix extension run build`.
 2. افتح `chrome://extensions` (أو `edge://extensions`)، وفعّل **وضع مطوّر البرامج**، وانقر **تحميل إضافة غير مضغوطة**، واختر `extension/dist`.
 3. أبقِ التطبيق يعمل، وافتح فيديو، وانقر أيقونة ترجمان، أو اضغط <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.

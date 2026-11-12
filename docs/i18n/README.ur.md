@@ -139,6 +139,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="ترجمان ایکسٹینشن کا پاپ اپ" width="320">
 </p>
 
+اسے براہِ راست [Chrome ویب اسٹور](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) سے انسٹال کریں، یا درج ذیل مراحل سے سورس سے بنائیں:
+
 1. اسے ایک بار بلڈ کریں: `npm --prefix extension install && npm --prefix extension run build`۔
 2. `chrome://extensions` (یا `edge://extensions`) کھولیں، **ڈویلپر موڈ** آن کریں، **ان پیکڈ لوڈ کریں** پر کلک کریں، اور `extension/dist` منتخب کریں۔
 3. ایپ چلتی رہنے دیں، کوئی ویڈیو کھولیں، اور ترجمان کے آئیکن پر کلک کریں، یا <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> دبائیں۔

@@ -137,6 +137,8 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="../screenshots/extension-popup.png" alt="Tarjuman eklentisinin açılır penceresi" width="320">
 </p>
 
+Doğrudan [Chrome Web Mağazası](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) üzerinden kurun ya da aşağıdaki adımlarla kaynaktan derleyin:
+
 1. Bir kez derleyin: `npm --prefix extension install && npm --prefix extension run build`.
 2. `chrome://extensions` (veya `edge://extensions`) sayfasını açın, **Geliştirici modu**'nu etkinleştirin, **Paketlenmemiş öğe yükle**'ye tıklayın ve `extension/dist` klasörünü seçin.
 3. Uygulamayı açık tutun, bir video açın ve Tarjuman simgesine tıklayın ya da <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> tuşlarına basın.

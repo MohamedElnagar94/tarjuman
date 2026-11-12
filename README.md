@@ -89,7 +89,7 @@ Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/M
 - The installer isn't code-signed yet, so Windows SmartScreen may say "unknown publisher": choose *More info → Run anyway*.
 - The first start downloads the offline Arabic voice (about 60 MB) in the background. The Whisper model downloads itself the first time a video needs it.
 - Your videos, subtitles, settings and `.env` are kept in `%LOCALAPPDATA%\Tarjuman`, apart from the program. An update keeps them; uninstalling asks whether to delete them.
-- The Start menu has a shortcut to the extension folder, for *Load unpacked* in `chrome://extensions`.
+- Get the browser extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp). (The Start menu also has a shortcut to a copy of it on disk, for *Load unpacked*.)
 
 Something not working? See [Troubleshooting](docs/troubleshooting.md). What changed in each version is in the [Changelog](CHANGELOG.md).
 
@@ -138,9 +138,15 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
   <img src="docs/screenshots/extension-popup.png" alt="The Tarjuman extension popup" width="320">
 </p>
 
-1. Build it once: `npm --prefix extension install && npm --prefix extension run build`.
-2. Open `chrome://extensions` (or `edge://extensions`), turn on **Developer mode**, click **Load unpacked**, and choose `extension/dist`.
-3. Keep the app running, open a video, and click the Tarjuman icon, or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
+1. Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) (it also installs in Edge and other Chromium browsers).
+2. Keep the Tarjuman app running, open a video, and click the Tarjuman icon, or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
+
+<details>
+<summary>From source instead</summary>
+
+Build it once with `npm --prefix extension install && npm --prefix extension run build`. Then open `chrome://extensions` (or `edge://extensions`), turn on **Developer mode**, click **Load unpacked**, and choose `extension/dist`. The Windows installer also puts a built copy in the install folder, with a Start menu shortcut to it.
+
+</details>
 
 The extension talks only to the app on your computer. Its Chrome Web Store kit (listing text, permission justifications, privacy policy, promo images) is in [`extension/store`](extension/store).
 

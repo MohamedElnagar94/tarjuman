@@ -19,6 +19,7 @@ The first release of the rewrite: a Python backend, a Vue web app, a browser ext
 
 ### The browser extension
 
+- Published on the [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp).
 - Subtitles and dubbing on any site's video, including players inside an iframe from another site.
 - Only the first extension that connects is trusted by itself; any other waits for your approval in Settings.
 
