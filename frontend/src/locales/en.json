@@ -664,7 +664,8 @@
     "allowed": "Allowed",
     "allow": "Allow",
     "dismiss": "Dismiss",
-    "remove": "Remove"
+    "remove": "Remove",
+    "getIt": "Get it from the Chrome Web Store."
   },
   "storage": {
     "lead": "What Tarjuman keeps on this computer. Clearing a cache is safe: it is rebuilt when needed, and your translation corrections are never cleared.",

@@ -3,6 +3,8 @@ import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { api } from "@/api/client";
 
+const STORE_URL = "https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp";
+
 const { t } = useI18n();
 const allowed = ref<string[]>([]);
 const pending = ref<string[]>([]);
@@ -32,7 +34,10 @@ onMounted(load);
     <p class="panel__lead">{{ t("extensions.lead") }}</p>
     <p v-if="remote" class="muted">{{ t("phone.remote") }}</p>
     <template v-else>
-      <p v-if="!allowed.length && !pending.length" class="muted">{{ t("extensions.none") }}</p>
+      <p v-if="!allowed.length && !pending.length" class="muted">
+        {{ t("extensions.none") }}
+        <a :href="STORE_URL" target="_blank" rel="noopener">{{ t("extensions.getIt") }}</a>
+      </p>
       <ul class="list">
         <li v-for="id in pending" :key="'p' + id" class="row row--pending">
           <code dir="ltr" class="mono">{{ id }}</code>
