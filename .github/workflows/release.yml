@@ -64,7 +64,7 @@ jobs:
           #   (Get-FileHash Tarjuman-Setup-<version>.exe -Algorithm SHA256).Hash
           $exe = "build\windows\Tarjuman-Setup-$version.exe"
           $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
-          # LF, not CRLF: `sha256sum -c` (on any system) reads the name with a stray  otherwise.
+          # LF, not CRLF: `sha256sum -c` (on any system) reads the name with a stray carriage return otherwise.
           [IO.File]::WriteAllText("$PWD\$exe.sha256", "$hash  Tarjuman-Setup-$version.exe`n")
           Write-Host "SHA-256: $hash"
 
