@@ -41,7 +41,8 @@
     "system": "System",
     "light": "Light",
     "dark": "Dark",
-    "language": "Interface language"
+    "language": "Interface language",
+    "font": "Subtitle font"
   },
   "langs": {
     "ar": "Arabic",
@@ -201,7 +202,8 @@
       "whisper": "Transcribed by Whisper, machine translated",
       "asr": "Translated from auto-captions",
       "machine": "Machine translated from {lang}",
-      "lines": "{n} lines"
+      "lines": "{n} lines",
+      "same": "Already in {lang}: nothing to translate"
     },
     "translate": {
       "progress": "Translating {pct}%",
@@ -751,5 +753,14 @@
     "keepEngine": "Keep the engine running after the window closes",
     "keepEngineHint": "Translation and dubbing stay available to the browser extension, and running jobs finish. The Tarjuman icon stays so you can quit it.",
     "extensionNeedsEngine": "The browser extension's features need the engine running. When it is stopped, the extension shows \"Not connected\"."
+  },
+  "fonts": {
+    "readex": "Readex (default)",
+    "cairo": "Cairo",
+    "naskh": "Naskh",
+    "amiri": "Amiri",
+    "tajawal": "Tajawal",
+    "kufi": "Kufi",
+    "system": "System font"
   }
 }

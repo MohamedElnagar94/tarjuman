@@ -12,6 +12,7 @@ const align = computed(() => ({ textAlign: locale.value === "ar" ? ("right" as c
 const langName = (code: string) => (te("langs." + code) ? t("langs." + code) : code);
 
 const source = computed(() => {
+  if (session.sameLang) return { tone: "ok", text: t("watch.chip.same", { lang: langName(session.srcLang) }) };
   if (session.already) return session.autoTranslated ? { tone: "accent", text: t("watch.chip.ytAuto") } : { tone: "ok", text: t("watch.chip.ytHuman") };
   if (session.whisper) return { tone: "accent", text: t("watch.chip.whisper") };
   if (session.asr) return { tone: "accent", text: t("watch.chip.asr") };

@@ -27,6 +27,9 @@ export const session = reactive({
   srcLang: "auto",
   tl: "ar",
   already: false,
+  /** The speech is already in the target language (an Arabic voice note watched in Arabic): nothing
+   *  to translate, and each line is shown once. */
+  sameLang: false,
   autoTranslated: false,
   asr: false,
   whisper: false,
@@ -119,7 +122,9 @@ function applyCues(link: string, d: Omit<VideoCues, "ok">): void {
   session.lengthSeconds = d.lengthSeconds || 0;
   session.srcLang = d.srcLang || "auto";
   session.tl = d.tl || usePrefs().tl;
-  session.already = !!d.alreadyTranslated;
+  const lang = (x: string | undefined) => String(x || "").toLowerCase().split(/[-_]/)[0];
+  session.sameLang = !d.alreadyTranslated && !!d.srcLang && d.srcLang !== "auto" && lang(d.srcLang) === lang(session.tl);
+  session.already = !!d.alreadyTranslated || session.sameLang;
   session.autoTranslated = !!d.autoTranslated;
   session.asr = !!d.asr;
   session.whisper = !!d.whisper;
@@ -127,7 +132,7 @@ function applyCues(link: string, d: Omit<VideoCues, "ok">): void {
   session.translateFailed = 0;
   const list = Object.freeze((d.cues || []).map((c) => Object.freeze({ ...c })));
   cues.value = list as Cue[];
-  tr.value = list.map((c) => c.ar || "");
+  tr.value = list.map((c) => c.ar || (session.sameLang ? c.src : ""));
   tries = list.map(() => 0);
   edited.clear();
   learnFrom = -1;

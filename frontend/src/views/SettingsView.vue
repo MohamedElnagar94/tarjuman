@@ -17,6 +17,7 @@ import type { Quality } from "@/api/types";
 import { SUB_SIZE, usePrefs, type ThemePref, type UiLang } from "@/composables/prefs";
 import { useVoices } from "@/composables/voices";
 import { TARGET_LANGS } from "@/lib/langs";
+import { FONTS } from "@/lib/fonts";
 
 const { t } = useI18n();
 const prefs = usePrefs();
@@ -137,6 +138,12 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
               <input id="a-size" v-model.number="prefs.size" class="range" type="range" :min="SUB_SIZE.min" :max="SUB_SIZE.max" :step="SUB_SIZE.step" />
             </div>
             <div class="opt">
+              <label class="opt__label" for="a-font">{{ t("appearance.font") }}</label>
+              <select id="a-font" v-model="prefs.font" class="select sel">
+                <option v-for="f in FONTS" :key="f.id" :value="f.id" :style="{ fontFamily: f.family }">{{ t("fonts." + f.id) }}</option>
+              </select>
+            </div>
+            <div class="opt">
               <label class="opt__label" for="a-bgo">{{ t("watch.opts.background") }}</label>
               <input id="a-bgo" v-model.number="prefs.bgo" class="range" type="range" min="0" max="1" step="0.05" />
             </div>
@@ -148,6 +155,7 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
               :bilingual="prefs.bilingual"
               position="bottom"
               :size="prefs.size"
+              :font="prefs.font"
               :bgo="prefs.bgo"
               :rtl="prefs.tl === 'ar'"
               inline

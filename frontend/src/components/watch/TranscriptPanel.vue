@@ -28,7 +28,10 @@ const matches = computed(() => {
   return set;
 });
 const canEdit = computed(() => !session.already);
-const trDir = computed(() => (session.tl === "ar" ? "rtl" : "ltr"));
+const RTL = new Set(["ar", "fa", "ur", "he", "ps", "yi"]);
+const trDir = computed(() => (RTL.has(session.tl) ? "rtl" : "ltr"));
+// The original's direction follows its own language (an Arabic recording reads right to left).
+const srcDir = computed(() => (RTL.has(session.srcLang) ? "rtl" : session.srcLang === "auto" ? "auto" : "ltr"));
 
 /* Tokens are computed once per cue list; the source text never changes. */
 const tokens = computed(() => cues.value.map((c) => tokenize(c.src)));
@@ -117,7 +120,7 @@ defineExpose({ focusSearch: () => search.value?.focus() });
             {{ formatTime(c.start) }}
           </button>
           <div class="tx">
-            <p class="src" dir="ltr" lang="en">
+            <p class="src" :dir="srcDir" :lang="session.srcLang === 'auto' ? undefined : session.srcLang">
               <template v-if="needle">
                 <template v-for="(p, k) in highlight(c.src, q)" :key="k"><mark v-if="p.hit">{{ p.text }}</mark><template v-else>{{ p.text }}</template></template>
               </template>
@@ -134,7 +137,7 @@ defineExpose({ focusSearch: () => search.value?.focus() });
                 <span class="hint">{{ t("transcript.editHint") }}</span>
               </div>
             </div>
-            <p v-else class="tr" :class="{ pending: !tr[i] }" :dir="trDir">
+            <p v-else-if="!session.sameLang" class="tr" :class="{ pending: !tr[i] }" :dir="trDir">
               <template v-if="needle && tr[i]">
                 <template v-for="(p, k) in highlight(tr[i]!, q)" :key="k"><mark v-if="p.hit">{{ p.text }}</mark><template v-else>{{ p.text }}</template></template>
               </template>

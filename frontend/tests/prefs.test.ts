@@ -26,6 +26,10 @@ describe("sanitizePrefs", () => {
     expect(p.theme).toBe("system");
     expect(p.show).toBe(true);
   });
+  it("keeps a known subtitle font and replaces an unknown one", () => {
+    expect(sanitizePrefs({ font: "amiri" }).font).toBe("amiri");
+    expect(sanitizePrefs({ font: "comic-sans" }).font).toBe("readex");
+  });
 });
 
 describe("shortcuts", () => {

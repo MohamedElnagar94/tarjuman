@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { subtitleFont } from "@/lib/fonts";
 import { computed } from "vue";
 import { tokenize } from "@/lib/words";
 
@@ -14,6 +15,8 @@ const props = defineProps<{
   quiz?: boolean;
   hidden?: boolean;
   rtl: boolean;
+  /** Font id (lib/fonts.ts); the default font when missing. */
+  font?: string;
   /** Scales with the player width. */
   scale?: number;
   /** Static placement for previews (no absolute positioning). */
@@ -23,13 +26,17 @@ const emit = defineEmits<{ word: [word: string, el: Element] }>();
 
 const tokens = computed(() => (props.bilingual && props.src ? tokenize(props.src) : []));
 const main = computed(() => props.text || props.src || "");
+const fontStyle = computed(() => {
+  const f = subtitleFont(props.font);
+  return { "--sub-font": f.family, "--sub-weight": String(f.weight) };
+});
 </script>
 
 <template>
   <div
     class="subs"
     :class="[position, { off: hidden || !main, quiz, inline }]"
-    :style="{ '--sub-size': size + 'px', '--bgo': String(bgo), '--scale': String(scale ?? 1) }"
+    :style="{ '--sub-size': size + 'px', '--bgo': String(bgo), '--scale': String(scale ?? 1), ...fontStyle }"
     aria-live="off"
   >
     <div v-if="tokens.length" class="line en" dir="ltr" lang="en">
@@ -86,8 +93,8 @@ const main = computed(() => props.text || props.src || "");
   box-decoration-break: clone;
 }
 .tr {
-  font-family: var(--font-ui);
-  font-weight: 600;
+  font-family: var(--sub-font, var(--font-ui));
+  font-weight: var(--sub-weight, 600);
 }
 .tr.pending span {
   color: #cfd3ea;

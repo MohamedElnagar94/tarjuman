@@ -1,3 +1,4 @@
+import { DEFAULT_FONT, FONTS, type FontId } from "@/lib/fonts";
 import { reactive, watch } from "vue";
 import type { Quality, SubFormat, SubMode } from "@/api/types";
 import { load, save } from "@/lib/storage";
@@ -11,6 +12,8 @@ export interface Prefs {
   show: boolean;
   bilingual: boolean;
   size: number;
+  /** Subtitle font (lib/fonts.ts). */
+  font: FontId;
   position: "bottom" | "top";
   bgo: number;
   tl: string;
@@ -41,6 +44,7 @@ export const DEFAULT_PREFS: Prefs = {
   show: true,
   bilingual: false,
   size: 26,
+  font: DEFAULT_FONT,
   position: "bottom",
   bgo: 0.78,
   tl: "ar",
@@ -88,6 +92,7 @@ export function sanitizePrefs(raw: unknown): Prefs {
   if (!["system", "light", "dark"].includes(out.theme)) out.theme = "system";
   if (!["ar", "en"].includes(out.uiLang)) out.uiLang = "ar";
   if (out.position !== "top") out.position = "bottom";
+  if (!FONTS.some((f) => f.id === out.font)) out.font = DEFAULT_FONT;
   return out;
 }
 
