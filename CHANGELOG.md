@@ -35,7 +35,7 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - Live subtitles send the tab's audio as raw bytes (`/api/live/raw`), a third less than before; an app older than 3.1 still gets the old form.
 - When the app on the computer is older than the extension, the popup says so, with a link to update it.
 
-## 3.1.0 (2026-11-13)
+## 3.1.0 (2026-11-14)
 
 ### Desktop app (Windows)
 
@@ -89,7 +89,7 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - Long stretches of speech are cut into sentences by the time of each word, so each subtitle shows on time and "repeat sentence" repeats a sentence.
 - On a graphics card that fails, transcription falls back to the CPU and says why. `TARJUMAN_WHISPER_MODEL` is now empty by default; the old default `base` no longer overrides the recommendation.
 
-### Watching
+### Subtitles
 
 - Subtitle fonts: Readex (default), Cairo, Naskh, Amiri, Tajawal, Kufi or the system font (Settings → Appearance).
 - Speech already in the target language (an Arabic voice note watched in Arabic) is shown once per line and not sent for translation; the original line takes its own direction.
