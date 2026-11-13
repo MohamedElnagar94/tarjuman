@@ -934,15 +934,20 @@
     "delete": "Delete the {model} model",
     "deleteConfirm": "Click again to delete",
     "deleted": "The {model} model was deleted, {size} freed. It downloads again if used later.",
-    "vocab": "Names and words in your recordings",
-    "vocabHint": "People, places, products and English words (like Excel), and any word Whisper gets wrong. Whisper is told them before transcribing, so it writes them your way. One per line, or separated by commas. Works best with large-v3.",
-    "vocabPlaceholder": "One per line, for example:\nExcel\nZoom\nPowerPoint",
+    "vocab": "Words in your recordings",
+    "vocabHint": "On the right, write a word the way it should appear (a name, a product, an English word): Whisper is told it before transcribing. If Whisper keeps writing it wrong in a certain way, put that on the left and it is replaced after transcribing. Works best with large-v3.",
     "aiFix": "Fix the transcript with AI",
     "aiFixHint": "After Whisper, the AI reads the whole transcript and fixes misheard words from the context, without changing the dialect or rewording anything. The text (not the audio) is sent to the AI provider you chose.",
     "aiFixNeedsAi": "Set up AI first.",
     "aiFixSetup": "Set it up here",
-    "vocabExTitle": "Examples of what this fixes:",
-    "vocabExHeard": "Whisper writes",
-    "vocabExWrite": "Write it here as"
+    "termFrom": "Whisper writes (optional)",
+    "termTo": "Write it as",
+    "termFromPh": "e.g. زوم",
+    "termToPh": "e.g. Zoom",
+    "termFromN": "What Whisper writes, {n}",
+    "termToN": "The right spelling, {n}",
+    "termRemove": "Remove word {n}",
+    "termAdd": "Add a word",
+    "termsSaved": "Words saved. They are used on the next transcription, or click “Transcribe again” on an older recording."
   }
 }

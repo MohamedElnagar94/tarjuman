@@ -129,8 +129,8 @@ export interface AsrSettings {
   quality: "accurate" | "fast";
   enhance: boolean;
   vad: boolean;
-  /** Names and words that come up in the user's recordings, one per line or separated by commas. */
-  vocab: string;
+  /** Words in the user's recordings: what Whisper writes (optional) and how it should be written. */
+  terms: { from: string; to: string }[];
   /** Fix misheard words with the AI after Whisper. */
   aiFix: boolean;
 }

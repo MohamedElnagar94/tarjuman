@@ -17,7 +17,7 @@ import wave
 from pathlib import Path
 from typing import Any, Callable
 
-from .asr_settings import MODELS, AsrSettings, hub_bytes, model_downloaded
+from .asr_settings import MODELS, AsrSettings, apply_terms, hub_bytes, model_downloaded
 from .core.deps import has
 from .core.errors import Cancelled
 
@@ -244,7 +244,10 @@ class Whisper:
                 on_progress(min(1.0, float(seg.end) / total))
             text = (seg.text or "").strip()
             if text and not _is_prompt_echo(text, prompt):
-                segments.extend(split_sentences(seg))
+                for s in split_sentences(seg):
+                    if eff.get("terms"):
+                        s["text"] = apply_terms(s["text"], eff["terms"])
+                    segments.append(s)
         return {
             "segments": segments,
             "lang": getattr(info, "language", None) or lang or "",

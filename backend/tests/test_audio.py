@@ -177,13 +177,22 @@ def test_a_downloaded_model_can_be_deleted_to_free_the_disk(tmp_path, monkeypatc
     assert a.delete_model("not-a-model") == 0
 
 
-def test_the_names_list_becomes_a_hint_for_whisper(tmp_path):
-    from tarjuman.asr_settings import vocab_words
+def test_the_words_list_hints_whisper_and_fixes_what_it_wrote(tmp_path):
+    from tarjuman.asr_settings import apply_terms
 
-    assert vocab_words("كريم\nExcel، Zoom, كريم\n\n") == "كريم، Excel، Zoom"
     s = AsrSettings(tmp_path / "asr.json")
-    s.update({"vocab": "كريم\nZoom"})
-    assert s.effective(HW_LAPTOP)["hotwords"] == "كريم، Zoom"
+    s.update({"terms": [{"from": "زوم", "to": "Zoom"}, {"from": "", "to": "كريم"}, {"from": "  ", "to": ""}, "junk"]})
+    assert s.values["terms"] == [{"from": "زوم", "to": "Zoom"}, {"from": "", "to": "كريم"}]
+    eff = s.effective(HW_LAPTOP)
+    assert eff["hotwords"] == "Zoom، كريم" and eff["terms"] == [{"from": "زوم", "to": "Zoom"}]
+    terms = [{"from": "زوم", "to": "Zoom"}, {"from": "اكسيل", "to": "Excel"}]
+    assert apply_terms("نتقابل على الزوم وبعدين زوم تاني", terms) == "نتقابل على ال Zoom وبعدين Zoom تاني"
+    assert apply_terms("ابعته على اكسيل", terms) == "ابعته على Excel"
+    assert apply_terms("زومبي مش زوم", terms) == "زومبي مش Zoom", "whole words only"
+    # The first version kept one text field.
+    old = AsrSettings(tmp_path / "old.json")
+    old.update({"vocab": "كريم\nZoom"})
+    assert old.values["terms"] == [{"from": "", "to": "كريم"}, {"from": "", "to": "Zoom"}]
 
 
 def test_an_old_card_is_not_recommended_even_with_cuda():

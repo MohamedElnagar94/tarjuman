@@ -130,7 +130,9 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
             from ..ai.transcript_fix import fix_lines
 
             job.phase = "تصحيح النص بالذكاء الاصطناعي"
-            fixed = await fix_lines(s.ai_client, [x["text"] for x in segments], lang or "", s.asr.values.get("vocab") or "")
+            from ..asr_settings import hint_words
+
+            fixed = await fix_lines(s.ai_client, [x["text"] for x in segments], lang or "", hint_words(s.asr.values.get("terms") or []))
             segments = [{**x, "text": t} for x, t in zip(segments, fixed)]
             job.check()
         job.progress = 80

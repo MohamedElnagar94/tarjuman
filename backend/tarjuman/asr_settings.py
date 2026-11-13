@@ -65,13 +65,15 @@ DEFAULTS: dict[str, Any] = {
     "quality": "accurate",  # accurate (beam search 5) | fast (greedy)
     "enhance": False,  # clean the audio first (noise, hum, level)
     "vad": True,  # skip long silences (fewer invented sentences)
-    # Names and words that come up in the user's recordings (people, places, brands): Whisper is told
-    # them, so it writes "Excel" and "Zoom" instead of something that sounds alike.
-    "vocab": "",
+    # Names and words that come up in the user's recordings (people, places, brands), as rows
+    # {"from": what Whisper writes (optional), "to": how it should be written}. Whisper is told every
+    # "to" before transcribing, and any "from" left in the text is replaced by its "to" afterwards.
+    "terms": [],
     # Have the AI (Settings -> AI, when set up) fix words Whisper clearly misheard, from the context.
     "aiFix": False,
 }
-VOCAB_MAX = 600
+TERMS_MAX = 80
+TERM_LEN = 60
 
 
 def _ram_gb() -> float:
@@ -279,8 +281,10 @@ class AsrSettings:
         for k in ("enhance", "vad", "aiFix"):
             if k in j:
                 v[k] = bool(j[k])
-        if "vocab" in j:
-            v["vocab"] = str(j.get("vocab") or "")[:VOCAB_MAX]
+        if "terms" in j:
+            v["terms"] = clean_terms(j.get("terms"))
+        elif j.get("vocab"):  # the first version kept one text field: each line becomes a row
+            v["terms"] = clean_terms([{"from": "", "to": w} for w in split_words(str(j["vocab"]))])
 
     def update(self, changes: dict[str, Any]) -> dict[str, Any]:
         self._apply(changes or {})
@@ -318,7 +322,8 @@ class AsrSettings:
             "prompt": PROMPTS.get(v["style"], ""),
             "enhance": bool(v["enhance"]),
             "vad": bool(v["vad"]),
-            "hotwords": vocab_words(v["vocab"]),
+            "hotwords": hint_words(v["terms"]),
+            "terms": [t for t in v["terms"] if t["from"]],
             "secondsPerMinute": seconds_per_minute(model, hw, device),
         }
 
@@ -345,16 +350,51 @@ class AsrSettings:
         }
 
 
-def vocab_words(text: str) -> str:
-    """The user's list (one per line, or separated by commas) as Whisper's hint: "Excel، Zoom، كريم"."""
+def split_words(text: str) -> list[str]:
     import re
 
-    words = [w.strip() for w in re.split(r"[\n,،;؛]+", text or "") if w.strip()]
+    return [w.strip() for w in re.split(r"[\n,،;؛]+", text or "") if w.strip()]
+
+
+def clean_terms(rows: Any) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for r in rows if isinstance(rows, list) else []:
+        if not isinstance(r, dict):
+            continue
+        frm = " ".join(str(r.get("from") or "").split())[:TERM_LEN]
+        to = " ".join(str(r.get("to") or "").split())[:TERM_LEN]
+        if to and (frm, to) not in seen:
+            seen.add((frm, to))
+            out.append({"from": frm, "to": to})
+    return out[:TERMS_MAX]
+
+
+def hint_words(terms: list[dict[str, str]]) -> str:
+    """How the words should be written, as Whisper's hint: "Excel، Zoom، كريم"."""
     seen: list[str] = []
-    for w in words:
-        if w not in seen:
-            seen.append(w)
+    for t in terms:
+        if t["to"] not in seen:
+            seen.append(t["to"])
     return "، ".join(seen[:60])
+
+
+def apply_terms(text: str, terms: list[dict[str, str]]) -> str:
+    """Replaces what Whisper wrote ("from") with how the user writes it ("to"), whole words only, also
+    after the Arabic article and the joined prepositions: "السارم" -> "ال CRM" when "سارم" -> "CRM"."""
+    import re
+
+    for t in sorted(terms, key=lambda x: -len(x["from"])):
+        frm = t.get("from") or ""
+        if not frm:
+            continue
+        pattern = r"(?<![\w])((?:[وفبلك]?ال|[وفبلك])?)" + re.escape(frm) + r"(?![\w])"
+        text = re.sub(pattern, lambda m: (m.group(1) + " " if m.group(1) and _latin(t["to"]) else m.group(1)) + t["to"], text)
+    return text
+
+
+def _latin(s: str) -> bool:
+    return bool(s) and s[0].isascii()
 
 
 def _known_language(code: str) -> bool:

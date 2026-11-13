@@ -3,7 +3,7 @@
    choice that changes accuracy, each with its cost. */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { PhCheckCircle, PhCpu, PhDownloadSimple, PhGraphicsCard, PhMemory, PhSparkle, PhTrash, PhWarning } from "@phosphor-icons/vue";
+import { PhCheckCircle, PhCpu, PhDownloadSimple, PhGraphicsCard, PhMemory, PhPlus, PhSparkle, PhTrash, PhWarning, PhX } from "@phosphor-icons/vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import { api } from "@/api/client";
@@ -19,7 +19,7 @@ let timer: number | undefined;
 async function load() {
   try {
     st.value = await api.asr();
-    vocab.value = st.value.settings.vocab || "";
+    loadTerms();
     watchLoading();
   } catch {
     remote.value = true;
@@ -65,18 +65,27 @@ async function remove(id: string) {
   }
 }
 
-/* What the names list fixes, with words anyone may use (never the user's own names). */
-const vocabExamples = [
-  ["إكسيل", "Excel"],
-  ["زووم", "Zoom"],
-  ["باور بوينت", "PowerPoint"],
-  ["واتس اب", "WhatsApp"],
-] as const;
-
-/* The list of names is saved when the field is left, not on every key. */
-const vocab = ref("");
-function saveVocab() {
-  if (st.value && vocab.value !== st.value.settings.vocab) void set({ vocab: vocab.value });
+/* Words in the user's recordings, as rows like the pronunciation dictionary: what Whisper writes
+   (optional) -> how it should be written. Saved with the button. */
+let seq = 0;
+type TermRow = { from: string; to: string; key: number };
+const terms = ref<TermRow[]>([]);
+const termRow = (r = { from: "", to: "" }): TermRow => ({ ...r, key: ++seq });
+function loadTerms() {
+  terms.value = (st.value?.settings.terms || []).map(termRow);
+  if (!terms.value.length) terms.value.push(termRow());
+}
+async function addTerm() {
+  terms.value.push(termRow());
+  await Promise.resolve();
+  const inputs = document.querySelectorAll<HTMLInputElement>(".terms .t-from");
+  inputs[inputs.length - 1]?.focus();
+}
+async function saveTerms() {
+  const list = terms.value.map((r) => ({ from: r.from.trim(), to: r.to.trim() })).filter((r) => r.to);
+  await set({ terms: list });
+  loadTerms();
+  toast(t("asrSet.termsSaved"), { tone: "ok" });
 }
 
 async function prepare() {
@@ -259,36 +268,28 @@ const status = computed(() => {
           <option v-for="s in st.styles" :key="s" :value="s">{{ t("asrSet.styles." + s) }}</option>
         </select>
       </div>
-      <div class="opt opt--stack">
-        <label class="opt__label" for="asr-vocab">
+      <div class="opt opt--stack terms">
+        <span class="opt__label">
           {{ t("asrSet.vocab") }}
           <small>{{ t("asrSet.vocabHint") }}</small>
-        </label>
-        <textarea
-          id="asr-vocab"
-          v-model="vocab"
-          class="input vocab"
-          rows="3"
-          maxlength="600"
-          :dir="vocab ? 'auto' : undefined"
-          :placeholder="t('asrSet.vocabPlaceholder')"
-          @blur="saveVocab"
-        ></textarea>
-        <table class="vocab-ex">
-          <caption>{{ t("asrSet.vocabExTitle") }}</caption>
-          <thead>
-            <tr>
-              <th scope="col">{{ t("asrSet.vocabExHeard") }}</th>
-              <th scope="col">{{ t("asrSet.vocabExWrite") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, i) in vocabExamples" :key="i">
-              <td>{{ row[0] }}</td>
-              <td dir="auto"><code>{{ row[1] }}</code></td>
-            </tr>
-          </tbody>
-        </table>
+        </span>
+        <div class="t-head" aria-hidden="true">
+          <span>{{ t("asrSet.termFrom") }}</span>
+          <span></span>
+          <span>{{ t("asrSet.termTo") }}</span>
+        </div>
+        <ul class="t-rows">
+          <li v-for="(r, i) in terms" :key="r.key" class="t-row">
+            <input v-model="r.from" class="input t-from" :dir="r.from ? 'auto' : undefined" :aria-label="t('asrSet.termFromN', { n: i + 1 })" :placeholder="t('asrSet.termFromPh')" />
+            <span class="t-arrow" aria-hidden="true">{{ $i18n.locale === "ar" ? "←" : "→" }}</span>
+            <input v-model="r.to" class="input" :dir="r.to ? 'auto' : undefined" :aria-label="t('asrSet.termToN', { n: i + 1 })" :placeholder="t('asrSet.termToPh')" />
+            <button type="button" class="btn btn--quiet btn--icon btn--sm" :aria-label="t('asrSet.termRemove', { n: i + 1 })" @click="terms.splice(i, 1)"><PhX :size="15" /></button>
+          </li>
+        </ul>
+        <div class="t-actions">
+          <button type="button" class="btn btn--outline btn--sm" @click="addTerm"><PhPlus :size="15" />{{ t("asrSet.termAdd") }}</button>
+          <button type="button" class="btn btn--primary btn--sm" :disabled="saving" @click="saveTerms">{{ t("common.save") }}</button>
+        </div>
       </div>
       <div class="opt">
         <label class="opt__label" for="asr-ai">
@@ -514,40 +515,35 @@ const status = computed(() => {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.vocab {
-  width: 100%;
-  min-height: 72px;
-  resize: vertical;
-  font: inherit;
+.terms {
+  display: grid;
+  gap: var(--s-2);
 }
-.vocab-ex {
-  align-self: flex-start;
-  justify-self: start;
-  margin-top: var(--s-2);
-  border-collapse: collapse;
+.t-head,
+.t-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 34px;
+  gap: var(--s-2);
+  align-items: center;
+}
+.t-head {
   font-size: var(--fs-xs);
-  width: 100%;
-  max-width: 420px;
+  color: var(--text-2);
 }
-.vocab-ex caption {
-  text-align: start;
-  padding-bottom: 4px;
-  opacity: 0.8;
+.t-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
 }
-.vocab-ex th,
-.vocab-ex td {
-  text-align: start;
-  padding: 5px 10px;
-  border-bottom: 1px solid var(--line);
+.t-arrow {
+  color: var(--text-3);
+  text-align: center;
 }
-.vocab-ex th {
-  font-weight: 600;
-  background: var(--surface-2);
-}
-.vocab-ex code {
-  font-family: inherit;
-  font-weight: 600;
-  color: var(--accent-ink);
+.t-actions {
+  display: flex;
+  gap: var(--s-2);
 }
 .ai-label {
   display: inline-flex;

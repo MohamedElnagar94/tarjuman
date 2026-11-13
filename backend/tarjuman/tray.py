@@ -93,7 +93,33 @@ def _user32():
     u.GetWindowThreadProcessId.argtypes = [wt.HWND, ctypes.POINTER(wt.DWORD)]
     u.PostMessageW.argtypes = [wt.HWND, wt.UINT, wt.WPARAM, wt.LPARAM]
     u.MessageBoxW.argtypes = [wt.HWND, wt.LPCWSTR, wt.LPCWSTR, wt.UINT]
+    u.GetCursorPos.argtypes = [ctypes.POINTER(wt.POINT)]
+    u.WindowFromPoint.argtypes = [wt.POINT]
+    u.WindowFromPoint.restype = wt.HWND
+    u.GetAncestor.argtypes = [wt.HWND, wt.UINT]
+    u.GetAncestor.restype = wt.HWND
+    u.GetClassNameW.argtypes = [wt.HWND, wt.LPWSTR, ctypes.c_int]
     return u
+
+
+TASKBAR_CLASSES = ("Shell_TrayWnd", "Shell_SecondaryTrayWnd")
+
+
+def pointer_on_taskbar(u) -> bool:
+    """Whether the mouse is over the Windows taskbar right now."""
+    try:
+        pt = wt.POINT()
+        if not u.GetCursorPos(ctypes.byref(pt)):
+            return False
+        h = u.WindowFromPoint(pt)
+        root = u.GetAncestor(h, 2) if h else None  # GA_ROOT
+        if not root:
+            return False
+        buf = ctypes.create_unicode_buffer(64)
+        u.GetClassNameW(root, buf, 64)
+        return buf.value in TASKBAR_CLASSES
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _arabic_windows() -> bool:
@@ -325,13 +351,23 @@ class DesktopApp:
         """Hides a minimized window when asked to, and notices when the window closes."""
         was_open = False
         title = ""
+        # Minimized by a click on its taskbar button: it stays a normal taskbar window (clicking the
+        # button again brings it back, as everywhere in Windows). Only the window's own minimize
+        # button (or a shortcut) sends it to the notification area.
+        from_taskbar = False
         while not self.quitting:
             if desktop.window_is_open():
                 was_open = True
                 if self.settings["minimizeToTray"]:
                     h = self.find_window()
-                    if h and self.user32.IsIconic(h) and self.user32.IsWindowVisible(h):
-                        self.user32.ShowWindow(h, SW_HIDE)
+                    iconic = bool(h and self.user32.IsIconic(h))
+                    if not iconic:
+                        from_taskbar = False
+                    elif self.user32.IsWindowVisible(h) and not from_taskbar:
+                        if pointer_on_taskbar(self.user32):
+                            from_taskbar = True
+                        else:
+                            self.user32.ShowWindow(h, SW_HIDE)
             elif was_open:
                 was_open = False
                 self.hwnd = 0

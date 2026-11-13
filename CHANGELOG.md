@@ -33,6 +33,8 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 
 ### Settings
 
+- Words in your recordings are a table like the pronunciation dictionary: how a word should be written, and (optionally) how Whisper writes it wrong, which is then replaced after transcribing.
+- With "minimize to the notification area" on, clicking the taskbar button minimizes the window to the taskbar as usual; only the window's own minimize button sends it to the notification area.
 - Settings show one section at a time: pick it on the side (or along the top on a phone). The address keeps the section, so a link or a reload opens the same one.
 - After an update the app window never keeps running an old script: the web app's files are checked for changes each time.
 
