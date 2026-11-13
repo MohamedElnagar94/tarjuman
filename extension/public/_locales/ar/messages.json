@@ -490,5 +490,212 @@
   },
   "verApp": {
     "message": "التطبيق $1"
+  },
+  "tbTiming": {
+    "message": "توقيت الترجمة"
+  },
+  "tbTranscript": {
+    "message": "النص الكامل بجوار الفيديو"
+  },
+  "tbOpenInApp": {
+    "message": "افتح في تطبيق ترجمان عند هذه اللحظة"
+  },
+  "keyPrev": {
+    "message": "السطر السابق"
+  },
+  "keyNext": {
+    "message": "السطر التالي"
+  },
+  "keyRepeat": {
+    "message": "إعادة هذا السطر"
+  },
+  "keySubs": {
+    "message": "إظهار الترجمة أو إخفاؤها"
+  },
+  "keyDub": {
+    "message": "تشغيل الدبلجة الصوتية أو إيقافها"
+  },
+  "keyTranscript": {
+    "message": "إظهار النص الكامل أو إخفاؤه"
+  },
+  "keyEarlier": {
+    "message": "تقديم الترجمة ربع ثانية"
+  },
+  "keyLater": {
+    "message": "تأخير الترجمة ربع ثانية"
+  },
+  "keyResetTiming": {
+    "message": "إعادة توقيت الترجمة إلى أصله"
+  },
+  "keyOr": {
+    "message": "أو"
+  },
+  "keysNote": {
+    "message": "تعمل أثناء الترجمة فقط، ولا تعمل وأنت تكتب (في مربع البحث أو التعليقات على يوتيوب مثلًا). وهي مرتبطة بموضع المفتاح على اللوحة، فتعمل كذلك مع لوحة المفاتيح العربية."
+  },
+  "timingTitle": {
+    "message": "توقيت الترجمة"
+  },
+  "timingHint": {
+    "message": "إذا سبقت السطور الكلام أو تأخرت عنه"
+  },
+  "timingEarlier": {
+    "message": "تقديم"
+  },
+  "timingLater": {
+    "message": "تأخير"
+  },
+  "timingEarlierBy": {
+    "message": "تقديم الترجمة $1 ث"
+  },
+  "timingLaterBy": {
+    "message": "تأخير الترجمة $1 ث"
+  },
+  "offsetSeconds": {
+    "message": "$1 ث"
+  },
+  "timingDubFollows": {
+    "message": "والدبلجة تتبع الترجمة في توقيتها"
+  },
+  "pillOffset": {
+    "message": "توقيت الترجمة: $1 ث"
+  },
+  "pillOffsetReset": {
+    "message": "أُعيد توقيت الترجمة إلى أصله"
+  },
+  "pillSubsHidden": {
+    "message": "أُخفيت الترجمة"
+  },
+  "pillSubsShown": {
+    "message": "ظهرت الترجمة"
+  },
+  "pillDubOn": {
+    "message": "الدبلجة الصوتية مفعّلة"
+  },
+  "pillDubOff": {
+    "message": "أُوقفت الدبلجة الصوتية"
+  },
+  "lookupNone": {
+    "message": "لم يُعثر على ترجمة لهذه الكلمة."
+  },
+  "lookupSave": {
+    "message": "احفظها في كلماتي"
+  },
+  "lookupSaving": {
+    "message": "جارٍ الحفظ…"
+  },
+  "lookupSaved": {
+    "message": "حُفظت في كلماتي"
+  },
+  "lookupDuplicate": {
+    "message": "موجودة في كلماتي من قبل"
+  },
+  "lookupSaveFailed": {
+    "message": "تعذّر الحفظ. هل التطبيق يعمل؟"
+  },
+  "btnClose": {
+    "message": "إغلاق"
+  },
+  "trTitle": {
+    "message": "النص الكامل"
+  },
+  "trSearch": {
+    "message": "ابحث في النص"
+  },
+  "trBackToNow": {
+    "message": "العودة إلى السطر الحالي"
+  },
+  "trClose": {
+    "message": "إغلاق النص الكامل"
+  },
+  "trFold": {
+    "message": "طيّ"
+  },
+  "trUnfold": {
+    "message": "فتح"
+  },
+  "trEmpty": {
+    "message": "تظهر السطور هنا حين تجهز الترجمة."
+  },
+  "trLines": {
+    "message": "السطور: $1"
+  },
+  "trMatches": {
+    "message": "النتائج: $1"
+  },
+  "trNoMatch": {
+    "message": "لا شيء يطابق «$1»."
+  },
+  "secAutoStart": {
+    "message": "البدء التلقائي"
+  },
+  "autoIntro": {
+    "message": "يستطيع ترجمان أن يبدأ ترجمة فيديوهات يوتيوب فور فتحها دون نقرة منك. ولا يأخذ الترجمة من تبويب آخر يترجم، والفيديو الذي أوقفته يبقى متوقفًا."
+  },
+  "lblAutoStart": {
+    "message": "على يوتيوب"
+  },
+  "lblAutoStartHint": {
+    "message": "صفحات المشاهدة فقط، دون المقاطع القصيرة. معطّل افتراضيًّا."
+  },
+  "autoOff": {
+    "message": "معطّل"
+  },
+  "autoAlways": {
+    "message": "كل الفيديوهات"
+  },
+  "autoChannels": {
+    "message": "قنوات مختارة"
+  },
+  "autoChannelsList": {
+    "message": "القنوات"
+  },
+  "autoChannelsNone": {
+    "message": "لا قنوات بعد. افتح فيديو من القناة وفعّل «ترجم هذه القناة دائمًا» في النافذة المنبثقة، أو أضفها هنا."
+  },
+  "btnRemoveNamed": {
+    "message": "إزالة $1"
+  },
+  "lblAddChannel": {
+    "message": "إضافة قناة"
+  },
+  "addChannelPlaceholder": {
+    "message": "‎@channel أو رابط القناة"
+  },
+  "btnAddChannel": {
+    "message": "إضافة"
+  },
+  "errChannel": {
+    "message": "هذه ليست قناة. اكتب اسمها الذي يبدأ بـ @ أو رابطها، مثل youtube.com/@name."
+  },
+  "addChannelHint": {
+    "message": "اسمها الذي يبدأ بـ @، أو رابط القناة."
+  },
+  "secShortcuts": {
+    "message": "اختصارات لوحة المفاتيح"
+  },
+  "lblPageKeys": {
+    "message": "اختصارات في صفحة الفيديو"
+  },
+  "lblPageKeysHint": {
+    "message": "التنقل بين السطور وضبط التوقيت وغير ذلك أثناء الترجمة"
+  },
+  "secThisVideo": {
+    "message": "هذا الفيديو"
+  },
+  "lblTranscript": {
+    "message": "النص الكامل بجوار الفيديو"
+  },
+  "lblTranscriptHint": {
+    "message": "كل السطور، وبالنقر على سطر تنتقل إليه"
+  },
+  "lblAutoChannel": {
+    "message": "ترجم هذه القناة دائمًا"
+  },
+  "autoAlwaysOn": {
+    "message": "مفعّل لكل الفيديوهات (الإعدادات)"
+  },
+  "btnOpenAt": {
+    "message": "افتح في التطبيق عند $1"
   }
 }

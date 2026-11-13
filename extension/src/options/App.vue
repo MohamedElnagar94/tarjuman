@@ -5,6 +5,8 @@ import { FONT_IDS, FONT_STACK, type FontId } from "@/shared/fonts";
 import { send } from "@/shared/messages";
 import { TARGET_LANGS, SIZE_MIN, SIZE_MAX, DEFAULT_SETTINGS } from "@/shared/settings";
 import { PORTS } from "@/shared/server";
+import { SHORTCUT_KEYS, SHORTCUT_ORDER, type ShortcutAction } from "@/shared/shortcuts";
+import { channelFromInput, mergeAuto, setChannel, type AutoMode, type AutoStart } from "@/shared/autostart";
 import { useExtension } from "@/ui/useExtension";
 import { shortcutText } from "@/ui/errors";
 import ToggleSwitch from "@/ui/ToggleSwitch.vue";
@@ -38,12 +40,65 @@ const positions = computed(() => [
 const sections = computed(() => [
   { id: "subtitles", label: t("secSubs") },
   { id: "dubbing", label: t("secDub") },
+  { id: "autostart", label: t("secAutoStart") },
   { id: "sites", label: t("secSites") },
   { id: "connection", label: t("secConnection") },
-  { id: "shortcut", label: t("secShortcut") },
+  { id: "shortcut", label: t("secShortcuts") },
   { id: "language", label: t("secUiLang") },
   { id: "about", label: t("secAbout") },
 ]);
+
+/* ---------- keys on the page ---------- */
+
+const KEY_LABEL: Record<ShortcutAction, string> = {
+  prev: "keyPrev",
+  next: "keyNext",
+  repeat: "keyRepeat",
+  subs: "keySubs",
+  dub: "keyDub",
+  transcript: "keyTranscript",
+  earlier: "keyEarlier",
+  later: "keyLater",
+  resetTiming: "keyResetTiming",
+};
+
+/* ---------- auto-start on YouTube ---------- */
+
+const auto = ref<AutoStart>(mergeAuto(null));
+const chanInput = ref("");
+const chanError = ref(false);
+const autoModes = computed(() => [
+  { value: "off", label: t("autoOff") },
+  { value: "always", label: t("autoAlways") },
+  { value: "channels", label: t("autoChannels") },
+]);
+
+async function saveAuto(next: AutoStart) {
+  auto.value = next;
+  const r = await send<{ ok: boolean; auto?: AutoStart }>("set-auto", { auto: next });
+  if (r.ok && r.auto) auto.value = r.auto;
+}
+
+function setAutoMode(mode: string) {
+  saveAuto({ ...auto.value, mode: mode as AutoMode });
+}
+
+function addChannel() {
+  const id = channelFromInput(chanInput.value);
+  chanError.value = !id;
+  if (!id) return;
+  saveAuto(setChannel(auto.value, { id, name: id }, true));
+  chanInput.value = "";
+}
+
+function removeChannel(id: string) {
+  saveAuto(setChannel(auto.value, { id, name: id }, false));
+}
+
+// The popup can add a channel while this page is open.
+function onStorage(changes: Record<string, chrome.storage.StorageChange>, area: string) {
+  if (area === "local" && changes.autoStart) auto.value = mergeAuto(changes.autoStart.newValue);
+}
 
 async function loadPermissions() {
   const all = await chrome.permissions.getAll();
@@ -141,6 +196,9 @@ async function setUiLang(v: UiLang) {
 onMounted(async () => {
   shortcut.value = await shortcutText();
   await Promise.all([refresh(), loadPermissions()]);
+  const a = await send<{ ok: boolean; auto?: AutoStart }>("get-auto");
+  if (a.ok && a.auto) auto.value = a.auto;
+  chrome.storage.onChanged.addListener(onStorage);
   address.value = status.value?.override || "";
   if (online.value) await loadVoices();
   chrome.permissions.onAdded.addListener(loadPermissions);
@@ -266,6 +324,49 @@ onMounted(async () => {
         </div>
       </section>
 
+      <section id="autostart" class="panel">
+        <div class="panel-head"><h2>{{ t("secAutoStart") }}</h2></div>
+        <p class="lead">{{ t("autoIntro") }}</p>
+        <div class="rows">
+          <div class="row">
+            <span class="lbl"><span>{{ t("lblAutoStart") }}</span><small>{{ t("lblAutoStartHint") }}</small></span>
+            <SegmentedControl :model-value="auto.mode" :options="autoModes" :label="t('lblAutoStart')" @update:model-value="setAutoMode" />
+          </div>
+        </div>
+        <Transition name="fade">
+          <div v-if="auto.mode === 'channels'" class="channels">
+            <h3>{{ t("autoChannelsList") }}</h3>
+            <TransitionGroup v-if="auto.channels.length" tag="ul" name="list" class="sites">
+              <li v-for="c in auto.channels" :key="c.id">
+                <span class="chan">
+                  <strong dir="auto">{{ c.name }}</strong>
+                  <small v-if="c.name !== c.id" dir="ltr">{{ c.id }}</small>
+                </span>
+                <button type="button" class="btn ghost" :aria-label="t('btnRemoveNamed', c.name)" @click="removeChannel(c.id)">{{ t("btnRemove") }}</button>
+              </li>
+            </TransitionGroup>
+            <p v-else class="empty">{{ t("autoChannelsNone") }}</p>
+            <form class="addr add-chan" @submit.prevent="addChannel">
+              <label for="chanInput" class="sr-only">{{ t("lblAddChannel") }}</label>
+              <input
+                id="chanInput"
+                v-model="chanInput"
+                class="input"
+                dir="ltr"
+                spellcheck="false"
+                autocomplete="off"
+                :placeholder="t('addChannelPlaceholder')"
+                :aria-invalid="chanError || undefined"
+                aria-describedby="chanHint"
+                @input="chanError = false"
+              />
+              <button type="submit" class="btn">{{ t("btnAddChannel") }}</button>
+            </form>
+            <p id="chanHint" class="small" :class="{ bad: chanError }" :role="chanError ? 'alert' : undefined">{{ chanError ? t("errChannel") : t("addChannelHint") }}</p>
+          </div>
+        </Transition>
+      </section>
+
       <section id="sites" class="panel">
         <div class="panel-head"><h2>{{ t("secSites") }}</h2></div>
         <p class="lead">{{ t("sitesIntro") }}</p>
@@ -311,7 +412,7 @@ onMounted(async () => {
       </section>
 
       <section id="shortcut" class="panel">
-        <div class="panel-head"><h2>{{ t("secShortcut") }}</h2></div>
+        <div class="panel-head"><h2>{{ t("secShortcuts") }}</h2></div>
         <div class="rows">
           <div class="row">
             <span class="lbl"><span>{{ t("lblShortcut") }}</span><small>{{ t("lblShortcutHint") }}</small></span>
@@ -321,7 +422,22 @@ onMounted(async () => {
               <button type="button" class="btn" @click="send('open-shortcuts')">{{ t("btnChange") }}</button>
             </span>
           </div>
+          <div class="row">
+            <label for="pageKeys" class="lbl"><span>{{ t("lblPageKeys") }}</span><small>{{ t("lblPageKeysHint") }}</small></label>
+            <ToggleSwitch id="pageKeys" :model-value="settings.keys" @update:model-value="update({ keys: $event })" />
+          </div>
         </div>
+        <dl class="keylist" :class="{ dim: !settings.keys }">
+          <div v-for="a in SHORTCUT_ORDER" :key="a" class="key">
+            <dt>{{ t(KEY_LABEL[a]) }}</dt>
+            <dd>
+              <template v-for="(k, j) in SHORTCUT_KEYS[a]" :key="k">
+                <span v-if="j" class="or">{{ t("keyOr") }}</span><kbd>{{ k }}</kbd>
+              </template>
+            </dd>
+          </div>
+        </dl>
+        <p class="small keys-note">{{ t("keysNote") }}</p>
       </section>
 
       <section id="language" class="panel">
@@ -635,6 +751,102 @@ h3 {
   flex: 1;
   min-width: 220px;
   min-height: 36px;
+}
+
+/* Auto-start */
+.channels .sites {
+  margin-bottom: 12px;
+}
+.chan {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.chan strong {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chan small {
+  color: var(--faint);
+  font-size: 12px;
+}
+.channels .empty {
+  margin-bottom: 12px;
+}
+.add-chan {
+  margin-top: 4px;
+}
+.add-chan .input[aria-invalid="true"] {
+  border-color: var(--bad);
+}
+.small.bad {
+  color: #FFCBC4;
+}
+#chanHint {
+  margin-top: 8px;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.list-enter-active,
+.list-leave-active {
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+/* Keys on the page */
+.keylist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 2px 24px;
+  margin: 12px 0 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--line);
+  transition: opacity 0.2s;
+}
+.keylist.dim {
+  opacity: 0.45;
+}
+.key {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+}
+.key {
+  border-bottom: 1px dashed var(--line);
+}
+.keylist dt {
+  color: var(--text);
+}
+.keylist dd {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+.keylist .or {
+  color: var(--faint);
+  font-size: 12px;
+}
+.keys-note {
+  line-height: 1.6;
 }
 .msg {
   margin: 10px 0 0;

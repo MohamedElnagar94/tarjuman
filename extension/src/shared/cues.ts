@@ -83,3 +83,27 @@ export function pickTrack(tracks: readonly TrackInfo[], targetLang: string): Tra
   if (!tracks.length) return null;
   return tracks.find((t) => t.lang.startsWith("en")) || tracks.find((t) => !t.lang.startsWith(targetLang)) || tracks[0];
 }
+
+/** Index of the last cue that has started by time t (the one being said, or the one just said), or -1. */
+export function lastStartedIndex(cues: readonly Cue[], t: number): number {
+  let lo = 0;
+  let hi = cues.length - 1;
+  let ans = -1;
+  while (lo <= hi) {
+    const m = (lo + hi) >> 1;
+    if (cues[m].start <= t) {
+      ans = m;
+      lo = m + 1;
+    } else hi = m - 1;
+  }
+  return ans;
+}
+
+/** The line to jump to for "previous" (-1), "repeat" (0) or "next" (1), as in the web app. -1 when there are no lines. */
+export function stepLine(cues: readonly Cue[], t: number, delta: -1 | 0 | 1): number {
+  if (!cues.length) return -1;
+  const cur = lastStartedIndex(cues, t);
+  // Before the first line, "repeat" and "next" both go to it.
+  if (cur < 0) return 0;
+  return Math.min(cues.length - 1, Math.max(0, cur + delta));
+}

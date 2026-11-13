@@ -10,10 +10,15 @@ import { DubEngine, type DubMedia } from "@tarjuman/dub-engine";
 import { t, useTable } from "@/shared/i18n";
 import { FONT_STACK } from "@/shared/fonts";
 import { mergeSettings, langDir, SIZE_MIN, SIZE_MAX, type Settings } from "@/shared/settings";
-import { cueIndexAt, ytVideoId, normalizeTrackCues, type Cue, type TrackInfo } from "@/shared/cues";
+import { cueIndexAt, ytVideoId, isYouTube, normalizeTrackCues, stepLine, type Cue, type TrackInfo } from "@/shared/cues";
 import { b64ToObjectUrl } from "@/shared/audio";
 import type { Reply } from "@/shared/messages";
-import { injectFonts, overlayHtml } from "./overlay";
+import { shortcutFor, isTypingTarget, type ShortcutAction } from "@/shared/shortcuts";
+import { captionTime, formatOffset, nudgeOffset, offsetKey, videoTimeFor } from "@/shared/timing";
+import { lineProgress, tokenize, highlight } from "@/shared/cueText";
+import { channelFromHref, isAutoStartPage, type Channel } from "@/shared/autostart";
+import { injectFonts, overlayHtml, ICONS } from "./overlay";
+import { createTranscript, type Transcript } from "./transcript";
 
 declare global {
   interface Window {
@@ -53,6 +58,11 @@ declare global {
     trackIndex: -1,
     /** Bumped on every activation so late replies from an earlier one are ignored. */
     gen: 0,
+    /** Subtitle timing shift in seconds (shared/timing.ts), and the video it belongs to. */
+    offset: 0,
+    offsetKey: "",
+    /** The video's title from the server, kept with saved words. */
+    title: "",
   };
 
   const UI: Record<string, any> = {};
@@ -104,15 +114,41 @@ declare global {
     UI.whisperBtn = shadow.querySelector(".whisper .go");
     UI.meter = shadow.querySelector(".meter > i");
     UI.tools = shadow.querySelector(".tools");
+    UI.tpop = shadow.querySelector(".tpop");
+    UI.tpopOut = shadow.querySelector(".tpop output");
+    UI.tpopNote = shadow.querySelector(".tpop .note");
+    UI.tpopReset = shadow.querySelector(".tpop .reset");
+    UI.lk = shadow.querySelector(".lk");
+    UI.lkWord = shadow.querySelector(".lk-word");
+    UI.lkMean = shadow.querySelector(".lk-mean");
+    UI.lkSent = shadow.querySelector(".lk-sent");
+    UI.lkSave = shadow.querySelector(".lk .save");
+    UI.lkState = shadow.querySelector(".lk-state");
     UI.whisperBtn.addEventListener("click", startWhisper);
     UI.tools.addEventListener("click", onToolClick);
     UI.tools.addEventListener("mouseenter", () => showTools(true));
     UI.tools.addEventListener("focusin", () => showTools(true));
+    UI.src.addEventListener("click", onWordClick);
+    UI.lk.querySelector(".x").addEventListener("click", () => closeLookup(true));
+    UI.lkSave.addEventListener("click", saveLookup);
+    // Keys pressed on our buttons (Space, Enter, Escape) must not reach the page's player shortcuts.
+    for (const el of [UI.tools, UI.lk]) {
+      el.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          if (!UI.tpop.hidden) toggleTimingPop(false, true);
+          if (!UI.lk.hidden) closeLookup(true);
+        }
+        e.stopPropagation();
+      });
+      el.addEventListener("keyup", (e: Event) => e.stopPropagation());
+    }
     applySettings();
+    renderOffset();
     updatePosition();
   }
 
   function removeOverlay() {
+    lookupFor = null;
     UI.host?.remove();
     for (const k of Object.keys(UI)) delete UI[k];
   }
@@ -155,7 +191,7 @@ declare global {
     const pad = Math.round(box.height * (S.settings.position === "top" ? 0.06 : 0.13));
     st.paddingTop = st.paddingBottom = pad + "px";
     UI.tools.style.top = Math.round(box.top + 10) + "px";
-    UI.tools.style.left = Math.round(box.left + box.width - UI.tools.offsetWidth - 10) + "px";
+    UI.tools.style.left = Math.max(4, Math.round(box.left + box.width - UI.tools.offsetWidth - 10)) + "px";
     // The size setting is for a 900px-wide player; the text scales with the player.
     const scale = Math.max(0.6, Math.min(1.8, box.width / 900));
     st.fontSize = Math.round(S.settings.size * scale) + "px";
@@ -183,6 +219,15 @@ declare global {
     set("subs", !S.hidden);
     set("bi", S.settings.bilingual);
     set("dub", S.settings.dub);
+    set("list", S.settings.transcript);
+    // Line-based tools need lines: not in live mode. "Open in the app" only for a YouTube video.
+    const synced = isSynced();
+    btn("time").hidden = !synced;
+    btn("list").hidden = !synced;
+    btn("dub").hidden = S.mode === "live";
+    btn("app").hidden = !(S.mode === "youtube" && S.videoId);
+    if (!synced && !UI.tpop.hidden) toggleTimingPop(false);
+    syncTranscript();
     updatePosition();
   }
 
@@ -191,7 +236,7 @@ declare global {
     UI.tools.classList.add("show");
     clearTimeout(toolsTimer);
     toolsTimer = setTimeout(() => {
-      if (!UI.tools?.matches(":hover") && !UI.tools?.matches(":focus-within")) UI.tools?.classList.remove("show");
+      if (!UI.tools?.matches(":hover") && !UI.tools?.matches(":focus-within") && UI.tpop?.hidden) UI.tools?.classList.remove("show");
     }, stay ? 4000 : 2200);
   }
 
@@ -208,12 +253,28 @@ declare global {
   }
 
   function onToolClick(e: Event) {
-    const act = (e.target as HTMLElement).closest("button")?.dataset.act;
+    const button = (e.target as HTMLElement).closest("button");
+    const nudge = button?.dataset.nudge;
+    if (nudge) {
+      if (nudge === "reset") setOffset(0);
+      else setOffset(nudgeOffset(S.offset, Number(nudge)));
+      return;
+    }
+    const act = button?.dataset.act;
     if (!act) return;
     switch (act) {
       case "subs":
         S.hidden = !S.hidden;
         applySettings();
+        break;
+      case "time":
+        toggleTimingPop(UI.tpop.hidden);
+        break;
+      case "list":
+        saveSettings({ transcript: !S.settings.transcript });
+        break;
+      case "app":
+        openInApp();
         break;
       case "bi":
         saveSettings({ bilingual: !S.settings.bilingual });
@@ -270,7 +331,24 @@ declare global {
     if (!UI.tr) return;
     UI.tr.textContent = tr || "";
     UI.trLine.classList.toggle("pending", pending);
-    UI.src.textContent = src && S.settings.bilingual ? src : "";
+    const shown = src && S.settings.bilingual ? src : "";
+    if (UI.src.dataset.text === shown) return;
+    UI.src.dataset.text = shown;
+    UI.src.textContent = "";
+    // In synced modes each word of the original can be clicked for its meaning.
+    if (!shown || !isSynced()) return void (UI.src.textContent = shown);
+    for (const tk of tokenize(shown)) {
+      if (!tk.word) {
+        UI.src.append(tk.text);
+        continue;
+      }
+      const w = document.createElement("span");
+      w.className = "w";
+      w.dataset.w = tk.lookup;
+      w.textContent = tk.text;
+      if (lookupFor && lookupFor.word === tk.lookup && lookupFor.sentence === shown) w.classList.add("sel");
+      UI.src.append(w);
+    }
   }
 
   function errorText(res: Reply | null | undefined) {
@@ -293,6 +371,7 @@ declare global {
     S.cues.forEach((c, i) => c.ar && S.tr.set(i, c.ar));
     S.idx = -1;
     stopDub();
+    transcript?.setCues(S.cues, S.tr, S.srcLang, S.settings.lang);
   }
 
   async function activateYouTube(url: string) {
@@ -310,11 +389,16 @@ declare global {
     S.cues = [];
     S.idx = -1;
     S.loading = true;
+    S.title = "";
     stopDub();
+    closeLookup(false);
     ensureOverlay();
     UI.whisper.classList.remove("show");
     renderText("", "");
     hideNativeCC(true);
+    transcript?.setCues([], S.tr, "auto", S.settings.lang);
+    loadOffset(gen);
+    applySettings();
     if (!rafId) rafId = requestAnimationFrame(positionLoop);
 
     if (!vid) {
@@ -334,6 +418,8 @@ declare global {
       return setPill(errorText(res), { err: true });
     }
 
+    S.srcLang = res.srcLang || "auto";
+    S.title = String(res.title || "");
     fillCues(res.cues);
     setPill(res.alreadyTranslated ? t("pillNativeReady") : t("pillRunning"), { hideAfter: 2200 });
     startSync();
@@ -349,10 +435,15 @@ declare global {
       if (!S.active || !isSynced()) return;
       const v = currentVideo();
       if (!v) return;
-      const i = adShowing() ? -1 : cueIndexAt(S.cues, v.currentTime);
+      const now = captionTime(v.currentTime, S.offset);
+      const i = adShowing() ? -1 : cueIndexAt(S.cues, now);
       if (i !== S.idx) {
         S.idx = i;
         renderCurrent();
+      }
+      if (transcript) {
+        const c = S.cues[i];
+        transcript.setCurrent(i, c ? lineProgress(c.start, c.end, now) : 0);
       }
     }, 120);
   }
@@ -375,6 +466,7 @@ declare global {
     // Only one loop per activation; a loop left from an earlier one stops at its next check of S.gen.
     if (S.translatingGen === gen) return;
     S.translatingGen = gen;
+    transcript?.setTranslating(true);
     let failStreak = 0;
     try {
       while (S.active && isSynced() && gen === S.gen) {
@@ -408,12 +500,14 @@ declare global {
           if (tr) S.tr.set(i, tr);
           else S.tries.set(i, (S.tries.get(i) || 0) + 1);
         }
+        transcript?.updateTr(batch, S.tr);
         if (batch.includes(S.idx)) renderCurrent();
       }
     } finally {
       // An older loop ending must not mark a newer one as finished.
       if (S.translatingGen === gen) {
         S.translatingGen = 0;
+        transcript?.setTranslating(false);
         renderCurrent();
       }
     }
@@ -463,6 +557,7 @@ declare global {
       if (j.status === "done") {
         S.whisperJob = "";
         UI.whisper.classList.remove("show");
+        S.srcLang = j.srcLang || "auto";
         fillCues(j.cues || []);
         setPill(t("pillWhisperDone"), { hideAfter: 2200 });
         startSync();
@@ -499,7 +594,9 @@ declare global {
     S.mode = "live";
     stopSync();
     stopDub();
+    closeLookup(false);
     ensureOverlay();
+    applySettings();
     UI.whisper.classList.remove("show");
     if (!rafId) rafId = requestAnimationFrame(positionLoop);
     setPill(t("pillListening"), { busy: true, hideAfter: 3500 });
@@ -514,7 +611,8 @@ declare global {
   let dub: DubEngine | null = null;
 
   const videoMedia: DubMedia = {
-    time: () => currentVideo()?.currentTime ?? 0,
+    // The caption clock: with the subtitles shifted, the voice moves with them.
+    time: () => captionTime(currentVideo()?.currentTime ?? 0, S.offset),
     // An ad counts as paused: no dubbing over ads.
     paused: () => {
       const v = currentVideo();
@@ -584,6 +682,393 @@ declare global {
   }
 
   /* ------------------------------------------------------------------ */
+  /*  Subtitle timing: shift the lines (and the dub) earlier or later,   */
+  /*  remembered per video for the browser session.                      */
+  /* ------------------------------------------------------------------ */
+
+  /** The page that the timing belongs to: the YouTube video, or this player's page. */
+  const pageKey = () => (S.mode === "youtube" && S.videoId ? "yt:" + S.videoId : offsetKey(location.href));
+
+  async function loadOffset(gen: number) {
+    const key = pageKey();
+    S.offsetKey = key;
+    S.offset = 0;
+    renderOffset();
+    const r = await bg("offset-get", { key });
+    if (gen !== S.gen || key !== S.offsetKey || !r || !r.ok) return;
+    S.offset = Number(r.offset) || 0;
+    renderOffset();
+    if (S.offset) setPill(t("pillOffset", formatOffset(S.offset)), { hideAfter: 2400 });
+  }
+
+  function setOffset(value: number, announce = true) {
+    if (!isSynced()) return;
+    const next = nudgeOffset(value, 0);
+    if (next === S.offset) return void renderOffset(true);
+    S.offset = next;
+    bg("offset-set", { key: S.offsetKey || pageKey(), offset: next });
+    renderOffset(true);
+    // Show the new line right away rather than at the next tick.
+    S.idx = -2;
+    if (announce) setPill(next ? t("pillOffset", formatOffset(next)) : t("pillOffsetReset"), { hideAfter: 1800 });
+  }
+
+  function renderOffset(pulse = false) {
+    if (!UI.tpopOut) return;
+    UI.tpopOut.textContent = t("offsetSeconds", formatOffset(S.offset));
+    UI.tpopReset.disabled = !S.offset;
+    UI.tpopNote.textContent = S.settings.dub ? t("timingDubFollows") : "";
+    UI.tpopNote.hidden = !S.settings.dub;
+    const tb = UI.tools.querySelector('[data-act="time"]');
+    tb.classList.toggle("on", !!S.offset);
+    if (pulse && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      UI.tpopOut.classList.remove("pulse");
+      void UI.tpopOut.offsetWidth;
+      UI.tpopOut.classList.add("pulse");
+    }
+  }
+
+  function toggleTimingPop(open: boolean, refocus = false) {
+    if (!UI.tpop) return;
+    UI.tpop.hidden = !open;
+    const tb = UI.tools.querySelector('[data-act="time"]');
+    tb.setAttribute("aria-expanded", String(open));
+    if (open) {
+      renderOffset();
+      showTools(true);
+      UI.tpop.querySelector("button")?.focus({ preventScroll: true });
+    } else {
+      if (refocus) tb.focus({ preventScroll: true });
+      showTools();
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Lines: previous, next, repeat (keyboard and transcript)            */
+  /* ------------------------------------------------------------------ */
+
+  function seekToCue(i: number) {
+    const v = currentVideo();
+    const c = S.cues[i];
+    if (!v || !c) return;
+    v.currentTime = videoTimeFor(c.start, S.offset) + 0.01;
+    S.idx = -2; // render it at the next tick even if it was the line shown
+  }
+
+  function stepTo(delta: -1 | 0 | 1) {
+    const v = currentVideo();
+    if (!v || !S.cues.length) return;
+    const i = stepLine(S.cues, captionTime(v.currentTime, S.offset), delta);
+    if (i < 0) return;
+    seekToCue(i);
+    if (v.paused && !lookupFor) v.play().catch(() => {});
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Keyboard shortcuts on the page                                      */
+  /* ------------------------------------------------------------------ */
+
+  function runShortcut(a: ShortcutAction) {
+    switch (a) {
+      case "prev":
+        return stepTo(-1);
+      case "next":
+        return stepTo(1);
+      case "repeat":
+        return stepTo(0);
+      case "subs":
+        S.hidden = !S.hidden;
+        applySettings();
+        setPill(S.hidden ? t("pillSubsHidden") : t("pillSubsShown"), { hideAfter: 1400 });
+        return;
+      case "dub":
+        saveSettings({ dub: !S.settings.dub });
+        applyDubSetting();
+        renderOffset();
+        setPill(S.settings.dub ? t("pillDubOn") : t("pillDubOff"), { hideAfter: 1400 });
+        return;
+      case "transcript":
+        saveSettings({ transcript: !S.settings.transcript });
+        if (S.settings.transcript) setTimeout(() => transcript?.focus(), 50);
+        return;
+      case "earlier":
+        return setOffset(nudgeOffset(S.offset, -0.25));
+      case "later":
+        return setOffset(nudgeOffset(S.offset, 0.25));
+      case "resetTiming":
+        return setOffset(0);
+    }
+  }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (!S.active) return;
+    if (e.key === "Escape" && (lookupFor || (UI.tpop && !UI.tpop.hidden))) {
+      e.stopImmediatePropagation();
+      if (lookupFor) closeLookup(true);
+      else toggleTimingPop(false);
+      return;
+    }
+    if (!S.settings.keys || e.defaultPrevented) return;
+    const action = shortcutFor(e);
+    if (!action) return;
+    // Not while typing: YouTube's search and comment boxes, or our own transcript search.
+    const target = (e.composedPath()[0] || e.target) as HTMLElement;
+    if (isTypingTarget(target)) return;
+    const lineAction = action !== "subs" && action !== "dub";
+    if (lineAction && !isSynced()) return;
+    if (action === "dub" && S.mode === "live") return;
+    // Ours, not the page's: Alt+← would otherwise go back in the browser history.
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (e.repeat && (action === "subs" || action === "dub" || action === "transcript")) return;
+    runShortcut(action);
+    showTools();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Word lookup: click a word of the original (bilingual mode)          */
+  /* ------------------------------------------------------------------ */
+
+  let lookupFor: { word: string; sentence: string; sentenceTr: string; t: number; meaning: string; seq: number; paused: boolean } | null = null;
+  let lookupSeq = 0;
+
+  function onWordClick(e: MouseEvent) {
+    const w = (e.target as HTMLElement).closest<HTMLElement>(".w");
+    if (!w || !isSynced()) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openLookup(w);
+  }
+
+  async function openLookup(w: HTMLElement) {
+    const word = w.dataset.w || w.textContent || "";
+    if (!word) return;
+    const i = S.idx;
+    const c = S.cues[i];
+    const v = currentVideo();
+    const wasPlaying = !!v && !v.paused;
+    // Keep the pause we made, if the user clicks another word while the card is open.
+    const paused = lookupFor ? lookupFor.paused : wasPlaying;
+    if (wasPlaying) v!.pause();
+    const seq = ++lookupSeq;
+    lookupFor = { word, sentence: c?.src || UI.src.dataset.text || "", sentenceTr: S.tr.get(i) || "", t: c ? c.start : v?.currentTime || 0, meaning: "", seq, paused };
+    UI.src.querySelectorAll(".w.sel").forEach((x: Element) => x.classList.remove("sel"));
+    w.classList.add("sel");
+
+    UI.lkWord.textContent = word;
+    UI.lkWord.lang = S.srcLang === "auto" ? "" : S.srcLang;
+    UI.lkMean.textContent = "";
+    UI.lkMean.className = "lk-mean";
+    UI.lkMean.dir = langDir(S.settings.lang);
+    UI.lkMean.innerHTML = '<span class="shimmer" aria-hidden="true"></span>';
+    UI.lkMean.setAttribute("aria-busy", "true");
+    UI.lkSent.textContent = "";
+    for (const part of highlight(lookupFor.sentence, word)) {
+      if (part.hit) {
+        const m = document.createElement("mark");
+        m.textContent = part.text;
+        UI.lkSent.append(m);
+      } else UI.lkSent.append(part.text);
+    }
+    UI.lkSent.hidden = !lookupFor.sentence;
+    setSaveState("idle");
+    const opening = UI.lk.hidden;
+    UI.lk.hidden = false;
+    placeLookup(w);
+    if (opening) {
+      lookupReturn = document.activeElement as HTMLElement | null;
+      document.addEventListener("pointerdown", onOutside, true);
+    }
+    UI.lkSave.focus({ preventScroll: true });
+
+    const sl = S.srcLang && S.srcLang !== "auto" ? S.srcLang : "auto";
+    const r = await bg("translate", { texts: [word], sl, tl: S.settings.lang });
+    if (!lookupFor || lookupFor.seq !== seq) return;
+    UI.lkMean.removeAttribute("aria-busy");
+    const meaning = (r && r.ok && r.map && r.map[word]) || "";
+    lookupFor.meaning = meaning;
+    UI.lkMean.textContent = meaning || (r && r.ok ? t("lookupNone") : errorText(r));
+    UI.lkMean.classList.toggle("dim", !meaning);
+    placeLookup(w);
+  }
+
+  let lookupReturn: HTMLElement | null = null;
+
+  function placeLookup(w: HTMLElement) {
+    if (!UI.lk || UI.lk.hidden) return;
+    const r = w.isConnected ? w.getBoundingClientRect() : UI.src.getBoundingClientRect();
+    const box = UI.lk.getBoundingClientRect();
+    const gap = 10;
+    // Above the word (the subtitles sit low on the video), or below when there is no room.
+    let top = r.top - box.height - gap;
+    if (top < 8) top = Math.min(innerHeight - box.height - 8, r.bottom + gap);
+    const left = Math.max(8, Math.min(innerWidth - box.width - 8, r.left + r.width / 2 - box.width / 2));
+    UI.lk.style.top = Math.max(8, Math.round(top)) + "px";
+    UI.lk.style.left = Math.round(left) + "px";
+  }
+
+  function onOutside(e: Event) {
+    if (!lookupFor || !UI.lk) return;
+    const path = e.composedPath();
+    if (path.includes(UI.lk)) return;
+    // Another word: openLookup takes it from here.
+    if (path.some((x) => x instanceof HTMLElement && x.classList?.contains("w") && UI.src.contains(x))) return;
+    closeLookup(true);
+  }
+
+  /** Closes the card; `resume` plays the video again if the card paused it. */
+  function closeLookup(resume: boolean) {
+    document.removeEventListener("pointerdown", onOutside, true);
+    const was = lookupFor;
+    lookupFor = null;
+    lookupSeq++;
+    if (UI.lk) UI.lk.hidden = true;
+    UI.src?.querySelectorAll(".w.sel").forEach((x: Element) => x.classList.remove("sel"));
+    if (!was) return;
+    if (resume && was.paused) {
+      const v = currentVideo();
+      if (v && v.paused) v.play().catch(() => {});
+    }
+    // Back where the user was, unless that was inside the card.
+    if (lookupReturn && lookupReturn.isConnected && lookupReturn !== UI.host) lookupReturn.focus?.({ preventScroll: true });
+    lookupReturn = null;
+  }
+
+  function setSaveState(st: "idle" | "saving" | "saved" | "duplicate" | "error") {
+    if (!UI.lkSave) return;
+    const label = UI.lkSave.querySelector("span");
+    UI.lkSave.disabled = st === "saving" || st === "saved" || st === "duplicate";
+    UI.lkSave.classList.toggle("done", st === "saved" || st === "duplicate");
+    UI.lkSave.querySelector("svg").outerHTML = st === "saved" || st === "duplicate" ? ICONS.saved : ICONS.save;
+    label.textContent = { idle: t("lookupSave"), saving: t("lookupSaving"), saved: t("lookupSaved"), duplicate: t("lookupDuplicate"), error: t("lookupSave") }[st];
+    UI.lkState.textContent = st === "error" ? t("lookupSaveFailed") : "";
+    UI.lkState.classList.toggle("err", st === "error");
+  }
+
+  async function saveLookup() {
+    const it = lookupFor;
+    if (!it) return;
+    setSaveState("saving");
+    const r = await bg("vocab-add", {
+      item: { word: it.word, tr: it.meaning, sentence: it.sentence, sentenceTr: it.sentenceTr, videoId: S.mode === "youtube" ? S.videoId : "", title: S.title, t: it.t },
+    });
+    if (lookupFor !== it) return;
+    setSaveState(r && r.ok ? (r.duplicate ? "duplicate" : "saved") : "error");
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  The transcript beside the video                                     */
+  /* ------------------------------------------------------------------ */
+
+  let transcript: Transcript | null = null;
+
+  function syncTranscript() {
+    const want = S.active && isSynced() && S.settings.transcript;
+    if (!want) {
+      transcript?.destroy();
+      transcript = null;
+      return;
+    }
+    if (transcript) return;
+    injectFonts();
+    transcript = createTranscript({
+      onSeek: (i) => {
+        seekToCue(i);
+        const v = currentVideo();
+        if (v && v.paused && !lookupFor) v.play().catch(() => {});
+      },
+      onClose: () => saveSettings({ transcript: false }),
+      player: () => document.querySelector("#movie_player") || currentVideo(),
+    });
+    transcript.place();
+    transcript.setCues(S.cues, S.tr, S.srcLang, S.settings.lang);
+    transcript.setTranslating(S.translatingGen === S.gen && S.translatingGen !== 0);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Open the desktop app at this moment (YouTube videos)                */
+  /* ------------------------------------------------------------------ */
+
+  async function openInApp() {
+    // The app opens YouTube links only; another site's video would need downloading first.
+    const vid = window.top === window && isYouTube(location.href) ? ytVideoId(location.href) : "";
+    if (!vid) return;
+    const v = S.active ? currentVideo() : findVideo();
+    const at = Math.floor(v?.currentTime || 0);
+    // The app picks up from here; two players speaking at once would be confusing.
+    v?.pause();
+    const r = await bg("open-app-at", { videoId: vid, t: at });
+    if (!r || !r.ok) setPill(errorText(r), { err: true, hideAfter: 4000 });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  The channel of the YouTube video (for auto-start)                   */
+  /* ------------------------------------------------------------------ */
+
+  function currentChannel(): Channel | null {
+    if (!isYouTube(location.href)) return null;
+    const vid = ytVideoId(location.href);
+    const flexy = document.querySelector("ytd-watch-flexy");
+    // YouTube swaps the page in place: until the watch page says it shows this video, its channel
+    // link may still be the previous video's.
+    if (!vid || !flexy || flexy.getAttribute("video-id") !== vid) return null;
+    const a = flexy.querySelector<HTMLAnchorElement>("#owner ytd-channel-name a, ytd-video-owner-renderer ytd-channel-name a, #upload-info ytd-channel-name a");
+    const id = channelFromHref(a?.getAttribute("href"));
+    if (!id) return null;
+    return { id, name: (a?.textContent || "").trim() || id };
+  }
+
+  async function waitForChannel(vid: string): Promise<Channel | null> {
+    for (let k = 0; k < 30; k++) {
+      if (ytVideoId(location.href) !== vid) return null;
+      const c = currentChannel();
+      if (c) return c;
+      await sleep(300);
+    }
+    return null;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Auto-start on YouTube (off unless chosen in the options)            */
+  /* ------------------------------------------------------------------ */
+
+  // The last video the translation was stopped on: it doesn't start again by itself.
+  const STOPPED_KEY = "__tarjuman_stopped";
+  const stoppedVideo = () => {
+    try {
+      return sessionStorage.getItem(STOPPED_KEY) || "";
+    } catch {
+      return "";
+    }
+  };
+  const rememberStopped = (vid: string) => {
+    try {
+      if (vid) sessionStorage.setItem(STOPPED_KEY, vid);
+    } catch {}
+  };
+
+  let autoChecking = "";
+
+  async function maybeAutoStart() {
+    if (window.top !== window || S.active || !isAutoStartPage(location.href)) return;
+    const vid = ytVideoId(location.href);
+    if (!vid || vid === stoppedVideo() || autoChecking === vid) return;
+    autoChecking = vid;
+    try {
+      // A tab opened in the background waits until it is looked at.
+      while (document.visibilityState !== "visible") {
+        await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
+        if (ytVideoId(location.href) !== vid) return;
+      }
+      const channel = await waitForChannel(vid);
+      if (S.active || ytVideoId(location.href) !== vid) return;
+      await bg("auto-start", { url: location.href, channel });
+    } finally {
+      if (autoChecking === vid) autoChecking = "";
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
   /*  The site's own captions (Coursera, Udemy, any player with text      */
   /*  tracks). Far better than transcribing audio: the exact words, timed.*/
   /* ------------------------------------------------------------------ */
@@ -630,10 +1115,15 @@ declare global {
     S.trackIndex = entry ? entry.i : -1;
     S.cues = [];
     S.idx = -1;
+    S.videoId = "";
+    S.title = document.title || "";
     stopDub();
+    closeLookup(false);
     ensureOverlay();
     UI.whisper.classList.remove("show");
     renderText("", "");
+    loadOffset(gen);
+    applySettings();
     if (!rafId) rafId = requestAnimationFrame(positionLoop);
     if (!entry) return setPill(t("pillNoSiteCaptions"), { err: true });
     setPill(t("pillReadingSiteCaptions"), { busy: true });
@@ -656,6 +1146,35 @@ declare global {
     switch (msg.type) {
       case "ping":
         return { ok: true, active: S.active, mode: S.mode };
+      case "page-info": {
+        // Answered by the frame that translates, or by the YouTube page itself (for auto-start).
+        const yt = window.top === window && isYouTube(location.href);
+        if (!S.active && !yt) return;
+        const v = S.active ? currentVideo() : findVideo();
+        return {
+          ok: true,
+          active: S.active,
+          mode: S.mode,
+          youtube: yt,
+          videoId: yt ? ytVideoId(location.href) : "",
+          time: v ? v.currentTime : 0,
+          offset: S.offset,
+          synced: S.active && isSynced(),
+          channel: yt ? currentChannel() : null,
+        };
+      }
+      case "page-cmd": {
+        if (msg.cmd === "open-app") {
+          if (window.top !== window || !ytVideoId(location.href) || !isYouTube(location.href)) return;
+          void openInApp();
+          return { ok: true };
+        }
+        if (!S.active || !isSynced()) return;
+        if (msg.cmd === "nudge") setOffset(nudgeOffset(S.offset, Number(msg.delta) || 0));
+        else if (msg.cmd === "reset-offset") setOffset(0);
+        else if (msg.cmd === "focus-transcript") transcript?.focus();
+        return { ok: true, offset: S.offset };
+      }
       case "activate-youtube":
         if (msg.settings) S.settings = mergeSettings(S.settings, msg.settings);
         whenI18n(() => activateYouTube(msg.url || location.href));
@@ -679,6 +1198,7 @@ declare global {
         const voiceChanged = next.voice !== S.settings.voice;
         S.settings = next;
         applySettings();
+        renderOffset();
         if (S.active && S.mode === "youtube" && langChanged) {
           S.videoId = "";
           activateYouTube(location.href);
@@ -729,6 +1249,9 @@ declare global {
   });
 
   function deactivate() {
+    // Stopped on this video: it does not start again by itself (auto-start) until another one opens.
+    if (S.mode === "youtube" && S.videoId) rememberStopped(S.videoId);
+    closeLookup(false);
     restoreTracks();
     cancelWhisper();
     S.gen++;
@@ -737,8 +1260,12 @@ declare global {
     S.mode = null;
     S.videoId = "";
     S.cues = [];
+    S.offset = 0;
+    S.offsetKey = "";
     stopSync();
     stopDub();
+    transcript?.destroy();
+    transcript = null;
     clearTimeout(S.liveTimer);
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
@@ -750,6 +1277,8 @@ declare global {
   document.addEventListener("yt-navigate-finish", () => {
     S.video = null; // the new page may play in another <video> (Shorts, for one)
     if (S.active && S.mode === "youtube") activateYouTube(location.href);
+    else if (!S.active) void maybeAutoStart();
+    transcript?.place();
   });
 
   document.addEventListener("fullscreenchange", () => {
@@ -760,6 +1289,9 @@ declare global {
   });
 
   document.addEventListener("mousemove", onMouseMove, { passive: true });
+  // Capture, on window: before the player sees the key (Alt+← would also go back in history).
+  window.addEventListener("keydown", onKeyDown, true);
+  window.addEventListener("resize", () => lookupFor && closeLookup(false));
 
   // After a reload or a new page in a tab that was translating, pick up where it left off.
   // Asked once the interface language is in, so the overlay is built in it.
@@ -767,5 +1299,6 @@ declare global {
     .then(() => bg("content-ready", { url: location.href }))
     .then((r) => {
       if (r && r.ok && r.activate) handle(r.activate);
+      else void maybeAutoStart();
     });
 })();

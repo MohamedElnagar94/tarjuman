@@ -21,6 +21,10 @@ export interface Settings {
   bgOpacity: number;
   /** Subtitle font (shared/fonts.ts). */
   font: FontId;
+  /** Keyboard shortcuts on the page while translating (shared/shortcuts.ts). */
+  keys: boolean;
+  /** The transcript panel beside the video (or floating, outside YouTube). */
+  transcript: boolean;
 }
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
@@ -34,6 +38,8 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   position: "bottom",
   bgOpacity: 0.78,
   font: DEFAULT_FONT,
+  keys: true,
+  transcript: false,
 });
 
 export const SIZE_MIN = 14;
@@ -77,6 +83,8 @@ export function mergeSettings(base?: Partial<Settings> | null, patch?: Partial<S
     position: v("position") === "top" ? "top" : "bottom",
     bgOpacity: clamp(v("bgOpacity"), 0, 1, DEFAULT_SETTINGS.bgOpacity),
     font: isFontId(v("font")) ? (v("font") as FontId) : DEFAULT_FONT,
+    keys: v("keys") !== false,
+    transcript: !!v("transcript"),
   };
 }
 

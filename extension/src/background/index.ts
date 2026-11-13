@@ -16,6 +16,8 @@ import { readTable } from "@/shared/i18n";
 import { findServer, probe, normalizeServerUrl, DEFAULT_BASE, type Found } from "@/shared/server";
 import { isYouTube, isProtectedUrl, originPattern, pickTrack, type TrackInfo } from "@/shared/cues";
 import { bytesToB64 } from "@/shared/audio";
+import { cleanOffset, rememberOffset } from "@/shared/timing";
+import { mergeAuto, shouldAutoStart, type AutoStart } from "@/shared/autostart";
 import type { RunState, TabInfo, Status, Reply } from "@/shared/messages";
 
 const IDLE: RunState = { active: false, mode: null, tabId: null };
@@ -28,6 +30,10 @@ let override: string | null = null;
 let pendingStart: { tabId: number; at: number } | null = null;
 /** The tab showing the badge, so it can be cleared there when translation stops or moves to another tab. */
 let badgeTab: number | null = null;
+/** Auto-start on YouTube (shared/autostart.ts). */
+let auto: AutoStart = mergeAuto(null);
+/** Subtitle timing per video, for this browser session (shared/timing.ts). */
+let offsets: Record<string, number> = {};
 
 const ready = (async () => {
   try {
@@ -38,8 +44,13 @@ const ready = (async () => {
     if (s.pendingStart) pendingStart = s.pendingStart;
   } catch {}
   try {
-    const l = await chrome.storage.local.get(["settings", "serverBase", "serverOverride"]);
+    const o = await chrome.storage.session.get("offsets");
+    if (o.offsets && typeof o.offsets === "object") offsets = o.offsets;
+  } catch {}
+  try {
+    const l = await chrome.storage.local.get(["settings", "serverBase", "serverOverride", "autoStart"]);
     settings = mergeSettings(l.settings);
+    auto = mergeAuto(l.autoStart);
     if (l.serverBase) serverBase = l.serverBase;
     if (l.serverOverride) override = normalizeServerUrl(l.serverOverride);
   } catch {}
@@ -225,6 +236,17 @@ async function frameOriginsOf(tabId: number, pageOrigin: string | null): Promise
     return [...out].slice(0, 5);
   } catch {
     return [];
+  }
+}
+
+/** Asks the tab's frames; the one that answers (the overlay's frame) wins. null when none does. */
+async function askTab(tabId: number | null | undefined, msg: Record<string, unknown>): Promise<Reply | null> {
+  if (tabId == null) return null;
+  try {
+    const r = await chrome.tabs.sendMessage(tabId, msg);
+    return r && typeof r === "object" ? (r as Reply) : null;
+  } catch {
+    return null;
   }
 }
 
@@ -477,6 +499,76 @@ const handlers: Record<string, Handler> = {
     await chrome.tabs.create({ url });
     return { ok: true };
   },
+  // The app's watch page for this YouTube video, at this moment (frontend: /watch?url=…&t=…).
+  "open-app-at": async (msg, sender) => {
+    const id = String(msg.videoId || "");
+    if (!/^[\w-]{11}$/.test(id)) return { ok: false, code: "NO_VIDEO" };
+    const srv = await locate();
+    if (!srv) return { ok: false, code: "NO_SERVER" };
+    const at = Math.max(0, Math.floor(Number(msg.t) || 0));
+    const url = `${srv.base}/watch?url=${encodeURIComponent("https://www.youtube.com/watch?v=" + id)}&t=${at}`;
+    const opener = sender.tab;
+    await chrome.tabs.create(opener && opener.id != null ? { url, index: opener.index + 1, openerTabId: opener.id } : { url });
+    return { ok: true };
+  },
+
+  /* The page's state and commands, for the popup: the frame that translates answers (or the YouTube page). */
+  "page-info": async (msg) => {
+    const tabId = msg.tabId ?? (await activeTab())?.id;
+    return (await askTab(tabId, { type: "page-info" })) || { ok: false, code: "NO_PAGE" };
+  },
+  "page-cmd": async (msg) => {
+    const tabId = msg.tabId ?? state.tabId;
+    return (await askTab(tabId, { type: "page-cmd", cmd: msg.cmd, delta: msg.delta })) || { ok: false, code: "NO_PAGE" };
+  },
+
+  "offset-get": (msg) => ({ ok: true, offset: offsets[String(msg.key || "")] || 0 }),
+  "offset-set": async (msg) => {
+    const key = String(msg.key || "").slice(0, 500);
+    if (!key) return { ok: false };
+    offsets = rememberOffset(offsets, key, cleanOffset(msg.offset));
+    await chrome.storage.session.set({ offsets }).catch(() => {});
+    return { ok: true, offset: offsets[key] || 0 };
+  },
+
+  // A word saved from the subtitles, to "My words" in the app (the same endpoint as the web app).
+  "vocab-add": (msg) => {
+    const it = msg.item || {};
+    return postJson(
+      "/api/vocab",
+      {
+        word: String(it.word || "").slice(0, 80),
+        tr: String(it.tr || "").slice(0, 300),
+        sentence: String(it.sentence || "").slice(0, 400),
+        sentenceTr: String(it.sentenceTr || "").slice(0, 400),
+        videoId: String(it.videoId || "").slice(0, 20),
+        title: String(it.title || "").slice(0, 200),
+        t: Number(it.t) || 0,
+      },
+      15000,
+    );
+  },
+
+  "get-auto": () => ({ ok: true, auto }),
+  "set-auto": async (msg) => {
+    auto = mergeAuto(msg.auto);
+    await chrome.storage.local.set({ autoStart: auto });
+    return { ok: true, auto };
+  },
+
+  // From a YouTube page that opened a video, when nothing is translating: start if the user chose so.
+  "auto-start": async (msg, sender) => {
+    const tab = sender.tab;
+    if (!tab || tab.id == null || sender.frameId) return { ok: true, started: false };
+    const url = String(msg.url || sender.url || "");
+    const channel = msg.channel && typeof msg.channel === "object" ? String(msg.channel.id || "") : "";
+    if (!shouldAutoStart(auto, url, channel)) return { ok: true, started: false };
+    // Never take over from a tab that is already translating.
+    if (state.active) return { ok: true, started: false, busy: state.tabId !== tab.id };
+    const res = await start({ ...tab, url });
+    return { ok: true, started: !!res.ok, code: res.code };
+  },
+
   "open-welcome": async () => {
     await chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
     return { ok: true };

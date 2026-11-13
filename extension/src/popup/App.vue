@@ -3,6 +3,9 @@ import { computed, onMounted, ref } from "vue";
 import { t } from "@/shared/i18n";
 import { send } from "@/shared/messages";
 import { TARGET_LANGS } from "@/shared/settings";
+import { OFFSET_STEPS, formatOffset } from "@/shared/timing";
+import { clock } from "@/shared/cueText";
+import { hasChannel, mergeAuto, setChannel, type AutoStart, type Channel } from "@/shared/autostart";
 import { useExtension } from "@/ui/useExtension";
 import { startError, shortcutText } from "@/ui/errors";
 import ToggleSwitch from "@/ui/ToggleSwitch.vue";
@@ -66,6 +69,55 @@ async function doStart() {
   const r = await send("start", { tabId: tab.value?.id });
   if (!r.ok) error.value = startError(r);
   await refresh();
+  await loadPage();
+}
+
+/* ---------- this video: timing, transcript, its channel, the app ---------- */
+
+interface PageInfo {
+  ok: boolean;
+  active?: boolean;
+  youtube?: boolean;
+  videoId?: string;
+  time?: number;
+  offset?: number;
+  synced?: boolean;
+  channel?: Channel | null;
+}
+const page = ref<PageInfo | null>(null);
+const auto = ref<AutoStart>(mergeAuto(null));
+const synced = computed(() => running.value && !!page.value?.ok && !!page.value.synced);
+const offset = computed(() => page.value?.offset || 0);
+const ytVideo = computed(() => !!page.value?.ok && !!page.value.youtube && !!page.value.videoId);
+const channel = computed(() => (ytVideo.value && page.value?.channel) || null);
+const channelOn = computed(() => hasChannel(auto.value, channel.value?.id));
+const pageCard = computed(() => synced.value || ytVideo.value);
+const bump = ref(0);
+
+async function loadPage() {
+  const tb = tab.value;
+  if (!tb || tb.protected) return void (page.value = null);
+  page.value = await send<PageInfo>("page-info", { tabId: tb.id });
+}
+
+async function nudge(delta: number | "reset") {
+  const r = await send("page-cmd", { tabId: tab.value?.id, cmd: delta === "reset" ? "reset-offset" : "nudge", delta });
+  if (r.ok && page.value) {
+    page.value = { ...page.value, offset: Number(r.offset) || 0 };
+    bump.value++;
+  }
+}
+
+async function setChannelAuto(on: boolean) {
+  if (!channel.value) return;
+  auto.value = setChannel(auto.value, channel.value, on);
+  const r = await send<{ ok: boolean; auto?: AutoStart }>("set-auto", { auto: auto.value });
+  if (r.ok && r.auto) auto.value = r.auto;
+}
+
+async function openHere() {
+  await send("page-cmd", { tabId: tab.value?.id, cmd: "open-app" });
+  window.close();
 }
 
 async function toggle() {
@@ -77,6 +129,7 @@ async function toggle() {
     if (running.value) {
       await send("stop");
       await refresh();
+      await loadPage();
       return;
     }
     const tb = tab.value;
@@ -162,6 +215,9 @@ function openWelcome() {
 onMounted(async () => {
   shortcut.value = await shortcutText();
   await refresh();
+  const a = await send<{ ok: boolean; auto?: AutoStart }>("get-auto");
+  if (a.ok && a.auto) auto.value = a.auto;
+  await loadPage();
   if (online.value) await loadVoices();
 });
 </script>
@@ -241,6 +297,54 @@ onMounted(async () => {
             <button type="button" class="link" @click="allowSite">{{ t("btnAllowSite") }}</button>
           </p>
         </section>
+
+        <Transition name="card-in">
+          <section v-if="pageCard" class="card page" :aria-label="t('secThisVideo')">
+            <div v-if="synced" class="timing">
+              <div class="row">
+                <span class="lbl">
+                  <span>{{ t("timingTitle") }}</span>
+                  <small>{{ settings.dub ? t("timingDubFollows") : t("timingHint") }}</small>
+                </span>
+                <span class="tval">
+                  <output :key="bump" :class="{ moved: offset !== 0 }" aria-live="polite">{{ t("offsetSeconds", formatOffset(offset)) }}</output>
+                  <button type="button" class="link" :disabled="!offset" @click="nudge('reset')">{{ t("btnReset") }}</button>
+                </span>
+              </div>
+              <div class="steps" role="group" :aria-label="t('timingTitle')">
+                <button
+                  v-for="d in OFFSET_STEPS"
+                  :key="d"
+                  type="button"
+                  :aria-label="t(d < 0 ? 'timingEarlierBy' : 'timingLaterBy', String(Math.abs(d)))"
+                  :title="t(d < 0 ? 'timingEarlierBy' : 'timingLaterBy', String(Math.abs(d)))"
+                  @click="nudge(d)"
+                >
+                  {{ d < 0 ? "−" : "+" }}{{ Math.abs(d) }}
+                </button>
+              </div>
+              <div class="scale" aria-hidden="true"><span><i>←</i>{{ t("timingEarlier") }}</span><span>{{ t("timingLater") }}<i>→</i></span></div>
+            </div>
+            <div v-if="synced" class="row">
+              <label for="transcript" class="lbl"><span>{{ t("lblTranscript") }}</span><small>{{ t("lblTranscriptHint") }}</small></label>
+              <ToggleSwitch id="transcript" :model-value="settings.transcript" @update:model-value="update({ transcript: $event })" />
+            </div>
+            <div v-if="channel" class="row">
+              <label for="chan" class="lbl">
+                <span>{{ t("lblAutoChannel") }}</span>
+                <small dir="auto" class="chan">{{ channel.name }}</small>
+              </label>
+              <ToggleSwitch v-if="auto.mode !== 'always'" id="chan" :model-value="channelOn" @update:model-value="setChannelAuto" />
+              <small v-else class="always">{{ t("autoAlwaysOn") }}</small>
+            </div>
+            <div v-if="ytVideo" class="row">
+              <button type="button" class="btn open-at" @click="openHere">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2.5" /><path d="M8 21h8M12 17v4" /><path d="m10 8.5 4 2-4 2z" /></svg>
+                <span>{{ t("btnOpenAt", clock(page?.time || 0)) }}</span>
+              </button>
+            </div>
+          </section>
+        </Transition>
 
         <section class="card" :aria-label="t('secDub')">
           <div class="row">
@@ -595,6 +699,116 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+/* This video */
+.page {
+  padding-bottom: 4px;
+}
+.timing {
+  padding-bottom: 10px;
+}
+.timing .row {
+  min-height: 40px;
+}
+.tval {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.tval output {
+  direction: ltr;
+  unicode-bidi: isolate;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-weight: 700;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: var(--surface-2);
+  animation: bump 0.28s var(--ease);
+}
+.tval output.moved {
+  color: var(--saffron-300);
+  background: rgba(255, 210, 122, 0.12);
+}
+@keyframes bump {
+  40% {
+    transform: scale(1.1);
+  }
+}
+.link:disabled {
+  opacity: 0.4;
+  cursor: default;
+  text-decoration: none;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  direction: ltr;
+}
+.steps button {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.steps button:hover {
+  background: var(--surface-3);
+}
+.steps button:active {
+  transform: translateY(1px);
+}
+.scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  direction: ltr;
+  color: var(--faint);
+  font-size: 11px;
+}
+.scale span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.scale i {
+  font-style: normal;
+}
+.timing + .row {
+  border-top: 1px solid var(--line);
+}
+.chan {
+  max-width: 190px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.always {
+  max-width: 120px;
+  color: var(--muted);
+  font-size: 11.5px;
+  text-align: end;
+  line-height: 1.35;
+}
+.open-at {
+  width: 100%;
+  min-height: 38px;
+}
+.card-in-enter-active {
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.card-in-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
 }
 .range input {
   width: 116px;

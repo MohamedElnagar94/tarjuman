@@ -492,5 +492,212 @@
   },
   "verApp": {
     "message": "App $1"
+  },
+  "tbTiming": {
+    "message": "Subtitle timing"
+  },
+  "tbTranscript": {
+    "message": "Transcript beside the video"
+  },
+  "tbOpenInApp": {
+    "message": "Open in the Tarjuman app at this moment"
+  },
+  "keyPrev": {
+    "message": "Previous line"
+  },
+  "keyNext": {
+    "message": "Next line"
+  },
+  "keyRepeat": {
+    "message": "Repeat this line"
+  },
+  "keySubs": {
+    "message": "Show or hide subtitles"
+  },
+  "keyDub": {
+    "message": "Voice dubbing on or off"
+  },
+  "keyTranscript": {
+    "message": "Transcript on or off"
+  },
+  "keyEarlier": {
+    "message": "Subtitles 0.25 s earlier"
+  },
+  "keyLater": {
+    "message": "Subtitles 0.25 s later"
+  },
+  "keyResetTiming": {
+    "message": "Reset the subtitle timing"
+  },
+  "keyOr": {
+    "message": "or"
+  },
+  "keysNote": {
+    "message": "They work only while Tarjuman is translating, and never while you type (in YouTube's search or comment box, for example). They follow the key's place on the keyboard, so they work with an Arabic layout too."
+  },
+  "timingTitle": {
+    "message": "Subtitle timing"
+  },
+  "timingHint": {
+    "message": "When the lines come before or after the speech"
+  },
+  "timingEarlier": {
+    "message": "Earlier"
+  },
+  "timingLater": {
+    "message": "Later"
+  },
+  "timingEarlierBy": {
+    "message": "$1 s earlier"
+  },
+  "timingLaterBy": {
+    "message": "$1 s later"
+  },
+  "offsetSeconds": {
+    "message": "$1 s"
+  },
+  "timingDubFollows": {
+    "message": "The dubbing moves with the subtitles"
+  },
+  "pillOffset": {
+    "message": "Subtitle timing: $1 s"
+  },
+  "pillOffsetReset": {
+    "message": "Subtitle timing reset"
+  },
+  "pillSubsHidden": {
+    "message": "Subtitles hidden"
+  },
+  "pillSubsShown": {
+    "message": "Subtitles shown"
+  },
+  "pillDubOn": {
+    "message": "Voice dubbing on"
+  },
+  "pillDubOff": {
+    "message": "Voice dubbing off"
+  },
+  "lookupNone": {
+    "message": "No translation found for this word."
+  },
+  "lookupSave": {
+    "message": "Save to my words"
+  },
+  "lookupSaving": {
+    "message": "Saving…"
+  },
+  "lookupSaved": {
+    "message": "Saved to my words"
+  },
+  "lookupDuplicate": {
+    "message": "Already in my words"
+  },
+  "lookupSaveFailed": {
+    "message": "Couldn't save it. Is the app running?"
+  },
+  "btnClose": {
+    "message": "Close"
+  },
+  "trTitle": {
+    "message": "Transcript"
+  },
+  "trSearch": {
+    "message": "Search the transcript"
+  },
+  "trBackToNow": {
+    "message": "Back to the current line"
+  },
+  "trClose": {
+    "message": "Close the transcript"
+  },
+  "trFold": {
+    "message": "Fold"
+  },
+  "trUnfold": {
+    "message": "Unfold"
+  },
+  "trEmpty": {
+    "message": "The lines appear here once the subtitles are ready."
+  },
+  "trLines": {
+    "message": "$1 lines"
+  },
+  "trMatches": {
+    "message": "$1 found"
+  },
+  "trNoMatch": {
+    "message": "Nothing matches “$1”."
+  },
+  "secAutoStart": {
+    "message": "Start by itself"
+  },
+  "autoIntro": {
+    "message": "Tarjuman can start translating YouTube videos as soon as they open, without a click. It never takes over from a tab that is already translating, and a video you stopped stays stopped."
+  },
+  "lblAutoStart": {
+    "message": "On YouTube"
+  },
+  "lblAutoStartHint": {
+    "message": "Watch pages only, not Shorts. Off by default."
+  },
+  "autoOff": {
+    "message": "Off"
+  },
+  "autoAlways": {
+    "message": "Every video"
+  },
+  "autoChannels": {
+    "message": "Chosen channels"
+  },
+  "autoChannelsList": {
+    "message": "Channels"
+  },
+  "autoChannelsNone": {
+    "message": "No channels yet. Open a video from a channel and turn on “Always translate this channel” in the popup, or add one here."
+  },
+  "btnRemoveNamed": {
+    "message": "Remove $1"
+  },
+  "lblAddChannel": {
+    "message": "Add a channel"
+  },
+  "addChannelPlaceholder": {
+    "message": "@channel or a channel link"
+  },
+  "btnAddChannel": {
+    "message": "Add"
+  },
+  "errChannel": {
+    "message": "That isn't a channel. Use its @name or its link, like youtube.com/@name."
+  },
+  "addChannelHint": {
+    "message": "Its @name, or a link to the channel."
+  },
+  "secShortcuts": {
+    "message": "Keyboard shortcuts"
+  },
+  "lblPageKeys": {
+    "message": "Shortcuts on the video page"
+  },
+  "lblPageKeysHint": {
+    "message": "Move between lines, shift the timing and more while translating"
+  },
+  "secThisVideo": {
+    "message": "This video"
+  },
+  "lblTranscript": {
+    "message": "Transcript beside the video"
+  },
+  "lblTranscriptHint": {
+    "message": "Every line; click one to jump there"
+  },
+  "lblAutoChannel": {
+    "message": "Always translate this channel"
+  },
+  "autoAlwaysOn": {
+    "message": "On for every video (settings)"
+  },
+  "btnOpenAt": {
+    "message": "Open in the app at $1"
   }
 }

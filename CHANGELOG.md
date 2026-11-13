@@ -2,7 +2,15 @@
 
 Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__init__.py`.
 
-## Browser extension 3.0.2
+## Browser extension 3.0.3
+
+- Keyboard shortcuts on the video page while Tarjuman is translating: Alt+→ next line, Alt+← previous line, Alt+↓ repeat the line (or `]`, `[` and `\`), Alt+S show or hide the subtitles, Alt+V dubbing on or off, Alt+T the transcript. They avoid YouTube's own keys, do nothing while you type in a search or comment box, and work with an Arabic keyboard layout too. The options page lists them and can turn them off; the toolbar's tooltips show them.
+- Subtitle timing: when the lines come before or after the speech, move them earlier or later in steps of 0.25 or 0.5 seconds (Alt+[ and Alt+], reset with Alt+\), from the toolbar on the video or from the popup. The dubbing moves with them. The setting is kept for each video until the browser closes.
+- "Open in the app at this moment": a button on the video's toolbar and in the popup opens the same YouTube video in the Tarjuman app, at the point you reached, and pauses it in the browser. It is shown on YouTube only, since the app can't open other sites' videos directly.
+- Start by itself on YouTube (off by default): for every video, or only for the channels you choose. Add a channel with "Always translate this channel" in the popup, or in the options page. It never takes over from a tab that is already translating, waits until a background tab is opened, skips Shorts, and a video you stopped stays stopped. No new permissions are needed.
+- Word lookup: with the original text shown above the translation, click any word to pause the video and see its meaning, with a button to save it to "My words" in the app, together with its sentence and time. Escape or a click elsewhere closes it and the video plays on.
+- Transcript beside the video: every line in the translation and the original, the line being said highlighted and filled as it is spoken, speaker changes and sounds ([Music], [Applause], laughter) shown as marks, a search box, and "Back to the current line" after scrolling away. Click a line (or press Enter on it) to jump there. On YouTube it sits at the top of the right-hand column, in theater mode too, and under the player as a foldable panel when the window is narrow. On other sites it floats beside the video and can be dragged and folded. Turn it on from the toolbar, the popup or Alt+T.
+- The popup has a "This video" card with the timing, the transcript switch, the channel switch and the "Open in the app" button.
 
 - The popup shows the extension's own version, and the app's version next to it when the app is connected (before, the app's version looked like the extension's).
 - Translation no longer stops for good after moving to another video, changing the language, or after a Whisper transcription.
