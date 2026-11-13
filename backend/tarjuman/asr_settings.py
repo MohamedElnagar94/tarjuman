@@ -32,7 +32,16 @@ MODELS: dict[str, dict[str, Any]] = {
     "small": {"size": 484, "ram": 1.2, "spm": 36, "ar": 3},
     "medium": {"size": 1530, "ram": 2.6, "spm": 150, "ar": 4},
     "large-v3-turbo": {"size": 1620, "ram": 2.8, "spm": 115, "ar": 4},
-    "large-v3": {"size": 3100, "ram": 4.8, "spm": 330, "ar": 5},
+    "large-v3": {"size": 3100, "ram": 4.8, "spm": 190, "ar": 4},
+    # Whisper large-v3 fine-tuned on Arabic dialects (Egyptian, Gulf, Levantine, Maghrebi, MSA). For
+    # Arabic speech only. On a real 36 s Egyptian voice note it got 29% of the words wrong without the
+    # words list and 24% with it, against 41% and 29% for large-v3.
+    "large-v3-arabic": {"size": 3090, "ram": 4.8, "spm": 170, "ar": 5, "arabicOnly": True},
+}
+# Models not in faster-whisper's own list: where they are downloaded from, pinned to a known version.
+REPOS: dict[str, tuple[str, str]] = {
+    # Apache-2.0: oddadmix/whisper-large-v3-arabic-dialectal-v2, converted for CTranslate2.
+    "large-v3-arabic": ("SohailElsek/whisper-large-v3-arabic-dialectal-v2-ct2", "ae3724b6c083d793f70c68c290a749a1a1b0d06c"),
 }
 # In "auto" on a CPU, a recording up to this long gets the most accurate model the computer can hold,
 # whatever its speed: a voice note is worth the wait. Longer ones get the recommended model.
@@ -193,8 +202,22 @@ def seconds_per_minute(model: str, hw: dict[str, Any], device: str) -> int:
     return max(1, round(spm))
 
 
-def recommend(hw: dict[str, Any]) -> dict[str, Any]:
-    """The model this computer should use, and why, in plain words (Arabic; the page shows them)."""
+def recommend(hw: dict[str, Any], arabic: bool = False) -> dict[str, Any]:
+    """The model this computer should use, and why, in plain words (Arabic; the page shows them).
+    ``arabic``: the spoken language is set to Arabic, so the Arabic-dialect model can be used."""
+    rec = _recommend(hw)
+    if arabic and rec.get("short") == "large-v3":
+        rec["short"] = "large-v3-arabic"
+        rec["why"].append(
+            "ولأنك اخترت العربية لغةً للكلام، تُفرَّغ التسجيلات القصيرة بنموذج large-v3-arabic، وهو large-v3 مدرَّب على "
+            "اللهجات العربية: كان الأدق في تجربتنا على رسالة صوتية بالعامية المصرية."
+        )
+    elif not arabic and rec.get("short") == "large-v3" and float(hw.get("ramGb") or 0) >= 12:
+        rec["why"].append("إن كانت تسجيلاتك عربية دائمًا فاختر العربية في «لغة الكلام»: يُستعمل حينها نموذج مدرَّب على اللهجات العربية، أدق للعامية.")
+    return rec
+
+
+def _recommend(hw: dict[str, Any]) -> dict[str, Any]:
     why: list[str] = []
     ram, threads = float(hw.get("ramGb") or 0), int(hw.get("threads") or 1)
     card = f" ({hw['gpu']})" if hw.get("gpu") else ""
@@ -295,7 +318,7 @@ class AsrSettings:
         """What a transcription will actually use, after "auto" and what the computer can do. With the
         length of the recording, "auto" gives a short one the more accurate model."""
         hw = hw or hardware()
-        rec = recommend(hw)
+        rec = recommend(hw, arabic=self.values["language"] == "ar")
         v = self.values
         if v["model"] != "auto":
             model = v["model"]
@@ -333,7 +356,7 @@ class AsrSettings:
         return {
             "settings": dict(self.values),
             "hardware": hw,
-            "recommended": recommend(hw),
+            "recommended": recommend(hw, arabic=self.values["language"] == "ar"),
             "effective": eff,
             "models": [
                 {
@@ -341,6 +364,7 @@ class AsrSettings:
                     "secondsPerMinute": seconds_per_minute(k, hw, eff["device"]),
                     "warning": model_warning(k, eff["device"], hw),
                     "downloaded": model_downloaded(k),
+                    "arabicOnly": bool(m.get("arabicOnly")),
                     "diskMb": round(model_disk_bytes(k) / 1_000_000),
                 }
                 for k, m in MODELS.items()
@@ -407,6 +431,8 @@ def _known_language(code: str) -> bool:
 
 
 def model_repo(name: str) -> str:
+    if name in REPOS:
+        return REPOS[name][0]
     try:
         from faster_whisper.utils import _MODELS  # type: ignore
 
@@ -419,7 +445,8 @@ def model_downloaded(name: str) -> bool:
     try:
         from huggingface_hub import try_to_load_from_cache  # type: ignore
 
-        hit = try_to_load_from_cache(model_repo(name), "model.bin")
+        rev = REPOS[name][1] if name in REPOS else None
+        hit = try_to_load_from_cache(model_repo(name), "model.bin", revision=rev)
         return isinstance(hit, str) and os.path.exists(hit)
     except Exception:  # noqa: BLE001
         return False

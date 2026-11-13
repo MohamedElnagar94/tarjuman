@@ -118,7 +118,7 @@ export interface MediaItem {
   wave?: number[];
 }
 
-export type AsrModelId = "tiny" | "base" | "small" | "medium" | "large-v3-turbo" | "large-v3";
+export type AsrModelId = "tiny" | "base" | "small" | "medium" | "large-v3-turbo" | "large-v3" | "large-v3-arabic";
 export type AsrStyle = "general" | "msa" | "egyptian" | "gulf" | "levantine" | "maghrebi" | "none";
 
 export interface AsrSettings {
@@ -154,7 +154,7 @@ export interface AsrState {
   /** short: the model "auto" gives recordings up to 3 minutes. */
   recommended: { model: AsrModelId; device: "cpu" | "cuda"; short: AsrModelId; why: string[] };
   effective: { model: AsrModelId; device: "cpu" | "cuda"; beam: number; language: string | null; secondsPerMinute: number };
-  models: { id: AsrModelId; size: number; ram: number; ar: number; secondsPerMinute: number; warning: string; downloaded: boolean; diskMb: number }[];
+  models: { id: AsrModelId; size: number; ram: number; ar: number; secondsPerMinute: number; warning: string; downloaded: boolean; diskMb: number; arabicOnly: boolean }[];
   aiReady: boolean;
   styles: AsrStyle[];
   languages: string[];

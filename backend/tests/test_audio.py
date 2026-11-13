@@ -51,6 +51,9 @@ def test_auto_gives_a_short_recording_the_more_accurate_model(tmp_path):
     s = AsrSettings(tmp_path / "asr.json")
     assert s.effective(HW_LAPTOP, duration=40)["model"] == "large-v3"
     assert s.effective(HW_LAPTOP, duration=1800)["model"] == "small"
+    s.update({"language": "ar"})
+    assert s.effective(HW_LAPTOP, duration=40)["model"] == "large-v3-arabic", "Arabic speech gets the dialect model"
+    assert s.effective(HW_LAPTOP, duration=1800)["model"] == "small"
     s.update({"model": "medium", "language": "ar", "quality": "fast"})
     eff = s.effective(HW_LAPTOP, duration=40)
     assert eff["model"] == "medium", "a model the user picked always wins"

@@ -213,6 +213,7 @@ const status = computed(() => {
           <span class="m-tags">
             <span v-if="m.id === rec.model" class="chip chip--ok">{{ t("asrSet.tagRec") }}</span>
             <span v-else-if="m.id === rec.short" class="chip chip--accent">{{ t("asrSet.tagShort") }}</span>
+            <span v-if="m.arabicOnly" class="chip">{{ t("asrSet.tagArabic") }}</span>
             <span v-if="m.downloaded" class="chip">{{ t("asrSet.tagDown") }}</span>
           </span>
           <span class="m-acc" :aria-label="t('asrSet.accuracy', { n: m.ar })" :title="t('asrSet.accuracy', { n: m.ar })">

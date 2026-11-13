@@ -948,6 +948,7 @@
     "termToN": "The right spelling, {n}",
     "termRemove": "Remove word {n}",
     "termAdd": "Add a word",
-    "termsSaved": "Words saved. They are used on the next transcription, or click “Transcribe again” on an older recording."
+    "termsSaved": "Words saved. They are used on the next transcription, or click “Transcribe again” on an older recording.",
+    "tagArabic": "Arabic speech only"
   }
 }

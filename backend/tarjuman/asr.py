@@ -17,7 +17,7 @@ import wave
 from pathlib import Path
 from typing import Any, Callable
 
-from .asr_settings import MODELS, AsrSettings, apply_terms, hub_bytes, model_downloaded
+from .asr_settings import MODELS, REPOS, AsrSettings, apply_terms, hub_bytes, model_downloaded
 from .core.deps import has
 from .core.errors import Cancelled
 
@@ -101,13 +101,19 @@ class Whisper:
         t0 = time.time()
         try:
             try:
-                model = WhisperModel(eff["model"], device=eff["device"], compute_type=eff["compute"], cpu_threads=eff["threads"])
+                model = WhisperModel(
+                    *_source(eff["model"]), revision=_revision(eff["model"]),
+                    device=eff["device"], compute_type=eff["compute"], cpu_threads=eff["threads"],
+                )
             except Exception as e:  # noqa: BLE001
                 if eff["device"] != "cuda":
                     raise
                 self._gpu_failed(e)
                 eff.update(device="cpu", compute="int8")
-                model = WhisperModel(eff["model"], device="cpu", compute_type="int8", cpu_threads=eff["threads"])
+                model = WhisperModel(
+                    *_source(eff["model"]), revision=_revision(eff["model"]),
+                    device="cpu", compute_type="int8", cpu_threads=eff["threads"],
+                )
         except Exception as e:  # noqa: BLE001
             self.error = f"{type(e).__name__}: {e}"
             raise
@@ -323,6 +329,17 @@ def split_sentences(seg: Any) -> list[dict]:
         tail = out.pop()  # a lone last word joins the sentence before it
         out[-1] = {"start": out[-1]["start"], "end": tail["end"], "text": out[-1]["text"] + " " + tail["text"]}
     return out or [whole]
+
+
+def _source(name: str) -> tuple[str, ...]:
+    """What WhisperModel is given: faster-whisper's own name, or a repository pinned to a version."""
+    if name in REPOS:
+        return (REPOS[name][0],)
+    return (name,)
+
+
+def _revision(name: str) -> str | None:
+    return REPOS[name][1] if name in REPOS else None
 
 
 def _looks_like_gpu_error(e: BaseException) -> bool:
