@@ -129,3 +129,32 @@ def test_the_settings_api_explains_the_computer(tmp_path):
         j = c.post("/api/asr", json={"model": "small", "style": "egyptian"}).json()
         assert j["settings"]["model"] == "small" and j["effective"]["model"] == "small"
         assert "مصرية" in j["effective"]["prompt"]
+
+
+def test_the_app_window_gives_its_own_page_the_microphone_back(tmp_path):
+    import json
+
+    from tarjuman.desktop import allow_microphone
+
+    prefs = tmp_path / "Default" / "Preferences"
+    prefs.parent.mkdir(parents=True)
+    other = {"https://example.com:443,*": {"last_modified": "1", "setting": 2}}
+    blocked = {"http://127.0.0.1:4318,*": {"last_modified": "1", "setting": 2}, **other}
+    prefs.write_text(json.dumps({"profile": {"content_settings": {"exceptions": {"media_stream_mic": blocked}}}, "x": 1}))
+    assert allow_microphone("http://127.0.0.1:4318/", tmp_path)
+    data = json.loads(prefs.read_text())
+    mic = data["profile"]["content_settings"]["exceptions"]["media_stream_mic"]
+    assert mic["http://127.0.0.1:4318,*"]["setting"] == 1
+    assert mic["https://example.com:443,*"]["setting"] == 2, "other sites are left alone"
+    assert data["x"] == 1, "the rest of the browser's preferences are kept"
+    prefs.write_text("{broken")
+    assert not allow_microphone("http://127.0.0.1:4318/", tmp_path)
+    assert prefs.read_text() == "{broken", "a file it can't read is never overwritten"
+
+
+def test_quit_is_only_for_the_computer_and_only_for_the_desktop_app():
+    app = create_app(Services(), warm=False)
+    with TestClient(app, headers=LOCAL, client=("127.0.0.1", 50000)) as c:
+        assert c.post("/api/desktop/quit", json={}).json() == {"ok": True, "quitting": False}
+    remote = TestClient(app, base_url="http://192.168.0.104:4318", headers={"host": "192.168.0.104:4318"}, client=("192.168.0.20", 50000))
+    assert remote.post("/api/desktop/quit", json={}).status_code in (401, 403)

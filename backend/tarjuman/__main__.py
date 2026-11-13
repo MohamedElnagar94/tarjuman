@@ -184,6 +184,13 @@ def doctor(_args: argparse.Namespace) -> None:
     print()
 
 
+def quit_app(args) -> None:
+    from .desktop import quit_running
+
+    n = quit_running(args.port)
+    print(f"asked {n} running Tarjuman to quit" if n else "Tarjuman is not running")
+
+
 def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(level=logging.INFO, format="  %(message)s")
     for noisy in ("httpx", "faster_whisper"):
@@ -209,9 +216,11 @@ def main(argv: list[str] | None = None) -> None:
     p_setup.add_argument("--voice-only", action="store_true", help="only download the offline Arabic voice")
     sub.add_parser("update", help="update yt-dlp and edge-tts")
     sub.add_parser("doctor", help="check every component")
+    p_quit = sub.add_parser("quit", help="close the running desktop app (used by the installer)")
+    p_quit.add_argument("--port", type=int, default=config.DEFAULT_PORT)
 
     args = ap.parse_args(argv)
-    {"subs": subs, "setup": setup, "update": update, "doctor": doctor, "app": desktop}.get(args.cmd or "serve", serve)(args)
+    {"subs": subs, "setup": setup, "update": update, "doctor": doctor, "app": desktop, "quit": quit_app}.get(args.cmd or "serve", serve)(args)
 
 
 if __name__ == "__main__":

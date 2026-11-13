@@ -861,7 +861,7 @@
     "resume": "Resume",
     "discard": "Delete the recording",
     "stop": "Finish and transcribe",
-    "denied": "The microphone isn't allowed. Allow it in the browser settings and try again.",
+    "denied": "The microphone isn't allowed. In the Tarjuman window: close it and open it again, and it is allowed again. In a browser: allow it from the lock icon next to the address.",
     "noMic": "No working microphone was found.",
     "unsupported": "This browser can't record.",
     "tooShort": "The recording is too short.",

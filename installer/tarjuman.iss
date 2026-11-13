@@ -86,10 +86,36 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 Type: filesandordirs; Name: "{app}"
 
 [Code]
+{ Before files are replaced, Tarjuman (window, engine, notification-area icon) is closed by itself,
+  so Windows doesn't list "Python" as an application in the way. First it is asked to quit, which
+  lets it save its caches; a version too old to understand that, or one that doesn't answer, is then
+  stopped. Only Python processes running from this program folder are touched. }
+procedure CloseTarjuman(const Dir: String);
+var
+  Code: Integer;
+begin
+  if FileExists(Dir + '\python\python.exe') then
+    Exec(Dir + '\python\python.exe', '-m tarjuman quit', Dir, SW_HIDE, ewWaitUntilTerminated, Code);
+  Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+    '-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Get-Process python,pythonw -ErrorAction SilentlyContinue | ' +
+    'Where-Object { $_.Path -and $_.Path.StartsWith(''' + Dir + '\python\'', [StringComparison]::OrdinalIgnoreCase) } | ' +
+    'Stop-Process -Force -ErrorAction SilentlyContinue"',
+    '', SW_HIDE, ewWaitUntilTerminated, Code);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  if DirExists(ExpandConstant('{app}')) then
+    CloseTarjuman(ExpandConstant('{app}'));
+  Result := '';
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   DataDir: String;
 begin
+  if CurUninstallStep = usUninstall then
+    CloseTarjuman(ExpandConstant('{app}'));
   if CurUninstallStep = usPostUninstall then
   begin
     { The data of the user who runs the uninstaller; other users' data is left alone. }

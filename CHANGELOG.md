@@ -17,6 +17,8 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - A notification-area icon, with Open, the engine's state, the extension's state, the data folder, and Quit.
 - Settings → Desktop, four independent choices: minimize to the notification area, close to the notification area, start with Windows (in the notification area, without a window), and keep the engine running after the window closes, so the browser extension keeps working. Closing or quitting while jobs run asks first.
 - Starting Tarjuman again brings up the running one instead of starting a second copy.
+- Installing or uninstalling closes a running Tarjuman by itself (it is asked to quit first, so it saves its work); Setup no longer stops to list "Python" as an application in use.
+- The app window has no address bar, so a microphone permission refused by mistake couldn't be given back: Tarjuman's own page is allowed the microphone each time the window opens.
 - Links to other sites open in your own browser, not inside the app window.
 - Settings → Extensions has a button to get the extension from the Chrome Web Store.
 

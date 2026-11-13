@@ -114,6 +114,17 @@ async def update_install(request: Request):
     return ok(**_update_state(request))
 
 
+@router.post("/api/desktop/quit")
+async def desktop_quit(request: Request):
+    """Quits the desktop app (window, engine and icon). The installer asks this before an update, so
+    the files it replaces aren't in use. Running jobs are stopped."""
+    d = request.app.state.desktop
+    if d is None:
+        return ok(quitting=False)
+    threading.Thread(target=d.quit, kwargs={"confirm": False}, daemon=True).start()
+    return ok(quitting=True)
+
+
 @router.post("/api/desktop/show")
 async def desktop_show(request: Request):
     """Brings the app window up. A second start of the app asks the running one this, then exits."""

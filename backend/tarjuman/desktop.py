@@ -160,6 +160,38 @@ def wait_for_window(proc: subprocess.Popen) -> None:
         time.sleep(0.7)
 
 
+def allow_microphone(url: str, profile=None) -> bool:
+    """The app window has no address bar, so a microphone permission refused by mistake could never
+    be given back. The window only ever shows Tarjuman itself: its own page is allowed the
+    microphone (for "Record your voice") before the window opens. Other sites are not touched."""
+    import json
+    from urllib.parse import urlsplit
+
+    u = urlsplit(url)
+    if not u.scheme or not u.netloc:
+        return False
+    origin = f"{u.scheme}://{u.netloc},*"
+    prefs = (profile or window_profile()) / "Default" / "Preferences"
+    try:
+        data = json.loads(prefs.read_text(encoding="utf-8")) if prefs.exists() else {}
+    except (OSError, ValueError):
+        return False  # unreadable: leave the browser's own file alone
+    mic = data.setdefault("profile", {}).setdefault("content_settings", {}).setdefault("exceptions", {}).setdefault("media_stream_mic", {})
+    if (mic.get(origin) or {}).get("setting") == 1:
+        return True
+    # Chromium keeps times as microseconds since 1601.
+    mic[origin] = {"last_modified": str(int((time.time() + 11644473600) * 1_000_000)), "setting": 1}
+    try:
+        prefs.parent.mkdir(parents=True, exist_ok=True)
+        tmp = prefs.with_name("Preferences.tarjuman.tmp")
+        tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(prefs)
+    except OSError as e:
+        log.info("could not allow the microphone (%s)", e)
+        return False
+    return True
+
+
 def open_window(url: str) -> subprocess.Popen | None:
     """The app window, with its own profile folder: that keeps it apart from the user's everyday
     browser, and keeps the app's preferences between runs."""
@@ -168,6 +200,8 @@ def open_window(url: str) -> subprocess.Popen | None:
         return None
     profile = window_profile()
     profile.mkdir(parents=True, exist_ok=True)
+    if not window_is_open():  # the browser rewrites its preferences while it runs
+        allow_microphone(url, profile)
     try:
         return subprocess.Popen([
             exe, f"--app={url}", f"--user-data-dir={profile}", "--window-size=1280,820", "--no-first-run",
@@ -218,6 +252,23 @@ def show_when_ready(port: int, wait: float = 45) -> None:
             return
         time.sleep(1)
     log.warning("another Tarjuman is starting but did not answer in %.0f s", wait)
+
+
+def quit_running(port: int, wait: float = 15) -> int:
+    """Asks every Tarjuman running here to quit (the installer does this before replacing files)
+    and waits until they have. Returns how many were asked."""
+    import httpx
+
+    found = running_instances(port)
+    for u in found:
+        try:
+            httpx.post(u + "/api/desktop/quit", json={}, timeout=3)
+        except Exception:  # noqa: BLE001
+            pass
+    deadline = time.time() + wait
+    while found and time.time() < deadline and running_instances(port):
+        time.sleep(0.5)
+    return len(found)
 
 
 def show_running(url: str) -> bool:
