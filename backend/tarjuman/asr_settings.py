@@ -10,6 +10,7 @@ Kept in data/asr.json. TARJUMAN_WHISPER_MODEL (.env) still picks the model while
 
 from __future__ import annotations
 
+import copy
 import ctypes
 import logging
 import os
@@ -87,7 +88,9 @@ PROMPTS = {
 LANGS = ("auto", "ar", "en", "fr", "es", "de", "tr", "ur", "fa", "hi", "id", "ru", "zh", "ja", "ko", "it", "pt")
 
 DEFAULTS: dict[str, Any] = {
-    "model": "auto",  # or one of MODELS
+    # A model for each use, "auto" by default: recordings (accuracy), videos (long: speed and accuracy
+    # balanced), live captions from the browser extension (must keep up with the video).
+    "models": {"audio": "auto", "video": "auto", "live": "auto"},
     "device": "auto",  # auto | cpu | cuda
     "language": "auto",  # auto | a language code
     "style": "general",  # how Arabic is written (STYLES)
@@ -103,6 +106,7 @@ DEFAULTS: dict[str, Any] = {
     # The user's own models: [{id, kind: "hf"|"dir", name, revision, sizeMb, license}].
     "custom": [],
 }
+USES = ("audio", "video", "live")
 TERMS_MAX = 80
 TERM_LEN = 60
 
@@ -246,10 +250,10 @@ def _recommend(hw: dict[str, Any]) -> dict[str, Any]:
     vram = float(hw.get("vramGb") or 0)
     if gpu_usable(hw) and (not vram or vram >= 6):
         why.append(f"لديك بطاقة رسوميات NVIDIA{card} تعمل مع CUDA وذاكرتها كافية، فيعمل أدقّ نموذج (large-v3) بسرعة كبيرة.")
-        return {"model": "large-v3", "device": "cuda", "short": "large-v3", "why": why}
+        return {"model": "large-v3", "device": "cuda", "short": "large-v3", "live": "large-v3-turbo", "why": why}
     if gpu_usable(hw) and vram >= 3:
         why.append(f"لديك بطاقة رسوميات NVIDIA{card} تعمل مع CUDA، وذاكرتها {vram:g} غيغابايت تكفي لنموذج large-v3-turbo.")
-        return {"model": "large-v3-turbo", "device": "cuda", "short": "large-v3-turbo", "why": why}
+        return {"model": "large-v3-turbo", "device": "cuda", "short": "large-v3-turbo", "live": "large-v3-turbo", "why": why}
     if hw.get("gpuOld"):
         why.append(
             f"بطاقة الرسوميات{card} من جيل قديم (قدرة CUDA {hw.get('computeCap'):g})، لا تدعم طرق الحساب السريعة التي "
@@ -264,7 +268,7 @@ def _recommend(hw: dict[str, Any]) -> dict[str, Any]:
         )
     if ram >= 12 and threads >= 16:
         why.append(f"معالجك فيه {threads} مسارًا وذاكرتك {ram:g} غيغابايت: يشغّل large-v3-turbo، أدقّ ما يناسب المعالج للعربية، بسرعة مقبولة.")
-        return {"model": "large-v3-turbo", "device": "cpu", "short": "large-v3-turbo", "why": why}
+        return {"model": "large-v3-turbo", "device": "cpu", "short": "large-v3-turbo", "live": "small", "why": why}
     if ram >= 6 and threads >= 4:
         short = "large-v3" if ram >= 12 else "large-v3-turbo" if ram >= 8 else "small"
         slow = seconds_per_minute(short, hw, "cpu")
@@ -278,9 +282,26 @@ def _recommend(hw: dict[str, Any]) -> dict[str, Any]:
                 "وهو الأفضل في اللهجات والأسماء والكلمات الإنجليزية، مع أنه أبطأ "
                 f"(قرابة {round(slow / 60, 1):g} دقيقة لكل دقيقة صوت)؛ والأطول بنموذج small حتى لا يطول الانتظار."
             )
-        return {"model": "small", "device": "cpu", "short": short, "why": why}
+        return {"model": "small", "device": "cpu", "short": short, "live": "small", "why": why}
     why.append(f"ذاكرة الجهاز {ram:g} غيغابايت ومعالجه {threads} مسارات: النماذج الأكبر من base قد تُبطئ الجهاز كثيرًا.")
-    return {"model": "base", "device": "cpu", "short": "small" if ram >= 4 else "base", "why": why}
+    return {"model": "base", "device": "cpu", "short": "small" if ram >= 4 else "base", "live": "base", "why": why}
+
+
+def auto_model(rec: dict[str, Any], use: str, duration: float | None) -> str:
+    """What "auto" picks for a use: recordings get the most accurate model when short (a recording of
+    unknown length counts as short: most are voice notes), videos the balanced one, live captions the
+    one fast enough to keep up."""
+    if use == "live":
+        return rec.get("live") or rec["model"]
+    if use == "audio" and (duration is None or duration <= SHORT_SECONDS):
+        return rec.get("short") or rec["model"]
+    return rec["model"]
+
+
+def keep_in_memory(hw: dict[str, Any]) -> int:
+    """How many models stay loaded at once (switching between a recording, a video and live captions
+    then needs no reload). Two need memory to spare."""
+    return 2 if float(hw.get("ramGb") or 0) >= 12 else 1
 
 
 def model_warning(model: str, device: str, hw: dict[str, Any]) -> str:
@@ -299,11 +320,11 @@ class AsrSettings:
     def __init__(self, file: Path, env_model: str = ""):
         self.file = file
         self.env_model = env_model if env_model in MODELS else ""
-        self.values: dict[str, Any] = dict(DEFAULTS)
+        self.values: dict[str, Any] = copy.deepcopy(DEFAULTS)
 
     def load(self) -> "AsrSettings":
         j = read_json(self.file, {}) or {}
-        self.values = dict(DEFAULTS)
+        self.values = copy.deepcopy(DEFAULTS)
         self._apply(j)
         self._sync_custom()
         return self
@@ -313,20 +334,19 @@ class AsrSettings:
         for c in self.values.get("custom") or []:
             CUSTOM[c["id"]] = c
 
-    def add_custom(self, info: dict[str, Any]) -> None:
-        """A model looked at by asr_custom.inspect; it is chosen at once."""
+    def add_custom(self, info: dict[str, Any], uses: tuple[str, ...] = ()) -> None:
+        """A model looked at by asr_custom.inspect, chosen for ``uses``."""
         keep = [c for c in self.values.get("custom") or [] if c["id"] != info["id"]]
         entry = {k: info.get(k, "") for k in ("id", "kind", "name", "revision", "sizeMb", "license")}
         self.values["custom"] = ([entry] + keep)[:CUSTOM_MAX]
-        self.values["model"] = entry["id"]
         self._sync_custom()
+        self.values["models"] = {**self.values["models"], **{u: entry["id"] for u in uses if u in USES}}
         self.save()
 
     def remove_custom(self, model_id: str) -> dict[str, Any] | None:
         gone = next((c for c in self.values.get("custom") or [] if c["id"] == model_id), None)
         self.values["custom"] = [c for c in self.values.get("custom") or [] if c["id"] != model_id]
-        if self.values["model"] == model_id:
-            self.values["model"] = "auto"
+        self.values["models"] = {u: ("auto" if m == model_id else m) for u, m in self.values["models"].items()}
         self._sync_custom()
         self.save()
         return gone
@@ -343,8 +363,17 @@ class AsrSettings:
                 if isinstance(c, dict) and c.get("id") and c.get("kind") in ("hf", "dir")
             ]
             self._sync_custom()
-        if j.get("model") == "auto" or known_model(str(j.get("model") or "")):
-            v["model"] = j["model"]
+        if isinstance(j.get("models"), dict):
+            models = dict(v["models"])
+            for u in USES:
+                m = str(j["models"].get(u) or "")
+                if m == "auto" or known_model(m):
+                    models[u] = m
+            v["models"] = models
+        elif known_model(str(j.get("model") or "")):
+            # One model for everything (the first version): it stays for recordings and videos; live
+            # captions get the fast "auto".
+            v["models"] = {**v["models"], "audio": j["model"], "video": j["model"]}
         if j.get("device") in ("auto", "cpu", "cuda"):
             v["device"] = j["device"]
         lang = str(j.get("language") or "").lower()
@@ -368,20 +397,19 @@ class AsrSettings:
         self.save()
         return dict(self.values)
 
-    def effective(self, hw: dict[str, Any] | None = None, duration: float | None = None) -> dict[str, Any]:
-        """What a transcription will actually use, after "auto" and what the computer can do. With the
-        length of the recording, "auto" gives a short one the more accurate model."""
+    def effective(self, hw: dict[str, Any] | None = None, duration: float | None = None, use: str = "audio") -> dict[str, Any]:
+        """What a transcription will actually use, after "auto" and what the computer can do. ``use``:
+        audio (recordings), video, or live (the extension's captions)."""
         hw = hw or hardware()
         rec = recommend(hw, arabic=self.values["language"] == "ar")
         v = self.values
-        if v["model"] != "auto":
-            model = v["model"]
-        elif self.env_model:
+        chosen = v["models"].get(use if use in USES else "audio", "auto")
+        if chosen != "auto" and known_model(chosen):
+            model = chosen
+        elif self.env_model and use != "live":
             model = self.env_model
-        elif duration and duration <= SHORT_SECONDS:
-            model = rec.get("short") or rec["model"]
         else:
-            model = rec["model"]
+            model = auto_model(rec, use, duration)
         if v["device"] == "cuda":
             device = "cuda" if gpu_usable(hw, allow_old=True) else "cpu"
         elif v["device"] == "cpu":
@@ -402,16 +430,23 @@ class AsrSettings:
             "hotwords": hint_words(v["terms"]),
             "terms": [t for t in v["terms"] if t["from"]],
             "secondsPerMinute": seconds_per_minute(model, hw, device),
+            "use": use,
         }
 
-    def public(self, duration: float | None = None) -> dict[str, Any]:
+    def public(self, duration: float | None = None, use: str = "audio") -> dict[str, Any]:
         hw = hardware()
-        eff = self.effective(hw, duration)
+        eff = self.effective(hw, duration, use)
+        uses = {}
+        for u in USES:
+            e = self.effective(hw, None, u)
+            uses[u] = {"model": e["model"], "device": e["device"], "secondsPerMinute": e["secondsPerMinute"]}
         return {
-            "settings": dict(self.values),
+            "settings": copy.deepcopy(self.values),
             "hardware": hw,
             "recommended": recommend(hw, arabic=self.values["language"] == "ar"),
             "effective": eff,
+            "uses": uses,
+            "keepInMemory": keep_in_memory(hw),
             "models": [
                 {
                     "id": k, **m,

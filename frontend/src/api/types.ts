@@ -119,11 +119,13 @@ export interface MediaItem {
 }
 
 export type AsrModelId = "tiny" | "base" | "small" | "medium" | "large-v3-turbo" | "large-v3" | "large-v3-arabic";
+/** Recordings, videos, and the browser extension's live captions. */
+export type AsrUse = "audio" | "video" | "live";
 export type AsrStyle = "general" | "msa" | "egyptian" | "gulf" | "levantine" | "maghrebi" | "none";
 
 export interface AsrSettings {
-  /** A built-in model, or the id of one of the user's own (a repository or a folder). */
-  model: "auto" | AsrModelId | string;
+  /** A model for each use ("auto", a built-in model, or the id of one of the user's own). */
+  models: Record<AsrUse, "auto" | AsrModelId | string>;
   device: "auto" | "cpu" | "cuda";
   language: string;
   style: AsrStyle;
@@ -161,8 +163,12 @@ export interface AsrState {
     gpuOld: boolean;
     cublas: boolean;
   };
-  /** short: the model "auto" gives recordings up to 3 minutes. */
-  recommended: { model: AsrModelId; device: "cpu" | "cuda"; short: AsrModelId; why: string[] };
+  /** model: videos and long recordings; short: recordings up to 2 minutes; live: live captions. */
+  recommended: { model: AsrModelId; device: "cpu" | "cuda"; short: AsrModelId; live: AsrModelId; why: string[] };
+  /** What each use runs now (after "auto"). */
+  uses: Record<AsrUse, { model: string; device: "cpu" | "cuda"; secondsPerMinute: number }>;
+  /** How many models stay loaded at once on this computer. */
+  keepInMemory: number;
   effective: { model: AsrModelId; device: "cpu" | "cuda"; beam: number; language: string | null; secondsPerMinute: number };
   models: {
     id: AsrModelId | string;

@@ -7,7 +7,7 @@ import { PhCheckCircle, PhCpu, PhDownloadSimple, PhGraphicsCard, PhMagnifyingGla
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import { api } from "@/api/client";
-import type { AsrSettings, AsrState, CustomModelInfo } from "@/api/types";
+import type { AsrSettings, AsrState, AsrUse, CustomModelInfo } from "@/api/types";
 import { toast } from "@/composables/toast";
 
 const { t, te } = useI18n();
@@ -76,6 +76,7 @@ const source = ref("");
 const checking = ref(false);
 const found = ref<CustomModelInfo | null>(null);
 const otherError = ref("");
+const addFor = ref<AsrUse[]>(["audio"]);
 async function checkOther() {
   if (!source.value.trim()) return;
   checking.value = true;
@@ -93,7 +94,7 @@ async function addOther() {
   if (!found.value) return;
   checking.value = true;
   try {
-    st.value = await api.addCustomModel(found.value.id);
+    st.value = await api.addCustomModel(found.value.id, addFor.value);
     toast(t("asrSet.otherAdded", { model: found.value.name }), { tone: "ok" });
     found.value = null;
     source.value = "";
@@ -103,6 +104,27 @@ async function addOther() {
   } finally {
     checking.value = false;
   }
+}
+
+/* A model for each use. */
+const USES: AsrUse[] = ["audio", "video", "live"];
+function autoFor(use: AsrUse): string {
+  const r = st.value?.recommended;
+  if (!r) return "";
+  if (use === "live") return r.live;
+  if (use === "audio") return r.short !== r.model ? t("asrSet.autoAudio", { short: r.short, model: r.model }) : r.short;
+  return r.model;
+}
+function modelLabel(id: string): string {
+  const m = st.value?.models.find((x) => x.id === id);
+  return m?.custom ? m.name || id : id;
+}
+function setUse(use: AsrUse, model: string) {
+  if (!st.value) return;
+  void set({ models: { ...st.value.settings.models, [use]: model } });
+}
+function usedFor(id: string): AsrUse[] {
+  return USES.filter((u) => st.value?.uses[u]?.model === id);
 }
 
 /* Words in the user's recordings, as rows like the pronunciation dictionary: what Whisper writes
@@ -240,19 +262,34 @@ const status = computed(() => {
       </div>
 
       <!-- the model -->
+      <div class="uses" role="group" :aria-label="t('asrSet.uses')">
+        <p class="sub">{{ t("asrSet.uses") }}</p>
+        <div v-for="u in USES" :key="u" class="use">
+          <label class="use__label" :for="'asr-use-' + u">
+            {{ t("asrSet.use." + u) }}
+            <small>{{ t("asrSet.useHint." + u) }}</small>
+          </label>
+          <select
+            :id="'asr-use-' + u"
+            class="select use__select"
+            :value="st.settings.models[u]"
+            :disabled="saving"
+            @change="setUse(u, ($event.target as HTMLSelectElement).value)"
+          >
+            <option value="auto">{{ t("asrSet.autoIs", { model: autoFor(u) }) }}</option>
+            <option v-for="m in st.models" :key="m.id" :value="m.id">{{ modelLabel(m.id) }}{{ m.arabicOnly ? " — " + t("asrSet.tagArabic") : "" }}</option>
+          </select>
+          <small class="use__now">{{ t("asrSet.useNow", { model: modelLabel(st.uses[u].model), n: st.uses[u].secondsPerMinute }) }}</small>
+        </div>
+        <p class="muted small-note">{{ st.keepInMemory > 1 ? t("asrSet.twoInMemory") : t("asrSet.oneInMemory") }}</p>
+      </div>
+
       <fieldset class="models">
         <legend class="sub">{{ t("asrSet.model") }}</legend>
-        <label class="model" :class="{ on: st.settings.model === 'auto' }">
-          <input type="radio" name="asr-model" value="auto" :checked="st.settings.model === 'auto'" :disabled="saving" @change="set({ model: 'auto' })" />
-          <span class="m-name">{{ t("asrSet.auto") }}</span>
-          <span class="m-hint">{{ rec.short && rec.short !== rec.model ? t("asrSet.autoHintShort", { model: rec.model, short: rec.short }) : t("asrSet.autoHint", { model: rec.model }) }}</span>
-        </label>
-        <label v-for="m in st.models" :key="m.id" class="model" :class="{ on: st.settings.model === m.id }">
-          <input type="radio" name="asr-model" :value="m.id" :checked="st.settings.model === m.id" :disabled="saving" @change="set({ model: m.id })" />
+        <div v-for="m in st.models" :key="m.id" class="model" :class="{ on: usedFor(m.id).length }">
           <span class="m-name" dir="ltr" :title="m.custom ? m.id : undefined">{{ m.custom ? m.name : m.id }}</span>
           <span class="m-tags">
-            <span v-if="m.id === rec.model" class="chip chip--ok">{{ t("asrSet.tagRec") }}</span>
-            <span v-else-if="m.id === rec.short" class="chip chip--accent">{{ t("asrSet.tagShort") }}</span>
+            <span v-for="u in usedFor(m.id)" :key="u" class="chip chip--ok">{{ t("asrSet.usedFor." + u) }}</span>
             <span v-if="m.arabicOnly" class="chip">{{ t("asrSet.tagArabic") }}</span>
             <span v-if="m.custom" class="chip chip--accent">{{ m.kind === "dir" ? t("asrSet.tagFolder") : t("asrSet.tagCustom") }}</span>
             <span v-if="m.downloaded" class="chip">{{ t("asrSet.tagDown") }}</span>
@@ -278,7 +315,7 @@ const status = computed(() => {
             <PhTrash :size="15" />
             <span v-if="armed === m.id">{{ m.custom && m.kind === "dir" ? t("asrSet.removeConfirm") : t("asrSet.deleteConfirm") }}</span>
           </button>
-        </label>
+        </div>
 
         <!-- another model, of the user's choice -->
         <button v-if="!otherOpen" type="button" class="btn btn--outline btn--sm other-open" @click="otherOpen = true">
@@ -308,6 +345,10 @@ const status = computed(() => {
               <template v-if="found.license"> · {{ t("asrSet.license", { name: found.license }) }}</template>
             </p>
             <p class="found__warn"><PhWarning :size="14" />{{ t("asrSet.otherWarn") }}</p>
+            <fieldset class="add-for">
+              <legend>{{ t("asrSet.otherFor") }}</legend>
+              <label v-for="u in USES" :key="u"><input v-model="addFor" type="checkbox" :value="u" />{{ t("asrSet.use." + u) }}</label>
+            </fieldset>
             <div class="other__row">
               <button type="button" class="btn btn--primary btn--sm" :disabled="checking" @click="addOther">{{ t("asrSet.otherAdd") }}</button>
               <button type="button" class="btn btn--quiet btn--sm" @click="(found = null), (otherOpen = false)">{{ t("common.cancel") }}</button>
@@ -495,12 +536,13 @@ const status = computed(() => {
   margin-bottom: var(--s-2);
 }
 .model {
+  cursor: default;
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
   grid-template-areas:
-    "radio name tags acc"
-    "radio meta meta del"
-    "radio warn warn warn";
+    "name tags acc"
+    "meta meta del"
+    "warn warn warn";
   column-gap: 10px;
   row-gap: 2px;
   align-items: center;
@@ -517,11 +559,62 @@ const status = computed(() => {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 7%, transparent);
 }
-.model input {
-  grid-area: radio;
-  accent-color: var(--accent-strong);
-  width: 18px;
-  height: 18px;
+.uses {
+  display: grid;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+.use {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 240px);
+  grid-template-areas:
+    "label select"
+    "label now";
+  column-gap: var(--s-3);
+  row-gap: 2px;
+  align-items: center;
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line);
+}
+.use__label {
+  grid-area: label;
+  display: grid;
+  gap: 2px;
+  font-weight: 600;
+}
+.use__label small {
+  font-weight: 400;
+  font-size: var(--fs-xs);
+  opacity: 0.8;
+}
+.use__select {
+  grid-area: select;
+  width: 100%;
+}
+.use__now {
+  grid-area: now;
+  font-size: var(--fs-xs);
+  opacity: 0.75;
+}
+.small-note {
+  font-size: var(--fs-xs);
+}
+.add-for {
+  border: 0;
+  padding: 0;
+  margin: 4px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  font-size: var(--fs-sm);
+}
+.add-for legend {
+  margin-bottom: 4px;
+}
+.add-for label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
 }
 .m-name {
   grid-area: name;
@@ -710,13 +803,20 @@ const status = computed(() => {
   .machine {
     grid-template-columns: 1fr;
   }
-  .model {
-    grid-template-columns: auto 1fr auto;
+  .use {
+    grid-template-columns: 1fr;
     grid-template-areas:
-      "radio name acc"
-      "radio tags tags"
-      "radio meta del"
-      "radio warn warn";
+      "label"
+      "select"
+      "now";
+  }
+  .model {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name acc"
+      "tags tags"
+      "meta del"
+      "warn warn";
   }
   .sel {
     min-width: 0;

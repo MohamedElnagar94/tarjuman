@@ -91,7 +91,8 @@ watch(
 let asrTimer: number | undefined;
 async function refreshAsr() {
   try {
-    asr.value = await api.asr(info.value?.duration || undefined);
+    // A recording runs the recordings' model; any video (from here, YouTube or a site) the videos'.
+    asr.value = await api.asr(info.value?.duration || undefined, isAudio.value ? "audio" : "video");
   } catch {
     /* the screen works without it */
   }

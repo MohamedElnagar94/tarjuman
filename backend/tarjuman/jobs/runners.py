@@ -118,9 +118,11 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
         job.check()
 
         job.phase = "تفريغ الكلام (Whisper)"
+        # A recording gets the recordings' model; a video (from this computer, YouTube or a site) the videos'.
+        use = "audio" if media and (media.kind or kind_by_ext(media.path)) == "audio" else "video"
         res = await s.whisper.transcribe_file(
             audio, lambda p: setattr(job, "progress", 30 + round(p * 50)), lambda: job.cancelled,
-            lambda text: setattr(job, "phase", text),
+            lambda text: setattr(job, "phase", text), use,
         )
         job.check()
         segments, lang = res["segments"], res["lang"]

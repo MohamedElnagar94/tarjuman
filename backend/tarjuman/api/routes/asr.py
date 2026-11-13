@@ -14,15 +14,16 @@ from ..deps import body, fail, ok, services
 router = APIRouter()
 
 
-def _state(s, duration: float | None = None) -> dict:
+def _state(s, duration: float | None = None, use: str = "audio") -> dict:
     # aiReady: whether "fix the transcript with AI" can work (Settings -> AI is set up).
-    return {**s.asr.public(duration), "status": s.whisper.status(), "aiReady": s.ai.ready}
+    return {**s.asr.public(duration, use), "status": s.whisper.status(), "aiReady": s.ai.ready}
 
 
 @router.get("/api/asr")
-async def asr_get(request: Request, duration: float = 0):
-    """With ``duration`` (seconds), "effective" is what a recording that long would use."""
-    return ok(**_state(services(request), duration or None))
+async def asr_get(request: Request, duration: float = 0, use: str = "audio"):
+    """With ``duration`` (seconds) and ``use`` (audio, video, live), "effective" is what that
+    transcription would use."""
+    return ok(**_state(services(request), duration or None, use if use in ("audio", "video", "live") else "audio"))
 
 
 @router.post("/api/asr")
@@ -60,11 +61,13 @@ async def asr_custom_add(request: Request):
     """{source}: adds the model and chooses it. It is downloaded on the first transcription, or with
     "prepare now"."""
     s = services(request)
+    b = await body(request)
     try:
-        info = await inspect(str((await body(request)).get("source") or ""))
+        info = await inspect(str(b.get("source") or ""))
     except AppError as e:
         return fail(e.code, e.message, status=400)
-    s.asr.add_custom(info)
+    uses = tuple(u for u in (b.get("uses") or []) if u in ("audio", "video", "live"))
+    s.asr.add_custom(info, uses)
     return ok(**_state(s))
 
 
@@ -87,5 +90,6 @@ async def asr_custom_remove(request: Request):
 async def asr_prepare(request: Request):
     """Downloads and loads the chosen model now, so the first transcription doesn't wait for it."""
     s = services(request)
-    started = s.whisper.prepare()
+    use = str((await body(request)).get("use") or "audio")
+    started = s.whisper.prepare(use if use in ("audio", "video", "live") else "audio")
     return ok(started=started, **_state(s))

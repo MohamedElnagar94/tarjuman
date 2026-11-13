@@ -17,7 +17,7 @@ import wave
 from pathlib import Path
 from typing import Any, Callable
 
-from .asr_settings import AsrSettings, apply_terms, hub_bytes, model_downloaded, model_info, model_source
+from .asr_settings import AsrSettings, apply_terms, hardware, hub_bytes, keep_in_memory, model_downloaded, model_info, model_source
 from .core.deps import has
 from .core.errors import Cancelled
 
@@ -36,8 +36,9 @@ class Whisper:
     def __init__(self, settings: AsrSettings, tmp: Path):
         self.settings = settings
         self.tmp = tmp
-        self._model = None
-        self._key: tuple[str, str, str] | None = None  # (model, device, compute) of the loaded model
+        # Loaded models, most recently used last, by (model, device, compute). Up to two stay in memory
+        # (keep_in_memory), so moving between a recording, a video and live captions needs no reload.
+        self._models: dict[tuple[str, str, str], Any] = {}
         self._lock = threading.Lock()
         self.error = ""
         self.fallback = ""  # why the GPU wasn't used though it was asked for
@@ -48,20 +49,24 @@ class Whisper:
 
     @property
     def model_name(self) -> str:
-        return self._key[0] if self._key else self.effective()["model"]
+        return next(reversed(self._models))[0] if self._models else self.effective()["model"]
 
     @property
     def ready(self) -> bool:
-        return self._model is not None
+        return bool(self._models)
 
-    def effective(self, duration: float | None = None) -> dict[str, Any]:
-        eff = self.settings.effective(duration=duration)
+    def effective(self, duration: float | None = None, use: str = "audio") -> dict[str, Any]:
+        eff = self.settings.effective(duration=duration, use=use)
         if self.cuda_broken and eff["device"] == "cuda":
             eff.update(device="cpu", compute="int8")
         return eff
 
+    @staticmethod
+    def _key(eff: dict[str, Any]) -> tuple[str, str, str]:
+        return (eff["model"], eff["device"], eff["compute"])
+
     def _is_loaded(self, eff: dict[str, Any]) -> bool:
-        return self._model is not None and self._key == (eff["model"], eff["device"], eff["compute"])
+        return self._key(eff) in self._models
 
     def status(self) -> dict:
         eff = self.effective()
@@ -79,9 +84,10 @@ class Whisper:
         return {
             "installed": installed(),
             # A model is in memory (auto may still pick another one for a recording of another length).
-            "ready": self._model is not None and not self.loading,
-            "model": self._key[0] if self._key else eff["model"],
-            "device": self._key[1] if self._key else eff["device"],
+            "ready": bool(self._models) and not self.loading,
+            "model": self.model_name if self._models else eff["model"],
+            "device": next(reversed(self._models))[1] if self._models else eff["device"],
+            "loaded": [k[0] for k in self._models],
             "loading": loading,
             "error": self.error[-300:],
             "fallback": self.fallback,
@@ -90,12 +96,15 @@ class Whisper:
     # ------------------------------------------------------------------ model
 
     def _load(self, eff: dict[str, Any]):
-        if self._is_loaded(eff):
-            return self._model
+        key = self._key(eff)
+        if key in self._models:
+            self._models[key] = self._models.pop(key)  # most recently used
+            return self._models[key]
         from faster_whisper import WhisperModel
 
-        self._model = None
-        self._key = None
+        # Room for the new one first: the oldest goes (its memory is freed before the next loads).
+        while self._models and len(self._models) >= keep_in_memory(hardware()):
+            self._models.pop(next(iter(self._models)))
         on_disk = model_downloaded(eff["model"])
         self.loading = {"model": eff["model"], "started": time.time(), "base": 0 if on_disk else hub_bytes(), "download": not on_disk}
         t0 = time.time()
@@ -119,7 +128,8 @@ class Whisper:
             raise
         finally:
             self.loading = None
-        self._model, self._key, self.error = model, (eff["model"], eff["device"], eff["compute"]), ""
+        self._models[self._key(eff)] = model
+        self.error = ""
         log.info("whisper %s on %s ready in %.1fs", eff["model"], eff["device"], time.time() - t0)
         return model
 
@@ -133,21 +143,22 @@ class Whisper:
         if not self._lock.acquire(blocking=False):
             return False
         try:
-            if self._key and self._key[0] == name:
-                self._model, self._key = None, None
+            for k in [k for k in self._models if k[0] == name]:
+                self._models.pop(k)
             return True
         finally:
             self._lock.release()
 
-    def prepare(self) -> bool:
-        """Downloads and loads the chosen model in the background (Settings -> "prepare now")."""
-        if not installed() or self.loading or self.status()["ready"]:
+    def prepare(self, use: str = "audio") -> bool:
+        """Downloads and loads a use's model in the background (Settings -> "prepare now")."""
+        eff = self.effective(use=use)
+        if not installed() or self.loading or self._is_loaded(eff):
             return False
 
         def work() -> None:
             try:
                 with self._lock:
-                    self._load(self.effective())
+                    self._load(eff)
             except Exception as e:  # noqa: BLE001
                 log.warning("whisper prepare failed: %r", e)
 
@@ -187,13 +198,14 @@ class Whisper:
         on_progress: Callable[[float], None] | None,
         cancelled: Callable[[], bool],
         on_phase: Callable[[str], None] | None = None,
+        use: str = "audio",
     ) -> dict:
         phase = on_phase or (lambda _s: None)
         from .media.probe import probe
 
         length = probe(Path(audio)).get("duration") or None
         with self._lock:
-            eff = self.effective(length)
+            eff = self.effective(length, use)
             if not self._is_loaded(eff):
                 phase(f"تحضير نموذج Whisper ({eff['model']})")
             try:
@@ -204,7 +216,7 @@ class Whisper:
                 if eff["device"] != "cuda" or not _looks_like_gpu_error(e):
                     raise
                 self._gpu_failed(e)
-                eff = self.effective(length)
+                eff = self.effective(length, use)
                 phase(f"تحضير نموذج Whisper ({eff['model']}) على المعالج")
                 return self._run(self._load(eff), eff, audio, on_progress, cancelled, phase)
 
@@ -269,8 +281,10 @@ class Whisper:
         on_progress: Callable[[float], None] | None = None,
         cancelled: Callable[[], bool] = lambda: False,
         on_phase: Callable[[str], None] | None = None,
+        use: str = "audio",
     ) -> dict:
-        return await asyncio.to_thread(self._transcribe, str(path), on_progress, cancelled, on_phase)
+        """``use``: "audio" for a recording, "video" for a video's sound (picks the model for it)."""
+        return await asyncio.to_thread(self._transcribe, str(path), on_progress, cancelled, on_phase, use)
 
     async def transcribe_pcm(self, pcm: bytes, sample_rate: int = 16000) -> dict:
         """Raw s16le mono audio (the extension's tab capture) -> {text, lang}."""
@@ -283,7 +297,7 @@ class Whisper:
                 w.setsampwidth(2)
                 w.setframerate(sample_rate)
                 w.writeframes(pcm)
-            res = await asyncio.to_thread(self._transcribe, name, None, lambda: False)
+            res = await asyncio.to_thread(self._transcribe, name, None, lambda: False, None, "live")
         finally:
             Path(name).unlink(missing_ok=True)
         return {"text": " ".join(s["text"] for s in res["segments"]).strip(), "lang": res["lang"]}

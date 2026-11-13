@@ -54,7 +54,13 @@ def test_auto_gives_a_short_recording_the_more_accurate_model(tmp_path):
     s.update({"language": "ar"})
     assert s.effective(HW_LAPTOP, duration=40)["model"] == "large-v3-arabic", "Arabic speech gets the dialect model"
     assert s.effective(HW_LAPTOP, duration=1800)["model"] == "small"
-    s.update({"model": "medium", "language": "ar", "quality": "fast"})
+    # Each use has its own model: videos the balanced one, live captions the fast one.
+    assert s.effective(HW_LAPTOP, duration=40, use="video")["model"] == "small"
+    assert s.effective(HW_LAPTOP, duration=20, use="live")["model"] == "small"
+    s.update({"models": {"video": "large-v3-arabic", "live": "nonsense"}})
+    assert s.values["models"] == {"audio": "auto", "video": "large-v3-arabic", "live": "auto"}
+    assert s.effective(HW_LAPTOP, duration=1800, use="video")["model"] == "large-v3-arabic"
+    s.update({"models": {"audio": "medium"}, "language": "ar", "quality": "fast"})
     eff = s.effective(HW_LAPTOP, duration=40)
     assert eff["model"] == "medium", "a model the user picked always wins"
     assert eff["language"] == "ar" and eff["beam"] == 1 and eff["device"] == "cpu"
@@ -63,10 +69,19 @@ def test_auto_gives_a_short_recording_the_more_accurate_model(tmp_path):
     assert s.effective(HW_GPU)["device"] == "cuda"
 
 
+def test_the_first_versions_single_model_is_kept_for_recordings_and_videos(tmp_path):
+    import json
+
+    f = tmp_path / "old.json"
+    f.write_text(json.dumps({"model": "medium", "language": "ar"}))
+    s = AsrSettings(f).load()
+    assert s.values["models"] == {"audio": "medium", "video": "medium", "live": "auto"}
+
+
 def test_bad_settings_are_ignored(tmp_path):
     s = AsrSettings(tmp_path / "asr.json")
-    s.update({"model": "huge", "language": "klingon", "style": "pirate", "device": "tpu"})
-    assert s.values["model"] == "auto" and s.values["language"] == "auto"
+    s.update({"models": {"audio": "huge"}, "language": "klingon", "style": "pirate", "device": "tpu"})
+    assert s.values["models"]["audio"] == "auto" and s.values["language"] == "auto"
     assert s.values["style"] == "general" and s.values["device"] == "auto"
     assert AsrSettings(tmp_path / "asr.json").load().values == s.values
 
@@ -129,8 +144,9 @@ def test_the_settings_api_explains_the_computer(tmp_path):
         j = c.get("/api/asr?duration=60").json()
         assert j["ok"] and {"settings", "hardware", "recommended", "effective", "models", "status"} <= set(j)
         assert [m["id"] for m in j["models"]][:2] == ["tiny", "base"]
-        j = c.post("/api/asr", json={"model": "small", "style": "egyptian"}).json()
-        assert j["settings"]["model"] == "small" and j["effective"]["model"] == "small"
+        j = c.post("/api/asr", json={"models": {"audio": "small"}, "style": "egyptian"}).json()
+        assert j["settings"]["models"]["audio"] == "small" and j["effective"]["model"] == "small"
+        assert set(j["uses"]) == {"audio", "video", "live"}
         assert "مصرية" in j["effective"]["prompt"]
 
 
@@ -268,11 +284,12 @@ def test_an_added_model_is_chosen_listed_and_removed(tmp_path, monkeypatch):
     monkeypatch.setattr(routes, "inspect", fake_inspect)
     app = create_app(Services(), warm=False)
     with TestClient(app, headers=LOCAL, client=("127.0.0.1", 50000)) as c:
-        j = c.post("/api/asr/custom/add", json={"source": str(folder)}).json()
-        assert j["settings"]["model"] == str(folder) and j["effective"]["model"] == str(folder)
+        j = c.post("/api/asr/custom/add", json={"source": str(folder), "uses": ["audio"]}).json()
+        assert j["settings"]["models"]["audio"] == str(folder) and j["effective"]["model"] == str(folder)
+        assert j["settings"]["models"]["video"] == "auto"
         mine = [m for m in j["models"] if m.get("custom")]
         assert mine and mine[0]["name"] == "mine" and mine[0]["downloaded"] and mine[0]["ar"] == 0
         j = c.post("/api/asr/custom/remove", json={"id": str(folder)}).json()
-        assert j["settings"]["model"] == "auto" and not [m for m in j["models"] if m.get("custom")]
+        assert j["settings"]["models"]["audio"] == "auto" and not [m for m in j["models"] if m.get("custom")]
         assert (folder / "model.bin").exists(), "a folder of the user's is never deleted"
-        assert c.post("/api/asr", json={"model": "/some/unknown"}).json()["settings"]["model"] == "auto"
+        assert c.post("/api/asr", json={"models": {"audio": "/some/unknown"}}).json()["settings"]["models"]["audio"] == "auto"

@@ -885,9 +885,6 @@
     "onCpu": "on the CPU",
     "onGpu": "on the graphics card",
     "model": "Model",
-    "auto": "Automatic",
-    "autoHint": "Follows the recommendation for this computer ({model})",
-    "tagRec": "Recommended",
     "tagDown": "Downloaded",
     "accuracy": "Arabic accuracy: {n} of 5",
     "speed": "about {n} s per minute of audio",
@@ -928,8 +925,6 @@
     "deviceHint": "A graphics card is much faster than the CPU.",
     "deviceAuto": "Automatic",
     "honest": "No automatic transcription is 100% accurate: clarity, noise, overlapping voices and dialect all matter. These settings get as close as possible: the bigger model matters most, then setting the language, then the writing style. You can correct any sentence by hand in the transcript, or transcribe the file again after changing the settings.",
-    "autoHintShort": "Follows the recommendation: {short} for short recordings (up to 2 minutes), {model} for longer ones",
-    "tagShort": "Short recordings",
     "gpuOld": "An old card: it doesn't speed these models up, so transcription runs on the CPU. Nothing to install.",
     "delete": "Delete the {model} model",
     "deleteConfirm": "Click again to delete",
@@ -966,6 +961,28 @@
     "speedGuess": "about {n} s per minute of audio (estimate)",
     "license": "Licence: {name}",
     "removeConfirm": "Click again to remove",
-    "removed": "{model} was taken off the list. Its folder is still on this computer."
+    "removed": "{model} was taken off the list. Its folder is still on this computer.",
+    "uses": "A model for each use",
+    "use": {
+      "audio": "🎙️ Recordings and audio files",
+      "video": "🎬 Videos",
+      "live": "⚡ Live captions in the extension"
+    },
+    "useHint": {
+      "audio": "Usually short, so accuracy matters most.",
+      "video": "From this computer, YouTube or any site. Usually long, so accuracy and speed balanced.",
+      "live": "Must keep up with the video, so speed matters most."
+    },
+    "usedFor": {
+      "audio": "Recordings",
+      "video": "Videos",
+      "live": "Live captions"
+    },
+    "autoIs": "Automatic: {model}",
+    "autoAudio": "{short} for short, {model} for long",
+    "useNow": "Using now: {model} · about {n} s per minute",
+    "twoInMemory": "Two models stay in memory, so moving between a recording, a video and live captions needs no reload.",
+    "oneInMemory": "This computer's memory holds one model at a time: switching between two reloads it.",
+    "otherFor": "Use it for:"
   }
 }

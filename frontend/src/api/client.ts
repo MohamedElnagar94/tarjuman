@@ -4,6 +4,7 @@
 import type {
   AsrSettings,
   AsrState,
+  AsrUse,
   CustomModelInfo,
   AiSettings,
   AiSettingsInput,
@@ -258,12 +259,12 @@ export const api = {
   retranscribe: (id: string) => post<{ ok: true }>("/api/media/retranscribe", { id }),
 
   /** With the length of a recording, "effective" is what that recording would use. */
-  asr: (duration?: number) => get<AsrState>("/api/asr", duration ? { duration: Math.round(duration) } : {}),
+  asr: (duration?: number, use: AsrUse = "audio") => get<AsrState>("/api/asr", { use, ...(duration ? { duration: Math.round(duration) } : {}) }),
   setAsr: (b: Partial<AsrSettings>) => post<AsrState>("/api/asr", b),
   prepareAsr: () => post<AsrState & { started: boolean }>("/api/asr/prepare", {}),
   deleteAsrModel: (model: string) => post<AsrState & { freed: number }>("/api/asr/delete", { model }),
   checkCustomModel: (source: string) => post<{ ok: true; model: CustomModelInfo }>("/api/asr/custom/check", { source }),
-  addCustomModel: (source: string) => post<AsrState>("/api/asr/custom/add", { source }),
+  addCustomModel: (source: string, uses: AsrUse[]) => post<AsrState>("/api/asr/custom/add", { source, uses }),
   removeCustomModel: (id: string) => post<AsrState & { freed: number }>("/api/asr/custom/remove", { id }),
 
   vocab: () => get<{ ok: true; items: VocabItem[] }>("/api/vocab"),
