@@ -104,6 +104,8 @@ The server binds to `0.0.0.0` so a phone on the same Wi-Fi can use the app, whic
 
 ## The desktop app
 
+On Linux the same app ships as an AppImage (`installer/linux/build.sh`): a relocatable Python from python-build-standalone with every package, the code, the web app and the extension, started by `AppRun`. `installed.txt` moves the data to `~/.local/share/Tarjuman`, and the updater replaces the AppImage file in place (the running copy keeps working until it closes).
+
 `python -m tarjuman app` runs the server in its own process and shows the web app in an Edge (or Chrome) window in app mode, with its own profile under `data/window`. On Windows, `tray.py` adds a notification-area icon and four independent settings (`desktop_settings.py`): minimize to tray, close to tray, start with Windows, and keep the engine running after the window closes. The browser window can't be told what its buttons do, so the app watches it twice a second, locally: a minimized window is hidden when that setting is on, and when the window closes, `after_window_closed` decides between quitting, staying in the tray with the engine running, or staying with the engine stopped, and asks first when jobs are running. The browser's lock on its profile folder tells whether the window is open, because Edge hands the window to another process at once. A second start asks the running app to show its window and exits.
 
 ## Tests

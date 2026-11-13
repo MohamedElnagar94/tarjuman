@@ -20,6 +20,10 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - Links to other sites open in your own browser, not inside the app window.
 - Settings → Extensions has a button to get the extension from the Chrome Web Store.
 
+### Linux
+
+- A Linux app: `Tarjuman-<version>-x86_64.AppImage` on the Releases page, one file with its own Python, packages, web app and extension. Data in `~/.local/share/Tarjuman`. It updates itself from Settings → Updates (restart to use the new version).
+
 ### Updates
 
 - Settings → Updates shows when a newer version is out, with what each version added and fixed, and updates in one click: the installer is downloaded, checked against its SHA-256 file, and Tarjuman restarts updated. A small "Update available" badge appears in the header.

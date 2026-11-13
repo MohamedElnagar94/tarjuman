@@ -12,7 +12,7 @@ import webbrowser
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse, Response
 
-from ... import APP_ID, __version__, config, desktop_settings, storage
+from ... import APP_ID, __version__, config, desktop_settings, storage, updates
 from ...asr import installed as whisper_installed
 from ...core.deps import has
 from ...core.net import lan_ip
@@ -104,11 +104,12 @@ async def update_install(request: Request):
     replaced; the installer starts Tarjuman again. {force: true} goes ahead while jobs are running."""
     b = await body(request)
     d = request.app.state.desktop
-    if d is None:
+    if d is None and updates.platform_kind() != "appimage":
         return fail("UPDATE_NEEDS_APP", "Update from the installed desktop app.")
     if services(request).jobs.running_count() and not b.get("force"):
         return fail("JOBS_RUNNING")
-    if not request.app.state.updates.start_install(on_ready=lambda: d.quit(confirm=False)):
+    # Windows: the installer replaces the program, so the app closes. Linux: the AppImage is replaced in place.
+    if not request.app.state.updates.start_install(on_ready=(lambda: d.quit(confirm=False)) if d is not None else (lambda: None)):
         return fail("UPDATE_UNAVAILABLE")
     return ok(**_update_state(request))
 

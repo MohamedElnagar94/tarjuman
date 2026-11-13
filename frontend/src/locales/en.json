@@ -800,7 +800,10 @@
       "verifying": "Verifying…",
       "starting": "Starting the update…",
       "idle": "",
-      "error": ""
-    }
+      "error": "",
+      "restart": ""
+    },
+    "installHintLinux": "The new AppImage is downloaded, its checksum verified, and it replaces this one. Restart Tarjuman afterwards.",
+    "restart": "Version {v} is downloaded and has replaced the old one. Close Tarjuman and open it again to use it."
   }
 }

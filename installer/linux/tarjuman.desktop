@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Tarjuman
+Name[ar]=ترجمان
+GenericName=Video translation and dubbing
+GenericName[ar]=ترجمة الفيديو ودبلجته
+Comment=Watch any video in your language: synced subtitles and live dubbing
+Comment[ar]=شاهد أي فيديو بلغتك: ترجمة متزامنة ودبلجة مباشرة
+Exec=AppRun
+Icon=tarjuman
+Terminal=false
+Categories=AudioVideo;Video;Education;
+Keywords=subtitles;translation;dubbing;arabic;youtube;

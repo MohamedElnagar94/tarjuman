@@ -1,0 +1,10 @@
+#!/bin/sh
+# Tarjuman's AppImage entry. The bundled Python runs the app: in a window of its own when Chrome,
+# Chromium or Edge is installed, in the default browser otherwise. Data lives in ~/.local/share/Tarjuman.
+#   Tarjuman.AppImage            the app
+#   Tarjuman.AppImage doctor     check every component (also: serve, subs <link>, --help)
+HERE="$(dirname "$(readlink -f "$0")")"
+export PYTHONNOUSERSITE=1
+export PYTHONPATH="$HERE/backend"
+[ $# -eq 0 ] && set -- app
+exec "$HERE/python/bin/python3" -m tarjuman "$@"

@@ -47,12 +47,15 @@ def _number(name: str, default: float) -> float:
 
 
 def _default_home() -> Path:
-    # The installed Windows app (marked by installed.txt) keeps the user's data apart from the program,
-    # so an update or a reinstall never touches it.
-    local = os.environ.get("LOCALAPPDATA")
-    if local and (PROJECT_ROOT / "installed.txt").exists():
-        return Path(local) / "Tarjuman"
-    return PROJECT_ROOT
+    # The installed app (marked by installed.txt) keeps the user's data apart from the program, so an
+    # update or a reinstall never touches it: %LOCALAPPDATA%\Tarjuman on Windows, ~/.local/share/Tarjuman
+    # on Linux (where the AppImage itself is read-only).
+    if not (PROJECT_ROOT / "installed.txt").exists():
+        return PROJECT_ROOT
+    if os.name == "nt":
+        local = os.environ.get("LOCALAPPDATA")
+        return Path(local) / "Tarjuman" if local else PROJECT_ROOT
+    return Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "Tarjuman"
 
 
 HOME = Path(os.environ.get("TARJUMAN_HOME") or _default_home())

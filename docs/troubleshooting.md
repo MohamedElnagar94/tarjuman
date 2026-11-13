@@ -30,6 +30,16 @@ The program is in Program Files, which only an administrator can change. Right-c
 **Updating.**
 Settings → Updates checks GitHub and installs a new version after verifying its checksum; Windows asks for permission, Tarjuman closes, and it starts again updated. If it says the download does not match its checksum, nothing was installed: check again later, or download the installer from the Releases page yourself. A copy run from source updates with `git pull`.
 
+## Linux (AppImage)
+
+**"AppImages require FUSE to run".**
+Install `libfuse2` (Debian, Ubuntu: `sudo apt install libfuse2`), or run it with `--appimage-extract-and-run`.
+
+**It opened in the browser, not in a window.**
+The window needs Chrome, Chromium or Edge. Without them Tarjuman uses your default browser and keeps running after the tab closes; stop it with `pkill -f "tarjuman app"`.
+
+**Where is my data?** In `~/.local/share/Tarjuman` (or `$XDG_DATA_HOME/Tarjuman`). Deleting the AppImage leaves it there.
+
 ## Phone
 
 **The phone says the site can't be reached.**

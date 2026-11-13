@@ -79,7 +79,8 @@ onBeforeUnmount(() => clearInterval(timer));
         </div>
 
         <div class="actions">
-          <template v-if="state.canInstall">
+          <p v-if="state.phase === 'restart'" class="done">{{ t("updates.restart", { v: state.latest }) }}</p>
+          <template v-else-if="state.canInstall">
             <template v-if="confirmJobs">
               <span class="warn">{{ t("updates.jobsRunning") }}</span>
               <button type="button" class="btn btn--primary btn--sm" @click="install(true)">{{ t("updates.installAnyway") }}</button>
@@ -88,7 +89,7 @@ onBeforeUnmount(() => clearInterval(timer));
             <button v-else type="button" class="btn btn--primary" :disabled="busy" @click="install()">
               {{ busy ? t("updates.phase." + state.phase, { p: state.progress }) : t("updates.install", { v: state.latest }) }}
             </button>
-            <small class="muted">{{ t("updates.installHint") }}</small>
+            <small class="muted">{{ state.kind === "appimage" ? t("updates.installHintLinux") : t("updates.installHint") }}</small>
           </template>
           <template v-else>
             <a class="btn btn--primary" :href="state.releases[0]?.page" target="_blank" rel="noopener">{{ t("updates.openPage") }}</a>
@@ -180,6 +181,11 @@ onBeforeUnmount(() => clearInterval(timer));
   flex-wrap: wrap;
   gap: var(--s-3);
   margin-top: var(--s-4);
+}
+.done {
+  margin: 0;
+  color: var(--ok);
+  font-weight: 600;
 }
 .warn {
   color: var(--danger);

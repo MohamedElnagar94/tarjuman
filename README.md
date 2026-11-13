@@ -94,6 +94,20 @@ Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/M
 
 Something not working? See [Troubleshooting](docs/troubleshooting.md). What changed in each version is in the [Changelog](CHANGELOG.md).
 
+### Linux (AppImage)
+
+Download `Tarjuman-<version>-x86_64.AppImage` from the [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) page, make it executable, and run it. Like the Windows installer it brings its own Python, every package, the web app and the extension.
+
+```sh
+chmod +x Tarjuman-*-x86_64.AppImage
+./Tarjuman-*-x86_64.AppImage
+```
+
+- It opens in a window of its own when Chrome, Chromium or Edge is installed, and in your default browser otherwise (then it keeps running until you log out, or `pkill -f "tarjuman app"`).
+- Your data is kept in `~/.local/share/Tarjuman`. Settings → Updates replaces the AppImage with a newer one after verifying it; restart Tarjuman to use it.
+- If it says FUSE is missing (some distributions, and WSL), run it with `--appimage-extract-and-run`, or install `libfuse2`.
+- The notification-area icon and the Desktop settings are Windows-only for now.
+
 ### From source
 
 You need **Python 3.11+** and **Node.js 20+**.
@@ -232,6 +246,14 @@ iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Ta
 ```
 
 The *Windows installer* workflow does the same on GitHub: run it from the Actions tab, or push a tag like `v3.0.0` to attach the installer to a release. Before compiling, it starts the bundled app and checks that it answers.
+
+### Building the Linux AppImage
+
+```sh
+installer/linux/build.sh   # build/linux/Tarjuman-<version>-x86_64.AppImage (needs curl, python3, Node.js 20+)
+```
+
+It bundles a relocatable Python from python-build-standalone. The same workflow builds it next to the Windows installer and publishes both on a `v*` tag.
 
 ## Built with
 

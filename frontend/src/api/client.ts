@@ -77,7 +77,10 @@ export interface UpdateState {
   installed: boolean;
   checkedAt: number;
   error: string;
-  phase: "idle" | "downloading" | "verifying" | "starting" | "error";
+  /** "restart": the Linux AppImage was replaced; the next start is the new version. */
+  phase: "idle" | "downloading" | "verifying" | "starting" | "restart" | "error";
+  /** The download this system takes. */
+  kind: "exe" | "appimage";
   progress: number;
   message: string;
   settings: { checkUpdates: boolean; autoUpdate: boolean };
