@@ -15,15 +15,17 @@ export type ShortcutId =
   | "bigger"
   | "smaller"
   | "fullscreen"
+  | "cinema"
   | "search"
   | "help"
   | "close";
 
-/** Shown in the shortcuts list. In RTL the left arrow moves forward (next line). */
+/** Shown in the shortcuts list. The right arrow moves forward (next line), as on every video player
+ *  (YouTube included), whatever the page's direction. */
 export const SHORTCUTS: { id: ShortcutId; keys: string[] }[] = [
   { id: "play", keys: ["K"] },
-  { id: "next", keys: ["←"] },
-  { id: "prev", keys: ["→"] },
+  { id: "next", keys: ["→"] },
+  { id: "prev", keys: ["←"] },
   { id: "repeat", keys: ["R"] },
   { id: "subs", keys: ["C"] },
   { id: "bilingual", keys: ["B"] },
@@ -33,6 +35,7 @@ export const SHORTCUTS: { id: ShortcutId; keys: string[] }[] = [
   { id: "bigger", keys: ["+"] },
   { id: "smaller", keys: ["−"] },
   { id: "fullscreen", keys: ["F"] },
+  { id: "cinema", keys: ["T"] },
   { id: "search", keys: ["/"] },
   { id: "help", keys: ["?"] },
   { id: "close", keys: ["Esc"] },
@@ -42,8 +45,8 @@ export const SHORTCUTS: { id: ShortcutId; keys: string[] }[] = [
 export const KEYMAP: Record<string, ShortcutId> = {
   k: "play",
   "ن": "play",
-  arrowleft: "next",
-  arrowright: "prev",
+  arrowright: "next",
+  arrowleft: "prev",
   r: "repeat",
   "ق": "repeat",
   c: "subs",
@@ -61,6 +64,8 @@ export const KEYMAP: Record<string, ShortcutId> = {
   "-": "smaller",
   f: "fullscreen",
   "ب": "fullscreen",
+  t: "cinema",
+  "ف": "cinema",
   "/": "search",
   "?": "help",
   escape: "close",

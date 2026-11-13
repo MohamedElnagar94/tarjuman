@@ -273,6 +273,13 @@
       "label": "Transcribe again",
       "confirm": "Click again to confirm",
       "hint": "Transcribes the file again with the current transcription settings, such as a more accurate model or a set language."
+    },
+    "speed": "Playback speed",
+    "cinema": "Cinema mode: dim everything around the video",
+    "timeline": {
+      "label": "Video timeline: where people speak and what is translated",
+      "done": "{pct}% translated",
+      "todo": "Not translated yet"
     }
   },
   "transcript": {
@@ -288,7 +295,29 @@
     "edit": "Correct the translation",
     "editLabel": "Corrected translation",
     "editHint": "Enter to save, Esc to cancel",
-    "edited": "edited"
+    "edited": "edited",
+    "display": "Display",
+    "viewLabel": "What the transcript shows",
+    "view": {
+      "both": "Both",
+      "tr": "Translation",
+      "src": "Original"
+    },
+    "densityLabel": "Line spacing",
+    "density": {
+      "cozy": "Cozy",
+      "compact": "Compact"
+    },
+    "size": "Text size",
+    "times": "Time beside each line",
+    "karaoke": "The current line fills and its words light up",
+    "turns": "Mark speaker changes",
+    "tags": "Sounds (music, applause) as icons",
+    "loop": "Repeat this line",
+    "looping": "This line repeats. Stop with the O key",
+    "copy": "Copy the line",
+    "copied": "Line copied",
+    "backToNow": "Back to the current line"
   },
   "dub": {
     "voice": "Voice",
@@ -451,7 +480,8 @@
     "fullscreen": "Full screen",
     "search": "Search the transcript",
     "help": "This list",
-    "close": "Close the dialog"
+    "close": "Close the dialog",
+    "cinema": "Cinema mode"
   },
   "library": {
     "title": "Library",
@@ -538,12 +568,30 @@
       "privacy": "Privacy",
       "desktop": "Desktop",
       "updates": "Updates",
-      "transcription": "Transcription"
+      "transcription": "Transcription",
+      "watching": "Watching"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
     "sample": "هكذا ستظهر الترجمة على الفيديو.",
-    "shortcutsLead": "They work on the watch page, with Arabic keyboard layouts too."
+    "shortcutsLead": "They work on the watch page, with Arabic keyboard layouts too.",
+    "watchingLead": "How the video page looks: the transcript beside the video, the timeline under it, the light around it. Also changed from the transcript's display button.",
+    "watch": {
+      "follow": "The transcript follows the video",
+      "followHint": "It moves with the sentence being said. When you read elsewhere, a button brings you back.",
+      "tTimes": "Time beside each line",
+      "tTimesHint": "Click it to go to that moment.",
+      "karaoke": "The current line fills and its words light up",
+      "karaokeHint": "A bar fills under the sentence as it is said, and the translation's words light up one after another.",
+      "tTurns": "Mark speaker changes",
+      "tTurnsHint": "Instead of the “>>” in YouTube captions: a gap and a colour per speaker.",
+      "tTags": "Sounds as icons",
+      "tTagsHint": "[Music], [Applause] and [Laughter] show as small icons instead of bracketed words.",
+      "timeline": "Video timeline below it",
+      "timelineHint": "Shows where people speak and what is translated, and the sentence when you hover over it.",
+      "glow": "Ambient light",
+      "glowHint": "A soft light around the video in its colours, breathing while it plays."
+    }
   },
   "ai": {
     "lead": "Plain machine translation can come out formal and long. With this on, an AI model writes the dub script in natural speech, fitted to the time of each sentence, and enables summaries and questions.",

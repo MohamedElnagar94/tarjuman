@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   PhArrowsOut,
+  PhFilmSlate,
   PhClosedCaptioning,
   PhKeyboard,
   PhMicrophoneStage,
@@ -15,15 +16,19 @@ import {
 } from "@phosphor-icons/vue";
 import { liveDub, toggleLiveDub } from "@/composables/liveDub";
 import { usePrefs } from "@/composables/prefs";
-import { session, stepLine, togglePlay } from "@/composables/session";
+import { applySpeed, session, stepLine, togglePlay } from "@/composables/session";
 import { formatTime } from "@/lib/time";
 
 const emit = defineEmits<{ fullscreen: []; shortcuts: [] }>();
 const { t } = useI18n();
 const prefs = usePrefs();
 const disabled = computed(() => !session.ready);
-const rtl = computed(() => prefs.uiLang === "ar");
 const total = computed(() => session.lengthSeconds);
+const SPEEDS = [0.75, 1, 1.25, 1.5];
+function nextSpeed() {
+  prefs.speed = SPEEDS[(SPEEDS.indexOf(prefs.speed) + 1) % SPEEDS.length]!;
+  applySpeed();
+}
 </script>
 
 <template>
@@ -33,18 +38,19 @@ const total = computed(() => session.lengthSeconds);
         <PhPause v-if="session.playing" :size="20" weight="fill" />
         <PhPlay v-else :size="20" weight="fill" />
       </button>
-      <!-- In RTL the "previous line" control sits on the right, like the arrow keys. -->
-      <button class="btn btn--quiet btn--icon" type="button" :disabled="disabled" :aria-label="t('watch.prevLine')" :title="t('watch.prevLine')" @click="stepLine(-1)">
-        <PhSkipForward v-if="rtl" :size="18" />
-        <PhSkipBack v-else :size="18" />
-      </button>
-      <button class="btn btn--quiet btn--icon" type="button" :disabled="disabled" :aria-label="t('watch.repeatLine')" :title="t('watch.repeatLine') + ' (R)'" @click="stepLine(0)">
-        <PhRepeatOnce :size="18" />
-      </button>
-      <button class="btn btn--quiet btn--icon" type="button" :disabled="disabled" :aria-label="t('watch.nextLine')" :title="t('watch.nextLine')" @click="stepLine(1)">
-        <PhSkipBack v-if="rtl" :size="18" />
-        <PhSkipForward v-else :size="18" />
-      </button>
+      <!-- Time runs left to right here as on the timeline: previous on the left, next on the right,
+           like the arrow keys. -->
+      <div class="transport" dir="ltr">
+        <button class="btn btn--quiet btn--icon" type="button" :disabled="disabled" :aria-label="t('watch.prevLine')" :title="t('watch.prevLine') + ' (←)'" @click="stepLine(-1)">
+          <PhSkipBack :size="18" />
+        </button>
+        <button class="btn btn--quiet btn--icon" type="button" :disabled="disabled" :aria-label="t('watch.repeatLine')" :title="t('watch.repeatLine') + ' (R)'" @click="stepLine(0)">
+          <PhRepeatOnce :size="18" />
+        </button>
+        <button class="btn btn--quiet btn--icon" type="button" :disabled="disabled" :aria-label="t('watch.nextLine')" :title="t('watch.nextLine') + ' (→)'" @click="stepLine(1)">
+          <PhSkipForward :size="18" />
+        </button>
+      </div>
       <span class="clock mono ltr" aria-live="off">
         {{ formatTime(session.time) }}<template v-if="total"> / {{ formatTime(total) }}</template>
       </span>
@@ -63,6 +69,12 @@ const total = computed(() => session.lengthSeconds);
         <PhMicrophoneStage :size="18" />
         <span>{{ liveDub.on ? t("dub.live.stop") : t("dub.live.start") }}</span>
       </button>
+      <button class="btn btn--quiet btn--sm speed" type="button" :disabled="disabled" :aria-label="t('watch.speed')" :title="t('watch.speed')" @click="nextSpeed">
+        <span class="mono" dir="ltr">{{ prefs.speed }}×</span>
+      </button>
+      <button class="btn btn--quiet btn--icon btn--sm hide-sm" :class="{ 'btn--on': prefs.cinema }" type="button" :aria-pressed="prefs.cinema" :aria-label="t('watch.cinema')" :title="t('watch.cinema') + ' (T)'" @click="prefs.cinema = !prefs.cinema">
+        <PhFilmSlate :size="18" />
+      </button>
       <button class="btn btn--quiet btn--icon btn--sm hide-sm" type="button" :aria-label="t('shortcuts.title')" :title="t('shortcuts.title') + ' (?)'" @click="emit('shortcuts')">
         <PhKeyboard :size="18" />
       </button>
@@ -74,6 +86,20 @@ const total = computed(() => session.lengthSeconds);
 </template>
 
 <style scoped>
+@media (max-width: 480px) {
+  .tb__group {
+    flex-wrap: wrap;
+  }
+}
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.speed {
+  min-width: 46px;
+  font-variant-numeric: tabular-nums;
+}
 .tb {
   display: flex;
   align-items: center;

@@ -12,13 +12,15 @@ import PlayerStage from "@/components/watch/PlayerStage.vue";
 import PlayerToolbar from "@/components/watch/PlayerToolbar.vue";
 import TranscriptPanel from "@/components/watch/TranscriptPanel.vue";
 import VideoMeta from "@/components/watch/VideoMeta.vue";
+import VideoTimeline from "@/components/watch/VideoTimeline.vue";
+import AmbientGlow from "@/components/watch/AmbientGlow.vue";
 import WatchPanel from "@/components/watch/WatchPanel.vue";
 import WordLookup from "@/components/watch/WordLookup.vue";
 import { liveDub, toggleLiveDub } from "@/composables/liveDub";
 import { closeLookup } from "@/composables/lookup";
 import { useMediaQuery } from "@/composables/media";
 import { SUB_SIZE, usePrefs } from "@/composables/prefs";
-import { armLoop, endSession, loadVideo, session, stepLine, togglePlay } from "@/composables/session";
+import { armLoop, cues, endSession, loadVideo, session, stepLine, togglePlay } from "@/composables/session";
 import { useShortcuts } from "@/composables/shortcuts";
 import { toast } from "@/composables/toast";
 import { resumeVideoJobs } from "@/composables/videoJobs";
@@ -106,8 +108,12 @@ useShortcuts((id) => {
   switch (id) {
     case "close":
       if (showKeys.value) showKeys.value = false;
+      if (prefs.cinema) prefs.cinema = false;
       closeLookup();
       return false;
+    case "cinema":
+      prefs.cinema = !prefs.cinema;
+      return;
     case "help":
       showKeys.value = true;
       return;
@@ -162,13 +168,18 @@ useShortcuts((id) => {
 </script>
 
 <template>
-  <div class="watch" :class="{ wide: wide && session.phase === 'ready' }">
+  <div class="watch" :class="{ wide: wide && session.phase === 'ready', cinema: prefs.cinema && session.phase === 'ready' }">
+    <Transition name="dim"><div v-if="prefs.cinema && session.phase === 'ready'" class="dimmer" aria-hidden="true" @click="prefs.cinema = false"></div></Transition>
     <div class="main">
       <div class="player-wrap">
+        <AmbientGlow v-if="prefs.glow && session.phase === 'ready' && !session.audioOnly" />
         <PlayerStage ref="stage" />
       </div>
       <template v-if="session.phase === 'ready'">
-        <PlayerToolbar @fullscreen="stage?.toggleFullscreen()" @shortcuts="showKeys = true" />
+        <div class="lift">
+          <VideoTimeline v-if="prefs.timeline && !session.audioOnly && cues.length" />
+          <PlayerToolbar @fullscreen="stage?.toggleFullscreen()" @shortcuts="showKeys = true" />
+        </div>
         <VideoMeta />
 
         <div class="tasks">
@@ -227,6 +238,38 @@ useShortcuts((id) => {
 }
 .main {
   min-width: 0;
+}
+.player-wrap {
+  position: relative;
+  isolation: isolate;
+}
+.player-wrap :deep(.stage) {
+  z-index: 1;
+}
+/* Cinema: everything but the video and its controls fades into the dark. */
+.dimmer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: rgba(3, 5, 18, 0.88);
+}
+.cinema .player-wrap,
+.cinema .lift {
+  position: relative;
+  z-index: calc(var(--z-overlay) + 1);
+}
+.cinema .lift {
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  padding: 0 var(--s-3);
+}
+.dim-enter-active,
+.dim-leave-active {
+  transition: opacity 350ms var(--ease);
+}
+.dim-enter-from,
+.dim-leave-to {
+  opacity: 0;
 }
 .watch:not(.wide) .main {
   max-width: 1120px;

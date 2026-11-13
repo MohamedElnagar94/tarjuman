@@ -19,6 +19,25 @@ export interface Prefs {
   tl: string;
   // transcript and learning
   follow: boolean;
+  /** Transcript: both lines, the translation only, or the original only. */
+  tView: "both" | "tr" | "src";
+  tDensity: "cozy" | "compact";
+  /** Transcript text size (px). */
+  tSize: number;
+  tTimes: boolean;
+  /** Mark speaker changes (">>" in YouTube captions) instead of showing the symbols. */
+  tTurns: boolean;
+  /** Sound tags ("[Music]") as small icons. */
+  tTags: boolean;
+  /** The line being said fills as it is spoken, and its words light up in turn. */
+  karaoke: boolean;
+  // around the video
+  /** Soft light around the player in the video's colours. */
+  glow: boolean;
+  /** The timeline under the video: where people speak, what is translated, a preview on hover. */
+  timeline: boolean;
+  /** Dim everything but the video. */
+  cinema: boolean;
   learn: boolean;
   loop: boolean;
   quiz: boolean;
@@ -49,6 +68,16 @@ export const DEFAULT_PREFS: Prefs = {
   bgo: 0.78,
   tl: "ar",
   follow: true,
+  tView: "both",
+  tDensity: "cozy",
+  tSize: 15,
+  tTimes: true,
+  tTurns: true,
+  tTags: true,
+  karaoke: true,
+  glow: true,
+  timeline: true,
+  cinema: false,
   learn: false,
   loop: false,
   quiz: false,
@@ -68,6 +97,7 @@ export const DEFAULT_PREFS: Prefs = {
 };
 
 export const SUB_SIZE = { min: 14, max: 52, step: 2 } as const;
+export const T_SIZE = { min: 12, max: 22, step: 1 } as const;
 
 /** Values from storage are untrusted: coerce them back to the expected types. */
 export function sanitizePrefs(raw: unknown): Prefs {
@@ -92,6 +122,9 @@ export function sanitizePrefs(raw: unknown): Prefs {
   if (!["system", "light", "dark"].includes(out.theme)) out.theme = "system";
   if (!["ar", "en"].includes(out.uiLang)) out.uiLang = "ar";
   if (out.position !== "top") out.position = "bottom";
+  if (!["both", "tr", "src"].includes(out.tView)) out.tView = "both";
+  if (out.tDensity !== "compact") out.tDensity = "cozy";
+  out.tSize = Math.min(T_SIZE.max, Math.max(T_SIZE.min, Math.round(out.tSize)));
   if (!FONTS.some((f) => f.id === out.font)) out.font = DEFAULT_FONT;
   return out;
 }

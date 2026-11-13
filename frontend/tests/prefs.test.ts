@@ -38,7 +38,8 @@ describe("shortcuts", () => {
     expect(k("k")).toBe("play");
     expect(k("K")).toBe("play");
     expect(k("ن")).toBe("play");
-    expect(k("ArrowLeft")).toBe("next");
+    expect(k("ArrowRight")).toBe("next");
+    expect(k("ArrowLeft")).toBe("prev");
     expect(k("d")).toBe("dub");
     expect(k("ي")).toBe("dub");
     expect(k("x")).toBeNull();

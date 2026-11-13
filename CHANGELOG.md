@@ -31,6 +31,13 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - Settings → Updates shows when a newer version is out, with what each version added and fixed, and updates in one click: the installer is downloaded, checked against its SHA-256 file, and Tarjuman restarts updated. A small "Update available" badge appears in the header.
 - Choices: check automatically (every few hours, on by default) and install automatically (off by default).
 
+### Watching a video
+
+- The transcript: speaker changes (YouTube's ">>") shown as a gap and a colour per speaker, sound tags ([Music], [Applause]) as small icons, the line being said filling as it is spoken with its translated words lighting up in turn, buttons on each line to repeat or copy it, and a "back to the current line" button when you read elsewhere. Its look (both lines, translation only or original only; spacing; text size; times) is set from its display button or Settings -> Watching.
+- A timeline under the video shows where people speak, what is already translated and the line being said; hovering shows the sentence at that moment, and click or drag goes there.
+- Ambient light around the player in the video's colours (a video from this computer lights it with its own frames), cinema mode (T) that dims the page, and a speed button.
+- The right arrow now goes to the next line and the left arrow to the previous one, and the buttons follow the same order.
+
 ### Settings
 
 - Words in your recordings are a table like the pronunciation dictionary: how a word should be written, and (optionally) how Whisper writes it wrong, which is then replaced after transcribing.

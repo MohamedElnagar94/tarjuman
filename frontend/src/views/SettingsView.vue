@@ -2,7 +2,7 @@
 import { computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform } from "@phosphor-icons/vue";
+import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform, PhMonitorPlay } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
 import AiSettings from "@/components/settings/AiSettings.vue";
 import PhonePairing from "@/components/settings/PhonePairing.vue";
@@ -17,7 +17,7 @@ import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import SubtitleOverlay from "@/components/SubtitleOverlay.vue";
 import type { Quality } from "@/api/types";
-import { SUB_SIZE, usePrefs, type ThemePref, type UiLang } from "@/composables/prefs";
+import { SUB_SIZE, T_SIZE, usePrefs, type ThemePref, type UiLang } from "@/composables/prefs";
 import { useVoices } from "@/composables/voices";
 import { TARGET_LANGS } from "@/lib/langs";
 import { FONTS } from "@/lib/fonts";
@@ -36,6 +36,7 @@ const SECTIONS = [
   { id: "extensions", icon: PhPuzzlePiece },
   { id: "pronounce", icon: PhSpeakerHigh },
   { id: "defaults", icon: PhSlidersHorizontal },
+  { id: "watching", icon: PhMonitorPlay },
   { id: "appearance", icon: PhPaintBrush },
   { id: "updates", icon: PhArrowsClockwise },
   { id: "desktop", icon: PhDesktop },
@@ -66,6 +67,16 @@ const langOptions = [
   { value: "ar" as UiLang, label: "العربية" },
   { value: "en" as UiLang, label: "English" },
 ];
+const tViewOptions = computed(() => [
+  { value: "both" as const, label: t("transcript.view.both") },
+  { value: "tr" as const, label: t("transcript.view.tr") },
+  { value: "src" as const, label: t("transcript.view.src") },
+]);
+const densityOptions = computed(() => [
+  { value: "cozy" as const, label: t("transcript.density.cozy") },
+  { value: "compact" as const, label: t("transcript.density.compact") },
+]);
+const WATCH_TOGGLES = ["follow", "tTimes", "karaoke", "tTurns", "tTags", "timeline", "glow"] as const;
 const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label: q + "p" }));
 </script>
 
@@ -149,6 +160,29 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
             <div class="opt">
               <label class="opt__label" for="d-remove">{{ t("export.dub.remove") }}</label>
               <ToggleSwitch id="d-remove" v-model="prefs.removeVoice" />
+            </div>
+          </div>
+        </section>
+
+        <section id="watching" v-show="active === 'watching'" class="panel sec" aria-labelledby="h-watching">
+          <h2 id="h-watching" class="panel__title">{{ t("settings.s.watching") }}</h2>
+          <p class="panel__lead">{{ t("settings.watchingLead") }}</p>
+          <div class="opts">
+            <div class="opt">
+              <span class="opt__label">{{ t("transcript.viewLabel") }}</span>
+              <SegmentedControl v-model="prefs.tView" :options="tViewOptions" :label="t('transcript.viewLabel')" size="sm" />
+            </div>
+            <div class="opt">
+              <span class="opt__label">{{ t("transcript.densityLabel") }}</span>
+              <SegmentedControl v-model="prefs.tDensity" :options="densityOptions" :label="t('transcript.densityLabel')" size="sm" />
+            </div>
+            <div class="opt">
+              <label class="opt__label" for="w-tsize">{{ t("transcript.size") }}<small class="mono">{{ prefs.tSize }}px</small></label>
+              <input id="w-tsize" v-model.number="prefs.tSize" class="range" type="range" :min="T_SIZE.min" :max="T_SIZE.max" :step="T_SIZE.step" />
+            </div>
+            <div v-for="k in WATCH_TOGGLES" :key="k" class="opt">
+              <label class="opt__label" :for="'w-' + k">{{ t("settings.watch." + k) }}<small>{{ t("settings.watch." + k + "Hint") }}</small></label>
+              <ToggleSwitch :id="'w-' + k" v-model="prefs[k]" />
             </div>
           </div>
         </section>
