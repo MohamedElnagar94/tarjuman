@@ -42,7 +42,7 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 ### Transcription accuracy
 
 - Settings → Transcription shows this computer (CPU threads, memory, NVIDIA card and whether CUDA can use it), the model it should use and why, and each model's Arabic accuracy, download size, speed on this computer and a warning when it is too heavy. A model can be downloaded and prepared ahead of time.
-- "Automatic" gives short recordings (up to 3 minutes, like voice notes) the most accurate model the computer can hold, and longer ones the faster recommended model.
+- "Automatic" gives short recordings (up to 2 minutes, like voice notes) the most accurate model the computer can hold (large-v3 with 12 GB of memory or more), and longer ones the faster recommended model. On a 36-second Egyptian voice note with names and English words, large-v3 got 29% of the words wrong against 45-50% for large-v3-turbo.
 - Spoken language (automatic or fixed), how Arabic is written (general with punctuation, MSA, Egyptian, Gulf, Levantine, Maghrebi; given only to Arabic speech), beam search, audio cleanup for noisy recordings, and skipping silences.
 - Long stretches of speech are cut into sentences by the time of each word, so each subtitle shows on time and "repeat sentence" repeats a sentence.
 - On a graphics card that fails, transcription falls back to the CPU and says why. `TARJUMAN_WHISPER_MODEL` is now empty by default; the old default `base` no longer overrides the recommendation.

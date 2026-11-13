@@ -41,7 +41,7 @@ HW_SMALL = {"threads": 2, "cores": 2, "ramGb": 4, "cuda": 0, "gpu": "", "vramGb"
 
 def test_the_recommendation_follows_the_computer_and_says_why():
     laptop = recommend(HW_LAPTOP)
-    assert laptop["device"] == "cpu" and laptop["model"] == "small" and laptop["short"] == "large-v3-turbo"
+    assert laptop["device"] == "cpu" and laptop["model"] == "small" and laptop["short"] == "large-v3"
     assert any("cuBLAS" in w for w in laptop["why"]), "a card that can't be used is explained"
     assert recommend(HW_GPU)["model"] == "large-v3" and recommend(HW_GPU)["device"] == "cuda"
     assert recommend(HW_SMALL)["model"] == "base"
@@ -49,7 +49,7 @@ def test_the_recommendation_follows_the_computer_and_says_why():
 
 def test_auto_gives_a_short_recording_the_more_accurate_model(tmp_path):
     s = AsrSettings(tmp_path / "asr.json")
-    assert s.effective(HW_LAPTOP, duration=40)["model"] == "large-v3-turbo"
+    assert s.effective(HW_LAPTOP, duration=40)["model"] == "large-v3"
     assert s.effective(HW_LAPTOP, duration=1800)["model"] == "small"
     s.update({"model": "medium", "language": "ar", "quality": "fast"})
     eff = s.effective(HW_LAPTOP, duration=40)

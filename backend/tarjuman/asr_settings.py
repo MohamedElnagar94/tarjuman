@@ -36,7 +36,9 @@ MODELS: dict[str, dict[str, Any]] = {
 }
 # In "auto" on a CPU, a recording up to this long gets the most accurate model the computer can hold,
 # whatever its speed: a voice note is worth the wait. Longer ones get the recommended model.
-SHORT_SECONDS = 180
+# Measured on a 36 s Egyptian voice note with names and English words: large-v3 got 29% of the words
+# wrong, large-v3-turbo 45-50% (and turbo ignores the names list), at a third of the time.
+SHORT_SECONDS = 120
 # On a GPU everything is ~10-20x faster.
 GPU_SPEEDUP = 12
 
@@ -217,17 +219,17 @@ def recommend(hw: dict[str, Any]) -> dict[str, Any]:
         why.append(f"معالجك فيه {threads} مسارًا وذاكرتك {ram:g} غيغابايت: يشغّل large-v3-turbo، أدقّ ما يناسب المعالج للعربية، بسرعة مقبولة.")
         return {"model": "large-v3-turbo", "device": "cpu", "short": "large-v3-turbo", "why": why}
     if ram >= 6 and threads >= 4:
-        short = "large-v3-turbo" if ram >= 8 else "small"
-        turbo = seconds_per_minute("large-v3-turbo", hw, "cpu")
+        short = "large-v3" if ram >= 12 else "large-v3-turbo" if ram >= 8 else "small"
+        slow = seconds_per_minute(short, hw, "cpu")
         why.append(
             f"معالجك فيه {threads} مسارات وذاكرتك {ram:g} غيغابايت: نموذج small يكتب العربية صحيحة "
             f"في قرابة {seconds_per_minute('small', hw, 'cpu')} ثانية لكل دقيقة صوت."
         )
         if short != "small":
             why.append(
-                f"وفي الوضع التلقائي تُفرَّغ التسجيلات القصيرة (حتى {SHORT_SECONDS // 60} دقائق، مثل الرسائل الصوتية) بنموذج "
-                f"large-v3-turbo الأدق، بعلامات الترقيم والتنوين، مع أنه أبطأ (قرابة {round(turbo / 60, 1):g} دقيقة لكل دقيقة صوت)؛ "
-                "والأطول بنموذج small حتى لا يطول الانتظار."
+                f"وفي الوضع التلقائي تُفرَّغ التسجيلات القصيرة (حتى دقيقتين، مثل الرسائل الصوتية) بنموذج {short} الأدق، "
+                "وهو الأفضل في اللهجات والأسماء والكلمات الإنجليزية، مع أنه أبطأ "
+                f"(قرابة {round(slow / 60, 1):g} دقيقة لكل دقيقة صوت)؛ والأطول بنموذج small حتى لا يطول الانتظار."
             )
         return {"model": "small", "device": "cpu", "short": short, "why": why}
     why.append(f"ذاكرة الجهاز {ram:g} غيغابايت ومعالجه {threads} مسارات: النماذج الأكبر من base قد تُبطئ الجهاز كثيرًا.")
