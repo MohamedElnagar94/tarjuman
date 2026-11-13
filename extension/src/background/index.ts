@@ -12,6 +12,7 @@
  * rules would block them, while the extension has host permission for loopback.
  */
 import { mergeSettings, type Settings } from "@/shared/settings";
+import { readTable } from "@/shared/i18n";
 import { findServer, probe, normalizeServerUrl, DEFAULT_BASE, type Found } from "@/shared/server";
 import { isYouTube, isProtectedUrl, originPattern, pickTrack, type TrackInfo } from "@/shared/cues";
 import { bytesToB64 } from "@/shared/audio";
@@ -332,6 +333,9 @@ async function setPendingStart(p: typeof pendingStart) {
 type Handler = (msg: any, sender: chrome.runtime.MessageSender) => Promise<unknown> | unknown;
 
 const handlers: Record<string, Handler> = {
+  // Content scripts can't read extension files: the chosen interface language's messages, for them.
+  i18n: async () => ({ ok: true, ...(await readTable()) }),
+
   start: async (msg) => {
     await setPendingStart(null);
     const tab = msg.tabId != null ? await chrome.tabs.get(msg.tabId).catch(() => undefined) : await activeTab();

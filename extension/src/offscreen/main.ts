@@ -5,7 +5,7 @@
  *  - cuts the audio at natural pauses and sends each phrase to /api/live;
  *  - when dubbing, lowers the original audio and plays the spoken translations in order.
  */
-import { Chunker, downsampleTo16k, toPcm16B64, b64ToObjectUrl } from "@/shared/audio";
+import { Chunker, downsampleTo16k, toPcm16, bytesToB64, b64ToObjectUrl } from "@/shared/audio";
 import { mergeSettings, type Settings } from "@/shared/settings";
 import { DEFAULT_BASE } from "@/shared/server";
 
@@ -40,19 +40,37 @@ function onAudio(data: Float32Array) {
   if (!chunk) return; // not yet, or silence
   // The server is behind: skip this phrase rather than let the delay pile up.
   if (inflight >= MAX_INFLIGHT) return;
-  post(toPcm16B64(downsampleTo16k(chunk, ctx.sampleRate)));
+  post(toPcm16(downsampleTo16k(chunk, ctx.sampleRate)));
 }
 
-async function post(b64: string) {
+// The app takes the audio as raw bytes since 3.1; an older one answers 404 and gets base64 in JSON.
+let rawRoute = true;
+
+async function sendAudio(pcm: Uint8Array): Promise<Response> {
+  const tl = settings.lang || "ar";
+  if (rawRoute) {
+    const q = new URLSearchParams({ tl, tts: settings.dub ? "1" : "0", voice: settings.voice || "" });
+    const r = await fetch(`${server}/api/live/raw?${q}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: pcm,
+    });
+    if (r.status !== 404) return r;
+    rawRoute = false;
+  }
+  return fetch(`${server}/api/live`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ audio_b64: bytesToB64(pcm), tl, tts: !!settings.dub, voice: settings.voice || "" }),
+  });
+}
+
+async function post(pcm: Uint8Array) {
   const id = ++seq;
   inflight++;
   send({ type: "live-status", status: "transcribing" });
   try {
-    const r = await fetch(`${server}/api/live`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ audio_b64: b64, tl: settings.lang || "ar", tts: !!settings.dub, voice: settings.voice || "" }),
-    });
+    const r = await sendAudio(pcm);
     const j = await r.json();
     if (!running) return;
     if (j.ok && j.text) {

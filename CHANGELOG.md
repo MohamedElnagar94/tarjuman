@@ -2,6 +2,14 @@
 
 Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__init__.py`.
 
+## Browser extension 3.0.1 (2026-11-13)
+
+- Subtitle fonts: Plex (default), Cairo, Naskh, Amiri, Tajawal, Kufi or the system font (options page).
+- Interface language: the browser's, Arabic or English, chosen in the options page.
+- The welcome page's "Get the app" opens the Releases page with the Windows installer, and it stops checking for the app once it has found it.
+- Live subtitles send the tab's audio as raw bytes (`/api/live/raw`), a third less than before; an app older than 3.1 still gets the old form.
+- When the app on the computer is older than the extension, the popup says so, with a link to update it.
+
 ## 3.1.0 (2026-11-13)
 
 ### Desktop app (Windows)

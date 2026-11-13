@@ -208,20 +208,41 @@ async def pairing_reset(request: Request):
     return ok(**_pairing_state(request))
 
 
+# Seconds of 16 kHz mono s16le one live request may carry (the extension sends phrases of a few seconds).
+LIVE_MAX_BYTES = 30 * 16000 * 2
+
+
 @router.post("/api/live")
 async def live(request: Request):
     """A few seconds of tab audio from the extension: transcribe, translate, and optionally speak."""
     b = await body(request)
-    s = services(request)
-    tl = b.get("tl") or "ar"
     if not b.get("audio_b64"):
         return fail("NO_AUDIO", status=400)
-    if not whisper_installed():
-        return fail("WHISPER_NOT_INSTALLED")
     try:
         pcm = base64.b64decode(b["audio_b64"])
     except (binascii.Error, ValueError):
         return fail("NO_AUDIO", status=400)
+    return await _live(request, pcm, b.get("tl") or "ar", bool(b.get("tts")), b.get("voice") or "")
+
+
+@router.post("/api/live/raw")
+async def live_raw(request: Request, tl: str = "ar", tts: str = "0", voice: str = ""):
+    """The same as /api/live, with the audio as the raw request body (16 kHz mono s16le): a third smaller
+    than base64 inside JSON, and nothing to encode or parse on either side."""
+    pcm = bytearray()
+    async for chunk in request.stream():
+        pcm += chunk
+        if len(pcm) > LIVE_MAX_BYTES:
+            return fail("BODY_TOO_LARGE", status=413)
+    if not pcm:
+        return fail("NO_AUDIO", status=400)
+    return await _live(request, bytes(pcm), tl or "ar", tts == "1", voice)
+
+
+async def _live(request: Request, pcm: bytes, tl: str, tts: bool, voice: str):
+    s = services(request)
+    if not whisper_installed():
+        return fail("WHISPER_NOT_INSTALLED")
     try:
         r = await s.whisper.transcribe_pcm(pcm)
     except Exception as e:  # noqa: BLE001
@@ -231,9 +252,9 @@ async def live(request: Request):
     if text:
         ar = (await s.translator.translate_many([text], sl=r["lang"] or "auto", tl=tl)).get(text, "")
     audio_b64 = audio_mime = ""
-    if b.get("tts") and ar:
+    if tts and ar:
         try:
-            t = await s.tts.speak(ar, tl, b.get("voice") or "")
+            t = await s.tts.speak(ar, tl, voice)
             audio_b64, audio_mime = base64.b64encode(t.buf).decode("ascii"), t.mime
         except Exception:  # noqa: BLE001 — the extension falls back to the browser's voice
             pass

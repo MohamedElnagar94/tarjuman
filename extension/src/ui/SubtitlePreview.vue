@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { langDir, type Settings } from "@/shared/settings";
+import { FONT_STACK } from "@/shared/fonts";
 import { t } from "@/shared/i18n";
 
 const props = withDefaults(defineProps<{ settings: Settings; active?: boolean; scale?: number; label?: string }>(), { scale: 0.58 });
@@ -19,6 +20,7 @@ const sample = computed(() => SAMPLE[props.settings.lang] || SAMPLE.ar);
 const style = computed(() => ({
   "--fs": Math.round(props.settings.size * props.scale) + "px",
   "--bgo": String(props.settings.bgOpacity),
+  fontFamily: FONT_STACK[props.settings.font],
 }));
 </script>
 

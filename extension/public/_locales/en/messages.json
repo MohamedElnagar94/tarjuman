@@ -444,5 +444,47 @@
   },
   "notAllowedBody": {
     "message": "The Tarjuman app is running but hasn't allowed this extension yet. Open the app on your computer, go to Settings, Extensions, and click Allow."
+  },
+  "lblFont": {
+    "message": "Subtitle font"
+  },
+  "font_plex": {
+    "message": "Plex (default)"
+  },
+  "font_cairo": {
+    "message": "Cairo"
+  },
+  "font_naskh": {
+    "message": "Naskh"
+  },
+  "font_amiri": {
+    "message": "Amiri"
+  },
+  "font_tajawal": {
+    "message": "Tajawal"
+  },
+  "font_kufi": {
+    "message": "Kufi"
+  },
+  "font_system": {
+    "message": "System font"
+  },
+  "secUiLang": {
+    "message": "Interface language"
+  },
+  "lblUiLang": {
+    "message": "Extension language"
+  },
+  "lblUiLangHint": {
+    "message": "The language of the extension's windows and buttons. \"Browser language\" follows Chrome."
+  },
+  "uiLangAuto": {
+    "message": "Browser language"
+  },
+  "appTooOld": {
+    "message": "The Tarjuman app on this computer is older than this extension, so some features may not work."
+  },
+  "appUpdateLink": {
+    "message": "Update the app"
   }
 }

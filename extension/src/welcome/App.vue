@@ -4,7 +4,8 @@ import { t } from "@/shared/i18n";
 import { send } from "@/shared/messages";
 import { shortcutText } from "@/ui/errors";
 
-const REPO = "https://github.com/MohamedElnagar94/tarjuman";
+// The Windows installer is on the releases page (the code page would make people look for it).
+const REPO = "https://github.com/MohamedElnagar94/tarjuman/releases/latest";
 const found = ref<{ base: string; version: string } | null>(null);
 const checked = ref(false);
 const shortcut = ref("Alt+Shift+A");
@@ -17,6 +18,7 @@ async function check() {
   const r = await send("test-connection");
   found.value = r.ok ? { base: r.base, version: String(r.health?.version || "") } : null;
   checked.value = true;
+  if (found.value) clearInterval(timer); // found: nothing more to ask the app
 }
 
 async function copy() {

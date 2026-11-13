@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { t } from "@/shared/i18n";
+import { t, type UiLang } from "@/shared/i18n";
+import { FONT_IDS, FONT_STACK, type FontId } from "@/shared/fonts";
 import { send } from "@/shared/messages";
 import { TARGET_LANGS, SIZE_MIN, SIZE_MAX, DEFAULT_SETTINGS } from "@/shared/settings";
 import { PORTS } from "@/shared/server";
@@ -110,7 +111,30 @@ async function resetAddress() {
 }
 
 function resetLook() {
-  update({ size: DEFAULT_SETTINGS.size, position: DEFAULT_SETTINGS.position, bgOpacity: DEFAULT_SETTINGS.bgOpacity, bilingual: DEFAULT_SETTINGS.bilingual });
+  update({
+    size: DEFAULT_SETTINGS.size,
+    position: DEFAULT_SETTINGS.position,
+    bgOpacity: DEFAULT_SETTINGS.bgOpacity,
+    bilingual: DEFAULT_SETTINGS.bilingual,
+    font: DEFAULT_SETTINGS.font,
+  });
+}
+
+// The interface language: the browser's, or one chosen here. The pages read it when they open.
+const FONT_KEY: Record<FontId, string> = {
+  plex: "font_plex",
+  cairo: "font_cairo",
+  naskh: "font_naskh",
+  amiri: "font_amiri",
+  tajawal: "font_tajawal",
+  kufi: "font_kufi",
+  system: "font_system",
+};
+const uiLangChoice = ref<UiLang>("auto");
+chrome.storage.local.get("uiLang").then((r) => (uiLangChoice.value = (r.uiLang as UiLang) || "auto"));
+async function setUiLang(v: UiLang) {
+  await chrome.storage.local.set({ uiLang: v });
+  location.reload();
 }
 
 onMounted(async () => {
@@ -187,6 +211,12 @@ onMounted(async () => {
                 @input="settings.bgOpacity = Number(($event.target as HTMLInputElement).value)"
                 @change="update({ bgOpacity: Number(($event.target as HTMLInputElement).value) })"
               />
+            </div>
+            <div class="field">
+              <label for="font">{{ t("lblFont") }}</label>
+              <select id="font" class="select" :value="settings.font" @change="update({ font: ($event.target as HTMLSelectElement).value as FontId })">
+                <option v-for="f in FONT_IDS" :key="f" :value="f" :style="{ fontFamily: FONT_STACK[f] }">{{ t(FONT_KEY[f]) }}</option>
+              </select>
             </div>
             <div class="field inline">
               <span class="label">{{ t("lblPosition") }}</span>
@@ -289,6 +319,20 @@ onMounted(async () => {
               <span v-else class="small">{{ t("shortcutNone") }}</span>
               <button type="button" class="btn" @click="send('open-shortcuts')">{{ t("btnChange") }}</button>
             </span>
+          </div>
+        </div>
+      </section>
+
+      <section id="language" class="panel">
+        <div class="panel-head"><h2>{{ t("secUiLang") }}</h2></div>
+        <div class="rows">
+          <div class="row">
+            <label for="uilang" class="lbl"><span>{{ t("lblUiLang") }}</span><small>{{ t("lblUiLangHint") }}</small></label>
+            <select id="uilang" class="select" :value="uiLangChoice" @change="setUiLang(($event.target as HTMLSelectElement).value as UiLang)">
+              <option value="auto">{{ t("uiLangAuto") }}</option>
+              <option value="ar">العربية</option>
+              <option value="en">English</option>
+            </select>
           </div>
         </div>
       </section>

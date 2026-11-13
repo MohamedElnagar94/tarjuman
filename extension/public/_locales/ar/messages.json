@@ -442,5 +442,47 @@
   },
   "notAllowedBody": {
     "message": "تطبيق ترجمان يعمل، لكنه لم يسمح لهذه الإضافة بعد. افتح التطبيق على الحاسوب، ثم «الإعدادات ← الإضافات»، واضغط «اسمح بها»."
+  },
+  "lblFont": {
+    "message": "خط الترجمة"
+  },
+  "font_plex": {
+    "message": "بلكس (الافتراضي)"
+  },
+  "font_cairo": {
+    "message": "القاهرة"
+  },
+  "font_naskh": {
+    "message": "نسخ"
+  },
+  "font_amiri": {
+    "message": "أميري"
+  },
+  "font_tajawal": {
+    "message": "تجوال"
+  },
+  "font_kufi": {
+    "message": "كوفي"
+  },
+  "font_system": {
+    "message": "خط النظام"
+  },
+  "secUiLang": {
+    "message": "لغة الواجهة"
+  },
+  "lblUiLang": {
+    "message": "لغة الإضافة"
+  },
+  "lblUiLangHint": {
+    "message": "لغة النوافذ والأزرار في الإضافة. «لغة المتصفح» تتبع لغة Chrome."
+  },
+  "uiLangAuto": {
+    "message": "لغة المتصفح"
+  },
+  "appTooOld": {
+    "message": "إصدار تطبيق ترجمان على جهازك أقدم من هذه الإضافة، فقد لا تعمل بعض الميزات."
+  },
+  "appUpdateLink": {
+    "message": "حدّث التطبيق"
   }
 }

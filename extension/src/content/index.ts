@@ -7,7 +7,8 @@
  * All server traffic goes through the background (page CORS / private network rules).
  */
 import { DubEngine, type DubMedia } from "@tarjuman/dub-engine";
-import { t } from "@/shared/i18n";
+import { t, useTable } from "@/shared/i18n";
+import { FONT_STACK } from "@/shared/fonts";
 import { mergeSettings, langDir, SIZE_MIN, SIZE_MAX, type Settings } from "@/shared/settings";
 import { cueIndexAt, ytVideoId, normalizeTrackCues, type Cue, type TrackInfo } from "@/shared/cues";
 import { b64ToObjectUrl } from "@/shared/audio";
@@ -159,6 +160,7 @@ declare global {
     UI.wrap.classList.toggle("top", S.settings.position === "top");
     UI.wrap.classList.toggle("bottom", S.settings.position !== "top");
     UI.wrap.style.setProperty("--bgo", String(S.settings.bgOpacity));
+    UI.wrap.style.setProperty("--sub-font", FONT_STACK[S.settings.font]);
     UI.trLine.dir = langDir(S.settings.lang);
     UI.subs.classList.toggle("off", S.hidden);
     const btn = (a: string) => UI.tools.querySelector(`[data-act="${a}"]`);
@@ -665,6 +667,11 @@ declare global {
         return;
     }
   }
+
+  // The interface language chosen in the options (the browser's otherwise), before any overlay is built.
+  bg("i18n").then((r) => {
+    if (r && r.ok && r.table) useTable(r.lang, r.table);
+  });
 
   chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
     if (!msg || !msg.type || msg.target === "offscreen") return;

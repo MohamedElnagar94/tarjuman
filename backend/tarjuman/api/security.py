@@ -43,4 +43,4 @@ def post_allowed(path: str, content_type: str | None) -> bool:
     ct = str(content_type or "").lower()
     if ct.startswith("application/json"):
         return True
-    return path == "/api/media/upload" and ct.startswith("application/octet-stream")
+    return path in ("/api/media/upload", "/api/live/raw") and ct.startswith("application/octet-stream")

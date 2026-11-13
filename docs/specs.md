@@ -87,6 +87,8 @@ Rejected requests get `403 {"ok":false,"code":"FORBIDDEN_ORIGIN"|"LOCAL_ONLY"}` 
 
 **Updates.** `GET /api/update[?force=1]` answers `{current, latest, available, releases:[{version, notes, date, page}], canInstall, installed, checkedAt, error, phase, progress, message, settings:{checkUpdates, autoUpdate}}`. It asks GitHub (`/repos/MohamedElnagar94/tarjuman/releases`) at most every six hours, and not at all when `checkUpdates` is off unless forced. `POST /api/update/install {force?}` downloads the newest installer, refuses it unless it matches the release's `.sha256` file, starts it silently and closes the desktop app; the installer starts the app again. It answers `JOBS_RUNNING` while jobs run (unless `force`), `UPDATE_NEEDS_APP` outside the desktop app, and `UPDATE_UNAVAILABLE` when there is nothing to install. Both are local only.
 
+**Live audio.** `POST /api/live/raw?tl=&tts=0|1&voice=` takes the audio as the raw body (16 kHz mono s16le, `Content-Type: application/octet-stream`, at most 30 s) and answers like `POST /api/live`, which still takes `{audio_b64, tl, tts, voice}` for older extensions.
+
 **Protocol version.** `/api/health` includes `api` (now `1`). It is raised only for a change that breaks an older client; a client built for a lower number should ask the user to update.
 
 An unexpected failure answers `500 {ok:false, code:"ERROR", message, ref}`. The message is generic; the exception itself is only in the server log, next to the same `ref`.

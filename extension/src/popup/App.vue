@@ -26,6 +26,11 @@ const online = computed(() => !!status.value?.health);
 // The app answers but hasn't approved this extension yet (it trusts the first one that connects).
 const notAllowed = computed(() => (status.value?.health as { extensionAllowed?: boolean } | null)?.extensionAllowed === false);
 const version = computed(() => (status.value?.health?.version as string) || "");
+// The protocol this extension speaks (the app reports its own as `api` since 3.1). An older app
+// still works for the basics; the notice asks to update it.
+const MIN_API = 1;
+const appTooOld = computed(() => online.value && Number((status.value?.health as { api?: number } | null)?.api || 0) < MIN_API);
+const RELEASES = "https://github.com/MohamedElnagar94/tarjuman/releases/latest";
 const blocked = computed(() => !!tab.value?.protected);
 
 const modeLabel = computed(() => {
@@ -207,6 +212,10 @@ onMounted(async () => {
 
       <!-- Controls -->
       <template v-else>
+        <p v-if="appTooOld" class="note-old" role="note">
+          {{ t("appTooOld") }}
+          <a :href="RELEASES" target="_blank" rel="noopener">{{ t("appUpdateLink") }}</a>
+        </p>
         <section class="stage">
           <SubtitlePreview :settings="settings" :active="running" :label="modeLabel" />
           <button
@@ -364,6 +373,19 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.note-old {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  background: rgba(240, 146, 43, 0.12);
+  border: 1px solid rgba(240, 146, 43, 0.4);
+}
+.note-old a {
+  color: inherit;
+  font-weight: 600;
 }
 .conn {
   margin-inline-start: auto;

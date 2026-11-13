@@ -1,3 +1,5 @@
+import { DEFAULT_FONT, isFontId, type FontId } from "./fonts";
+
 export type Position = "bottom" | "top";
 
 export interface Settings {
@@ -17,6 +19,8 @@ export interface Settings {
   position: Position;
   /** Opacity of the plate behind subtitles, 0..1. */
   bgOpacity: number;
+  /** Subtitle font (shared/fonts.ts). */
+  font: FontId;
 }
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
@@ -29,6 +33,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   size: 26,
   position: "bottom",
   bgOpacity: 0.78,
+  font: DEFAULT_FONT,
 });
 
 export const SIZE_MIN = 14;
@@ -71,6 +76,7 @@ export function mergeSettings(base?: Partial<Settings> | null, patch?: Partial<S
     size: Math.round(clamp(v("size"), SIZE_MIN, SIZE_MAX, DEFAULT_SETTINGS.size)),
     position: v("position") === "top" ? "top" : "bottom",
     bgOpacity: clamp(v("bgOpacity"), 0, 1, DEFAULT_SETTINGS.bgOpacity),
+    font: isFontId(v("font")) ? (v("font") as FontId) : DEFAULT_FONT,
   };
 }
 

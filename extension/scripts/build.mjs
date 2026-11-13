@@ -54,6 +54,18 @@ function copyFonts() {
       copyFileSync(resolve(dir, "files", f), resolve(dist, "fonts", f));
     }
   }
+  // The subtitle fonts the user can choose (src/shared/fonts.ts lists the same files).
+  const EXTRA = {
+    "@fontsource-variable/cairo": ["cairo-arabic-wght-normal.woff2", "cairo-latin-wght-normal.woff2"],
+    "@fontsource/noto-naskh-arabic": ["noto-naskh-arabic-arabic-600-normal.woff2", "noto-naskh-arabic-latin-600-normal.woff2"],
+    "@fontsource/amiri": ["amiri-arabic-700-normal.woff2", "amiri-latin-700-normal.woff2"],
+    "@fontsource/tajawal": ["tajawal-arabic-700-normal.woff2", "tajawal-latin-700-normal.woff2"],
+    "@fontsource-variable/noto-kufi-arabic": ["noto-kufi-arabic-arabic-wght-normal.woff2", "noto-kufi-arabic-latin-wght-normal.woff2"],
+  };
+  for (const [pkg, files] of Object.entries(EXTRA)) {
+    const from = dirname(require.resolve(`${pkg}/package.json`));
+    for (const f of files) copyFileSync(resolve(from, "files", f), resolve(dist, "fonts", f));
+  }
 }
 
 await build({ configFile: resolve(root, "vite.config.ts"), logLevel: "warn", build: { emptyOutDir: false, watch: watch ? {} : null } });

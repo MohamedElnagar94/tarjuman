@@ -453,3 +453,27 @@ def test_desktop_open_takes_only_web_addresses_and_only_from_this_computer(clien
 
     time.sleep(0.2)
     assert opened == ["https://chromewebstore.google.com/detail/x"]
+
+
+def test_live_audio_as_raw_bytes_matches_the_json_form(client, services, monkeypatch):
+    import base64
+
+    from tarjuman.api.routes import system
+
+    heard = []
+
+    async def fake_transcribe(pcm):
+        heard.append(pcm)
+        return {"text": "hello there", "lang": "en"}
+
+    monkeypatch.setattr(system, "whisper_installed", lambda: True)
+    monkeypatch.setattr(services.whisper, "transcribe_pcm", fake_transcribe)
+    pcm = bytes(range(256)) * 10
+    raw = client.post("/api/live/raw?tl=ar&tts=0", content=pcm, headers={"content-type": "application/octet-stream"}).json()
+    old = client.post("/api/live", json={"audio_b64": base64.b64encode(pcm).decode(), "tl": "ar"}).json()
+    assert raw == old and raw["ar"] == "ع:hello there"
+    assert heard == [pcm, pcm], "the same bytes reach Whisper either way"
+    assert client.post("/api/live/raw", content=b"", headers={"content-type": "application/octet-stream"}).status_code == 400
+    too_long = b"\0" * (system.LIVE_MAX_BYTES + 1)
+    assert client.post("/api/live/raw", content=too_long, headers={"content-type": "application/octet-stream"}).status_code == 413
+    assert client.post("/api/live/raw", content=pcm, headers={"content-type": "text/plain"}).status_code == 415

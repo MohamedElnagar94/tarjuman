@@ -142,6 +142,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 1. Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) (it also installs in Edge and other Chromium browsers).
    If Chrome says *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, that is because the publisher is new to the Chrome Web Store; Chrome shows it for every new publisher until it has followed the store's policies for a few months, and only to people who turned on Enhanced Safe Browsing. The extension passed the store's review, and its [source code](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) is open. Choose *Continue to install*.
 2. Keep the Tarjuman app running, open a video, and click the Tarjuman icon, or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
+3. Its options page sets the subtitle font and the extension's language (the browser's, Arabic or English).
 
 <details>
 <summary>From source instead</summary>

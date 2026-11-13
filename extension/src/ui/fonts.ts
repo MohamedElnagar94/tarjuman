@@ -10,3 +10,10 @@ import "@fontsource/ibm-plex-sans-arabic/latin-700.css";
 import "@fontsource/reem-kufi/arabic-600.css";
 import "@fontsource/reem-kufi/latin-600.css";
 import "./tokens.css";
+
+// The subtitle fonts the user can choose, for the preview in the options page and the popup.
+import { extraFontFaces } from "@/shared/fonts";
+
+const style = document.createElement("style");
+style.textContent = extraFontFaces((f) => `/fonts/${f}`);
+document.head.appendChild(style);
