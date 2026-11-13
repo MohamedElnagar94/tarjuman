@@ -29,6 +29,7 @@ def test_only_newer_published_releases_newest_first():
         [release("v3.0.0"), release("v3.2.0", "two"), release("v3.1.0", "one"), release("v3.3.0", draft=True),
          release("v3.4.0-beta"), release("v3.5.0", pre=True)],
         "3.0.0",
+        "exe",
     )
     assert [r["version"] for r in got] == ["3.2.0", "3.1.0"], "drafts, pre-releases and odd tags are skipped"
     assert got[0]["notes"] == "two" and got[0]["installer"]["name"] == "Tarjuman-Setup-3.2.0.exe"
