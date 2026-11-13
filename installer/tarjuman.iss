@@ -101,6 +101,13 @@ begin
     'Where-Object { $_.Path -and $_.Path.StartsWith(''' + Dir + '\python\'', [StringComparison]::OrdinalIgnoreCase) } | ' +
     'Stop-Process -Force -ErrorAction SilentlyContinue"',
     '', SW_HIDE, ewWaitUntilTerminated, Code);
+  { The app window is Edge or Chrome with Tarjuman's own profile folder; the user's own browser
+    windows use other profiles and are left alone. }
+  Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+    '-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | ' +
+    'Where-Object { ($_.Name -eq ''msedge.exe'' -or $_.Name -eq ''chrome.exe'') -and $_.CommandLine -like ''*Tarjuman\data\window*'' } | ' +
+    'ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"',
+    '', SW_HIDE, ewWaitUntilTerminated, Code);
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;

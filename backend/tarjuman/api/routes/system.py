@@ -125,6 +125,16 @@ async def desktop_quit(request: Request):
     return ok(quitting=True)
 
 
+@router.post("/api/desktop/microphone")
+async def desktop_microphone(request: Request):
+    """Gives the app window its microphone back (closes and reopens the window)."""
+    d = request.app.state.desktop
+    if d is None:
+        return ok(reopening=False)
+    threading.Thread(target=d.reopen_with_microphone, daemon=True).start()
+    return ok(reopening=True)
+
+
 @router.post("/api/desktop/show")
 async def desktop_show(request: Request):
     """Brings the app window up. A second start of the app asks the running one this, then exits."""

@@ -5,12 +5,25 @@ import { onBeforeUnmount, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { PhMicrophone, PhPause, PhPlay, PhStop, PhTrash } from "@phosphor-icons/vue";
 import { formatTime } from "@/lib/time";
+import { api } from "@/api/client";
 
 const emit = defineEmits<{ done: [file: File]; close: [] }>();
 const { t } = useI18n();
 
 const state = ref<"idle" | "asking" | "recording" | "paused">("idle");
 const error = ref("");
+/** In the desktop app a refused microphone can be given back with one click. */
+const canFix = ref(false);
+const fixing = ref(false);
+
+async function fixMic() {
+  fixing.value = true;
+  try {
+    await api.fixMicrophone();
+  } catch {
+    fixing.value = false;
+  }
+}
 const elapsed = ref(0);
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -47,7 +60,16 @@ async function start() {
     });
   } catch (e) {
     state.value = "idle";
-    error.value = (e as Error).name === "NotAllowedError" ? t("record.denied") : t("record.noMic");
+    const denied = (e as Error).name === "NotAllowedError";
+    error.value = denied ? t("record.denied") : t("record.noMic");
+    if (denied) {
+      try {
+        canFix.value = (await api.desktop()).available;
+      } catch {
+        canFix.value = false;
+      }
+      if (canFix.value) error.value = t("record.deniedApp");
+    }
     return;
   }
   const type = pickType();
@@ -209,7 +231,13 @@ defineExpose({ start });
         </button>
       </div>
     </template>
-    <p v-if="error" class="err" role="alert">{{ error }}</p>
+    <p v-if="error" class="err" role="alert">
+      {{ error }}
+      <button v-if="canFix" class="btn btn--primary btn--sm fix" type="button" :disabled="fixing" @click="fixMic">
+        <PhMicrophone :size="16" />
+        {{ fixing ? t("record.fixing") : t("record.fix") }}
+      </button>
+    </p>
   </div>
 </template>
 
@@ -279,6 +307,10 @@ defineExpose({ start });
 .icon-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+.fix {
+  margin-inline-start: var(--s-2);
+  vertical-align: middle;
 }
 .err {
   flex-basis: 100%;

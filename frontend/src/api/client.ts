@@ -274,6 +274,8 @@ export const api = {
   update: (force = false) => get<UpdateState>("/api/update" + (force ? "?force=1" : "")),
   installUpdate: (force = false) => post<UpdateState>("/api/update/install", { force }),
   openExternal: (url: string) => post<{ ok: true }>("/api/desktop/open", { url }),
+  /** The app window gets its microphone back: it closes and opens again. */
+  fixMicrophone: () => post<{ ok: true; reopening: boolean }>("/api/desktop/microphone", {}),
   storage: () => get<{ ok: true; usage: Record<string, { bytes: number; files: number }>; voiceLimit: number }>("/api/storage"),
   clearStorage: (what: string) => post<{ ok: true; usage: Record<string, { bytes: number; files: number }> }>("/api/storage/clear", { what }),
   pairing: () => get<PairingState>("/api/pairing"),

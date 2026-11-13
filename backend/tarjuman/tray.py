@@ -118,6 +118,7 @@ class DesktopApp:
         self.window_opened_at = 0.0
         self.ext_allowed = False
         self.quitting = False
+        self.reopening = False  # the window is being closed on purpose, to open again
         self.icon = None
         self.updater = Updater()
 
@@ -233,6 +234,23 @@ class DesktopApp:
         if desktop.open_window(self.url) is None:
             webbrowser.open(self.url)
 
+    def reopen_with_microphone(self) -> None:
+        """A microphone permission refused by mistake lives in the running window's memory: the
+        window is closed, its page allowed the microphone, and the window opened again."""
+        self.reopening = True
+        try:
+            self.close_window()
+            deadline = time.time() + 15
+            while desktop.window_is_open() and time.time() < deadline:
+                time.sleep(0.3)
+            time.sleep(0.5)  # the browser finishes writing its preferences
+            desktop.allow_microphone(self.url)
+            self.window_opened_at = 0.0
+            self.show_window()
+        finally:
+            time.sleep(1.5)  # past the watch loop's next look at the window
+            self.reopening = False
+
     def close_window(self) -> None:
         if desktop.window_is_open():
             h = self.find_window()
@@ -317,7 +335,8 @@ class DesktopApp:
             elif was_open:
                 was_open = False
                 self.hwnd = 0
-                self.on_window_closed()
+                if not self.reopening:
+                    self.on_window_closed()
             tip = self.tooltip()
             if tip != title and self.icon is not None:
                 self.icon.title = title = tip
