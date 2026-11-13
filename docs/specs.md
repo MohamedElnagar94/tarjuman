@@ -56,7 +56,7 @@ Environment variables:
 | `TARJUMAN_HOME` | project root | where `data/` lives |
 | `TARJUMAN_PORT` | 4318 | first port to try |
 | `TARJUMAN_HOST` | 0.0.0.0 | `127.0.0.1` keeps it to this computer only |
-| `TARJUMAN_WHISPER_MODEL` | base | faster-whisper model |
+| `TARJUMAN_WHISPER_MODEL` | (empty) | faster-whisper model while Settings → Transcription is Automatic |
 | `TARJUMAN_FORCE_ASR` | 0 | prefer YouTube auto-captions over manual ones |
 | `ANTHROPIC_API_KEY` | – | used when the settings hold no key |
 

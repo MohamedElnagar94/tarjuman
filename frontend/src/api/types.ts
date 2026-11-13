@@ -107,6 +107,49 @@ export interface MediaItem {
   created: number;
   size: number;
   transcribed: boolean;
+  /** What the file holds: a voice note or song is "audio". */
+  kind: "audio" | "video";
+  duration: number;
+  /** The Whisper model that made the transcript ("" when none). */
+  asr: string;
+  lang: string;
+  lines: number;
+  /** A small waveform for the library (audio, once drawn). */
+  wave?: number[];
+}
+
+export type AsrModelId = "tiny" | "base" | "small" | "medium" | "large-v3-turbo" | "large-v3";
+export type AsrStyle = "general" | "msa" | "egyptian" | "gulf" | "levantine" | "maghrebi" | "none";
+
+export interface AsrSettings {
+  model: "auto" | AsrModelId;
+  device: "auto" | "cpu" | "cuda";
+  language: string;
+  style: AsrStyle;
+  quality: "accurate" | "fast";
+  enhance: boolean;
+  vad: boolean;
+}
+
+export interface AsrState {
+  ok: true;
+  settings: AsrSettings;
+  hardware: { os: string; threads: number; cores: number; ramGb: number; cuda: number; gpu: string; vramGb: number; cublas: boolean };
+  /** short: the model "auto" gives recordings up to 3 minutes. */
+  recommended: { model: AsrModelId; device: "cpu" | "cuda"; short: AsrModelId; why: string[] };
+  effective: { model: AsrModelId; device: "cpu" | "cuda"; beam: number; language: string | null; secondsPerMinute: number };
+  models: { id: AsrModelId; size: number; ram: number; ar: number; secondsPerMinute: number; warning: string; downloaded: boolean }[];
+  styles: AsrStyle[];
+  languages: string[];
+  status: {
+    installed: boolean;
+    ready: boolean;
+    model: string;
+    device: string;
+    loading: null | { model: string; progress: number | null; seconds: number };
+    error: string;
+    fallback: string;
+  };
 }
 
 export interface MediaJob extends Job {

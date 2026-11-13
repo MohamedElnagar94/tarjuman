@@ -18,6 +18,7 @@ import os
 import subprocess
 import sys
 import wave
+from pathlib import Path
 
 import numpy as np
 
@@ -49,6 +50,20 @@ def video_has_audio(path: str) -> bool:
             return any(s.type == "audio" for s in c.streams)
     except Exception:  # noqa: BLE001
         return False
+
+
+def has_picture(path: str) -> bool:
+    """A real video stream (the cover art of a song doesn't count)."""
+    try:
+        import av
+
+        with av.open(path) as c:
+            return any(
+                s.type == "video" and not ((s.codec_context.name or "") in ("mjpeg", "png", "bmp") and (s.frames or 0) <= 1)
+                for s in c.streams
+            )
+    except Exception:  # noqa: BLE001
+        return True
 
 
 def process_segment(ffmpeg: str, src: str, dst: str, rate: int, pitch: float, tempo: float) -> None:
@@ -218,7 +233,15 @@ def main(argv: list[str] | None = None) -> None:
         )
     else:
         filters = "[1:a:0]apad[aout]"
-    if burn:
+    if not has_picture(args.video):
+        # A voice note or a song: the dub is an audio file (M4A). Nothing else ends the padded dub
+        # (no picture for -shortest), so it is cut at the original's length.
+        from .probe import probe
+
+        length = probe(Path(args.video)).get("duration") or args.duration
+        cmd += ["-filter_complex", filters, "-map", "[aout]", "-t", f"{max(length, args.duration):.3f}"]
+        has_subs = False
+    elif burn:
         # libass shapes Arabic correctly. The path is relative: ffmpeg runs from the subtitle's folder.
         filters += f";[0:v:0]subtitles={os.path.basename(args.subs)}:force_style='{BURN_STYLE}'[vout]"
         cmd += ["-filter_complex", filters, "-map", "[vout]", "-map", "[aout]",
@@ -238,7 +261,7 @@ def main(argv: list[str] | None = None) -> None:
         "ok": True, "placed": placed, "segments": len(segs), "compressed": compressed, "trimmed": trimmed,
         "delayed": delayed, "pitch": round(pitch, 3), "voice": voice_note,
         "bgVolume": bg_volume if (has_audio or clean_bg) else 0, "voiceRemoved": clean_bg,
-        "subs": bool(args.subs), "mp4": args.mp4_out, "size": os.path.getsize(args.mp4_out),
+        "subs": has_subs, "mp4": args.mp4_out, "size": os.path.getsize(args.mp4_out),
     }, ensure_ascii=False), flush=True)
 
 

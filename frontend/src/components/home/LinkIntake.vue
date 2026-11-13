@@ -1,10 +1,26 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import { PhLinkSimple, PhUploadSimple, PhWarningCircle, PhX } from "@phosphor-icons/vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { PhLinkSimple, PhMicrophone, PhUploadSimple, PhWarningCircle, PhX } from "@phosphor-icons/vue";
 import ProgressMeter from "@/components/ui/ProgressMeter.vue";
+import VoiceRecorder from "./VoiceRecorder.vue";
 import { useIntake } from "@/composables/intake";
+import { autoTranscribe } from "@/composables/session";
 
 const { intake, openLink, upload, cancel } = useIntake();
+const recording = ref(false);
+const recorder = ref<InstanceType<typeof VoiceRecorder> | null>(null);
+
+async function openRecorder() {
+  recording.value = true;
+  await nextTick();
+  void recorder.value?.start();
+}
+
+/** A recording made here is meant to be transcribed: it starts by itself. */
+async function recorded(f: File) {
+  recording.value = false;
+  await upload(f, (item) => autoTranscribe(item.link));
+}
 const link = ref("");
 const file = ref<HTMLInputElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);
@@ -84,12 +100,26 @@ onBeforeUnmount(() => {
 
     <div class="below">
       <p id="intake-help" class="help">{{ $t("intake.help") }}</p>
-      <button class="btn btn--outline btn--sm" type="button" :disabled="intake.busy" @click="file?.click()">
-        <PhUploadSimple :size="16" />
-        {{ $t("intake.upload") }}
-      </button>
-      <input ref="file" type="file" accept="video/*,audio/*,.mkv" hidden @change="pick" />
+      <div class="add">
+        <button class="btn btn--outline btn--sm" type="button" :disabled="intake.busy" @click="file?.click()">
+          <PhUploadSimple :size="16" />
+          {{ $t("intake.upload") }}
+        </button>
+        <button class="btn btn--outline btn--sm" type="button" :disabled="intake.busy || recording" @click="openRecorder">
+          <PhMicrophone :size="16" />
+          {{ $t("record.open") }}
+        </button>
+      </div>
+      <input
+        ref="file"
+        type="file"
+        accept="video/*,audio/*,.mkv,.opus,.ogg,.oga,.m4a,.m4b,.aac,.amr,.wma,.flac,.wav,.aiff,.caf,.weba,.mka"
+        hidden
+        @change="pick"
+      />
     </div>
+
+    <VoiceRecorder v-if="recording" ref="recorder" @done="recorded" @close="recording = false" />
 
     <div v-if="intake.busy" class="progress">
       <ProgressMeter :value="intake.progress" :label="intake.label" />
@@ -117,6 +147,11 @@ onBeforeUnmount(() => {
 .intake {
   display: grid;
   gap: var(--s-3);
+}
+.add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
 }
 .bar {
   display: flex;

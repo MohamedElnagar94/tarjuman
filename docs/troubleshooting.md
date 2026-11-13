@@ -59,7 +59,13 @@ Every device other than the computer itself is paired once, from Settings → Ph
 ## Subtitles and translation
 
 **The video has no captions.**
-Tarjuman transcribes it with Whisper on your computer. The first time, the model is downloaded (about 145 MB for `base`). For better accuracy set `TARJUMAN_WHISPER_MODEL=small` or `medium`; they are slower and need more memory.
+Tarjuman transcribes it with Whisper on your computer. The first time, the model is downloaded. Settings → Transcription shows which model suits your computer and why; a bigger model is more accurate (Arabic gains the most) but slower. Choosing the spoken language and how Arabic is written there helps too, and a file can be transcribed again after changing them.
+
+**The transcript of a recording is wrong in places.**
+No automatic transcription is perfect. In Settings → Transcription pick a more accurate model, set the language to Arabic, and choose the dialect; turn on "Clean the audio first" for noisy recordings. Then use "Transcribe again" under the player, or correct a line by hand in the transcript.
+
+**The NVIDIA card isn't used.**
+CTranslate2 needs NVIDIA's cuBLAS 12 (part of the CUDA Toolkit 12), which the graphics driver doesn't include. Install CUDA Toolkit 12 and restart Tarjuman. Settings → Transcription says whether the card can be used.
 
 **Translation stops or goes slowly.**
 The free translation services limit how much one address may ask for. Tarjuman waits and continues by itself, translating the lines around the playhead first. Lines already translated are saved and never asked for again.

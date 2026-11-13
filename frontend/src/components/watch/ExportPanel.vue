@@ -107,9 +107,9 @@ const dlUrl = (kind: "dub" | "subvideo") => api.dubFileUrl(videoJobs[kind].id, t
     </section>
 
     <section class="task" aria-labelledby="g-mp4">
-      <h3 id="g-mp4" class="task__title">{{ t("export.mp4.title") }}</h3>
-      <p class="task__lead">{{ t("export.mp4.lead") }}</p>
-      <div class="opt">
+      <h3 id="g-mp4" class="task__title">{{ session.audioOnly ? t("export.audio.title") : t("export.mp4.title") }}</h3>
+      <p class="task__lead">{{ session.audioOnly ? t("export.audio.lead") : t("export.mp4.lead") }}</p>
+      <div v-if="!session.audioOnly" class="opt">
         <span class="opt__label">{{ t("export.quality") }}<small>{{ t("export.qualityHint") }}</small></span>
         <SegmentedControl v-model="prefs.quality" :options="qualityOptions" :label="t('export.quality')" size="sm" />
       </div>
@@ -119,8 +119,8 @@ const dlUrl = (kind: "dub" | "subvideo") => api.dubFileUrl(videoJobs[kind].id, t
         <div class="sub__head">
           <PhFilmSlate :size="20" />
           <div>
-            <h4>{{ t("export.subvideo.title") }}</h4>
-            <p>{{ t("export.subvideo.lead") }}</p>
+            <h4>{{ session.audioOnly ? t("export.audio.waveTitle") : t("export.subvideo.title") }}</h4>
+            <p>{{ session.audioOnly ? t("export.audio.waveLead") : t("export.subvideo.lead") }}</p>
           </div>
         </div>
         <div v-if="videoJobs.subvideo.running" class="job">
@@ -139,19 +139,19 @@ const dlUrl = (kind: "dub" | "subvideo") => api.dubFileUrl(videoJobs[kind].id, t
         <div class="sub__head">
           <PhMicrophoneStage :size="20" />
           <div>
-            <h4>{{ t("export.dub.title") }}</h4>
-            <p>{{ t("export.dub.lead") }}</p>
+            <h4>{{ session.audioOnly ? t("export.audio.dubTitle") : t("export.dub.title") }}</h4>
+            <p>{{ session.audioOnly ? t("export.audio.dubLead") : t("export.dub.lead") }}</p>
           </div>
         </div>
-        <div class="opt">
+        <div v-if="!session.audioOnly" class="opt">
           <label class="opt__label" for="x-embed">{{ t("export.dub.embed") }}<small>{{ t("export.dub.embedHint") }}</small></label>
           <ToggleSwitch id="x-embed" v-model="prefs.embedSubs" />
         </div>
-        <div class="opt">
+        <div v-if="!session.audioOnly" class="opt">
           <label class="opt__label" for="x-remove">{{ t("export.dub.remove") }}<small>{{ t("export.dub.removeHint") }}</small></label>
           <ToggleSwitch id="x-remove" v-model="prefs.removeVoice" />
         </div>
-        <div class="opt">
+        <div v-if="!session.audioOnly" class="opt">
           <label class="opt__label" for="x-burn">{{ t("export.dub.burn") }}<small>{{ t("export.dub.burnHint") }}</small></label>
           <ToggleSwitch id="x-burn" v-model="prefs.burnSubs" />
         </div>
@@ -168,10 +168,11 @@ const dlUrl = (kind: "dub" | "subvideo") => api.dubFileUrl(videoJobs[kind].id, t
         </div>
         <p v-if="videoJobs.dub.error" class="notice notice--danger" role="alert"><PhWarningCircle :size="18" />{{ videoJobs.dub.error }}</p>
         <div v-if="videoJobs.dub.result && !videoJobs.dub.running" class="result">
-          <video :src="fileUrl('dub')" controls preload="metadata"></video>
+          <audio v-if="videoJobs.dub.result.fileName.endsWith('.m4a')" :src="fileUrl('dub')" controls preload="metadata"></audio>
+          <video v-else :src="fileUrl('dub')" controls preload="metadata"></video>
           <p class="result__meta">{{ resultMeta("dub") }}</p>
           <div class="actions">
-            <a class="btn btn--primary" :href="dlUrl('dub')" :download="videoJobs.dub.result.fileName"><PhDownloadSimple :size="18" />{{ t("export.downloadMp4") }}</a>
+            <a class="btn btn--primary" :href="dlUrl('dub')" :download="videoJobs.dub.result.fileName"><PhDownloadSimple :size="18" />{{ videoJobs.dub.result.fileName.endsWith(".m4a") ? t("export.audio.download") : t("export.downloadMp4") }}</a>
           </div>
         </div>
       </div>

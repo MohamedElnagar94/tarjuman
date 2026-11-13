@@ -180,7 +180,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | `TARJUMAN_HOME` | مجلد المشروع | مكان حفظ `data/` |
 | `TARJUMAN_PORT` | `4318` | أول منفذ يُجرَّب (ينتقل إلى المنفذ التالي إذا كان مشغولًا، والإضافة تتبعه) |
 | `TARJUMAN_HOST` | `0.0.0.0` | استخدم `127.0.0.1` لإبقاء التطبيق خارج شبكة Wi-Fi |
-| `TARJUMAN_WHISPER_MODEL` | `base` | `small` أو `medium` لتفريغ صوتي أدق (وأبطأ) |
+| `TARJUMAN_WHISPER_MODEL` | (فارغ) | يُختار من الإعدادات ← التفريغ الصوتي، حيث يقترح التطبيق نموذجًا يناسب جهازك |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | حدّ حجم أصوات الدبلجة المحفوظة؛ يُحذف الأقدم استخدامًا أولًا |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | أكبر حجم لفيديو يمكنك رفعه |
 | `TARJUMAN_PAIR_MINUTES` | `15` | مدة صلاحية رمز اقتران الهاتف (رمز QR)؛ `0` = حتى تُنشئ رمزًا جديدًا |

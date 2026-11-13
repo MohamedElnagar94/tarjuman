@@ -8,6 +8,7 @@ from .ai.insights import Insights
 from .ai.script import ScriptWriter
 from .ai.settings import AiSettings
 from .asr import Whisper
+from .asr_settings import AsrSettings
 from .captions.service import CaptionService
 from .dub.live import LivePlanner
 from .jobs.manager import JobManager
@@ -33,12 +34,13 @@ class Services:
         self.writer = ScriptWriter(self.ai, self.ai_client, c / "ai-script.json")
         self.insights = Insights(self.ai, self.ai_client)
         self.live = LivePlanner(self.captions, self.translator, self.tts, self.writer, self.ai)
-        self.whisper = Whisper(config.WHISPER_MODEL, config.TMP)
+        self.asr = AsrSettings(config.DATA / "asr.json", config.WHISPER_MODEL)
+        self.whisper = Whisper(self.asr, config.TMP)
         self.jobs = JobManager()
         self.vocab = Vocab(config.DATA / "vocab.json")
 
     def load(self) -> None:
-        for part in (self.media, self.translator, self.pronounce, self.tts, self.ai, self.writer, self.vocab):
+        for part in (self.media, self.translator, self.pronounce, self.tts, self.ai, self.asr, self.writer, self.vocab):
             part.load()
 
     def flush(self) -> None:

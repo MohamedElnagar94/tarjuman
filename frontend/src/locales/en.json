@@ -58,7 +58,10 @@
     "hi": "Hindi",
     "pt": "Portuguese",
     "zh": "Chinese",
-    "auto": "an unknown language"
+    "auto": "an unknown language",
+    "ur": "Urdu",
+    "fa": "Persian",
+    "id": "Indonesian"
   },
   "intake": {
     "label": "Video link",
@@ -194,7 +197,19 @@
       "starting": "Starting…",
       "working": "Working",
       "missing": "Whisper isn't installed yet. Install it with this command, then try again:",
-      "note": "Whisper takes about ten seconds per minute of audio."
+      "note": "Whisper takes about ten seconds per minute of audio.",
+      "titleAudio": "Let's transcribe this recording",
+      "bodyAudio": "Whisper turns the speech into text on your computer, then it is translated and shown sentence by sentence with the audio. The file never leaves your computer.",
+      "startAudio": "Transcribe and translate",
+      "plan": "It will use {model} on the {device}: about {sec} seconds per minute of audio.",
+      "planFor": "It will use {model} on the {device} and take about {time}.",
+      "secs": "{n} seconds",
+      "mins": "{n} minutes",
+      "cpu": "CPU",
+      "gpu": "graphics card",
+      "tune": "Adjust accuracy",
+      "downloading": "Downloading the {model} model the first time: {pct}%",
+      "preparing": "Preparing the {model} model…"
     },
     "chip": {
       "ytHuman": "YouTube's own translation",
@@ -240,6 +255,24 @@
       "bigger": "Bigger text",
       "background": "Background behind text",
       "speed": "Video speed"
+    },
+    "audio": {
+      "badge": "Recording",
+      "modelHint": "The model that transcribed this recording",
+      "seek": "Position in the recording",
+      "play": "Play",
+      "pause": "Pause",
+      "back5": "Back 5 seconds",
+      "fwd5": "Forward 5 seconds",
+      "prevLine": "Previous sentence",
+      "nextLine": "Next sentence",
+      "speed": "Playback speed",
+      "loop": "Repeat the current sentence"
+    },
+    "redo": {
+      "label": "Transcribe again",
+      "confirm": "Click again to confirm",
+      "hint": "Transcribes the file again with the current transcription settings, such as a more accurate model or a set language."
     }
   },
   "transcript": {
@@ -340,6 +373,15 @@
       "refit": "{n} sentences sped up to fit their time",
       "voiceRemoved": "original speaker removed",
       "multiSpeaker": "a matching voice for each speaker"
+    },
+    "audio": {
+      "title": "Files to share",
+      "lead": "Turn the recording into a video to post, or a dubbed audio version. Made in the background; you can close the page.",
+      "waveTitle": "Waveform video with the translation",
+      "waveLead": "The recording becomes a video: its waveform moves under the translation. For places that only accept video.",
+      "dubTitle": "Dubbed audio (M4A)",
+      "dubLead": "The same recording with a voice reading the translation, same length, same timing.",
+      "download": "Download the audio"
     }
   },
   "ask": {
@@ -449,12 +491,15 @@
       "started": "The batch started. You can close the page; the work continues on your computer."
     },
     "media": {
-      "title": "My videos",
-      "add": "Add a video",
-      "emptyTitle": "No uploaded videos yet",
-      "emptyBody": "Upload a file from the home page, or paste a link from any site.",
+      "title": "My files",
+      "add": "Add a file",
+      "emptyTitle": "No files yet",
+      "emptyBody": "Upload a video or a recording on the home page, record your voice, or paste a link from any site.",
       "transcribed": "Transcribed",
-      "notTranscribed": "Not transcribed yet"
+      "notTranscribed": "Not transcribed yet",
+      "audio": "Recording",
+      "video": "Video",
+      "transcribedWith": "Transcribed with {model}"
     },
     "files": {
       "title": "Files",
@@ -492,7 +537,8 @@
       "storage": "Storage",
       "privacy": "Privacy",
       "desktop": "Desktop",
-      "updates": "Updates"
+      "updates": "Updates",
+      "transcription": "Transcription"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -805,5 +851,81 @@
     },
     "installHintLinux": "The new AppImage is downloaded, its checksum verified, and it replaces this one. Restart Tarjuman afterwards.",
     "restart": "Version {v} is downloaded and has replaced the old one. Close Tarjuman and open it again to use it."
+  },
+  "record": {
+    "open": "Record your voice",
+    "start": "Start recording",
+    "asking": "Waiting for microphone permission…",
+    "hint": "Speak, or let it hear a lecture, then stop: the recording is saved on this computer, transcribed and translated by itself.",
+    "pause": "Pause",
+    "resume": "Resume",
+    "discard": "Delete the recording",
+    "stop": "Finish and transcribe",
+    "denied": "The microphone isn't allowed. Allow it in the browser settings and try again.",
+    "noMic": "No working microphone was found.",
+    "unsupported": "This browser can't record.",
+    "tooShort": "The recording is too short.",
+    "fileName": "Recording"
+  },
+  "asrSet": {
+    "lead": "Whisper turns speech into text on your computer. Accuracy depends above all on the model size, and bigger models need a stronger computer, so this shows your computer, the model that suits it, and why.",
+    "machine": "Your computer",
+    "cpuFact": "{n} CPU threads",
+    "cores": "{n} physical cores",
+    "ramFact": "{n} GB",
+    "ram": "Memory",
+    "noGpu": "No NVIDIA card",
+    "gpuNone": "Transcription runs on the CPU.",
+    "gpuNoCuda": "Present, but the CUDA 12 libraries aren't installed, so it can't be used yet.",
+    "gpuReady": "Ready for fast transcription.",
+    "recommended": "Recommended for this computer:",
+    "onCpu": "on the CPU",
+    "onGpu": "on the graphics card",
+    "model": "Model",
+    "auto": "Automatic",
+    "autoHint": "Follows the recommendation for this computer ({model})",
+    "tagRec": "Recommended",
+    "tagDown": "Downloaded",
+    "accuracy": "Arabic accuracy: {n} of 5",
+    "speed": "about {n} s per minute of audio",
+    "mb": "{n} MB",
+    "gb": "{n} GB",
+    "prepare": "Download and prepare it now",
+    "notInstalled": "Whisper isn't installed. Run: python -m tarjuman setup",
+    "downloading": "Downloading {model}: {pct}%",
+    "loading": "Preparing {model}…",
+    "ready": "{model} is ready on the {device}.",
+    "onDisk": "{model} is downloaded and loads on the first transcription.",
+    "notYet": "{model} isn't downloaded yet ({size}). It downloads on the first transcription, or now with this button.",
+    "cpu": "CPU",
+    "gpu": "graphics card",
+    "language": "Spoken language",
+    "languageHint": "Automatic detects it from the start of the file. If your recordings are always Arabic, choose Arabic: the language is never misdetected and speech is never translated instead of written down.",
+    "langAuto": "Automatic",
+    "style": "How Arabic is written",
+    "styleHint": "Whisper is given a sentence in this style before the audio and follows it: spelling, punctuation, and dialect words as spoken. Used only with Arabic speech.",
+    "styles": {
+      "general": "General Arabic with punctuation (recommended)",
+      "msa": "Modern Standard Arabic",
+      "egyptian": "Egyptian",
+      "gulf": "Gulf",
+      "levantine": "Levantine",
+      "maghrebi": "Maghrebi",
+      "none": "No guidance"
+    },
+    "quality": "Search",
+    "qualityHint": "More accurate weighs five candidates per sentence and keeps the best (a little slower). Faster takes the first.",
+    "accurate": "More accurate",
+    "fast": "Faster",
+    "enhance": "Clean the audio first",
+    "enhanceHint": "Removes hum and hiss and evens out the volume. Helps noisy or quiet recordings; may not help clean ones.",
+    "vad": "Skip silences",
+    "vadHint": "Stops Whisper from inventing sentences in long silences. Leave it on unless quiet words go missing.",
+    "device": "Run on",
+    "deviceHint": "A graphics card is much faster than the CPU.",
+    "deviceAuto": "Automatic",
+    "honest": "No automatic transcription is 100% accurate: clarity, noise, overlapping voices and dialect all matter. These settings get as close as possible: the bigger model matters most, then setting the language, then the writing style. You can correct any sentence by hand in the transcript, or transcribe the file again after changing the settings.",
+    "autoHintShort": "Follows the recommendation: {short} for short recordings (up to 3 minutes), {model} for longer ones",
+    "tagShort": "Short recordings"
   }
 }

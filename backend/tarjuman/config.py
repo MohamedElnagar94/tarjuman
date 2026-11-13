@@ -81,7 +81,11 @@ DEFAULT_PORT = int(_number("TARJUMAN_PORT", 4318))
 PORT_TRIES = 10
 DEFAULT_HOST = os.environ.get("TARJUMAN_HOST") or "0.0.0.0"
 
-WHISPER_MODEL = os.environ.get("TARJUMAN_WHISPER_MODEL") or "base"
+# Empty: chosen in Settings -> Transcription. "base" was the old default copied into every .env, so it
+# doesn't override the recommendation for this computer.
+WHISPER_MODEL = (os.environ.get("TARJUMAN_WHISPER_MODEL") or "").strip()
+if WHISPER_MODEL == "base":
+    WHISPER_MODEL = ""
 
 # Uploads: at most this big, and never leaving less than DISK_RESERVE_BYTES free on the disk.
 MAX_UPLOAD_BYTES = int(_number("TARJUMAN_MAX_UPLOAD_GB", 8) * (1 << 30))

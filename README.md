@@ -199,7 +199,7 @@ Copy `.env.example` to `.env` in the project folder and edit it; every setting i
 | `TARJUMAN_HOME` | project folder | Where `data/` is kept |
 | `TARJUMAN_PORT` | `4318` | First port to try (it moves up if the port is busy; the extension follows) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Use `127.0.0.1` to keep the app off your Wi-Fi |
-| `TARJUMAN_WHISPER_MODEL` | `base` | `small` or `medium` for more accurate transcription (slower) |
+| `TARJUMAN_WHISPER_MODEL` | (empty) | Chosen in Settings → Transcription, which recommends one for your computer; a value here is used while that setting is Automatic |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Size limit of the saved dub voices; the least recently used are removed first |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Largest video you can upload |
 | `TARJUMAN_PAIR_MINUTES` | `15` | How long a phone pairing code (the QR) works; `0` = until you make a new one |

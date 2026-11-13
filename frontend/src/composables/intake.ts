@@ -2,6 +2,7 @@
 import { reactive } from "vue";
 import { useRouter } from "vue-router";
 import { api, errorCode } from "@/api/client";
+import type { MediaItem } from "@/api/types";
 import { errText, i18n } from "@/i18n";
 import { classifyLink } from "@/lib/links";
 import { pollJob } from "./jobs";
@@ -76,7 +77,7 @@ export function useIntake() {
     }
   }
 
-  async function upload(file: File | null | undefined): Promise<boolean> {
+  async function upload(file: File | null | undefined, before?: (item: MediaItem) => void): Promise<boolean> {
     if (!file) return false;
     Object.assign(intake, { busy: true, kind: "upload", label: t("intake.uploading", { name: file.name, pct: 0 }), progress: 0, error: "" });
     const req = api.upload(file, (f) => {
@@ -87,6 +88,7 @@ export function useIntake() {
     try {
       const item = await req.promise;
       reset();
+      before?.(item);
       await router.push({ name: "watch", query: { url: item.link } });
       return true;
     } catch (e) {

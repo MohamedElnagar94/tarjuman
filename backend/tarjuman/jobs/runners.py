@@ -22,6 +22,7 @@ from ..dub.live import Plan
 from ..dub.planner import PACE, fit_rate, group_dub_blocks, pace_blocks, split_speakers
 from ..media import ytdlp
 from ..media.ffmpeg import ffmpeg_exe
+from ..media.library import kind_by_ext
 from ..translate.service import map_limit
 from ..voice.catalog import Voice, resolve_voice
 from .manager import Job, ProcError, run_proc
@@ -54,6 +55,12 @@ def _media_file(s: "Services", link: str) -> Path:
     if not m or not m.path.exists():
         raise AppError("NO_MEDIA", "هذا الفيديو غير موجود على الجهاز")
     return m.path
+
+
+def _is_audio(s: "Services", link: str) -> bool:
+    """A voice note or a song: there is no picture to keep, so the dub is an audio file."""
+    m = s.media.get(media_id_of(link)) if is_media_link(link) else None
+    return bool(m and (m.kind or kind_by_ext(m.path)) == "audio")
 
 
 def _need_key(link: str) -> str:
@@ -110,14 +117,15 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
         job.progress = 30
         job.check()
 
-        job.phase = "تفريغ الصوت (Whisper)"
+        job.phase = "تفريغ الكلام (Whisper)"
         res = await s.whisper.transcribe_file(
-            audio, lambda p: setattr(job, "progress", 30 + round(p * 50)), lambda: job.cancelled
+            audio, lambda p: setattr(job, "progress", 30 + round(p * 50)), lambda: job.cancelled,
+            lambda text: setattr(job, "phase", text),
         )
         job.check()
         segments, lang = res["segments"], res["lang"]
         if not segments:
-            raise AppError("NO_SPEECH", "لا يوجد كلام مفهوم في الفيديو")
+            raise AppError("NO_SPEECH", "لم يُعثر على كلام مفهوم في هذا الملف")
         job.progress = 80
 
         job.phase = "ترجمة النص"
@@ -129,7 +137,8 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
         if media:
             # The transcript is saved with the video: next time it opens instantly.
             media.segments, media.lang = segments, lang or ""
-            media.duration = segments[-1]["end"] if segments else 0
+            media.duration = max(media.duration or 0, float(res.get("duration") or 0), segments[-1]["end"])
+            media.asr = res.get("model") or ""
             s.media.save()
         title = await s.captions.title(job.videoId)
         s.captions.put(
@@ -139,7 +148,7 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
             )
         )
         job.title = title
-        job.extra.update(cues=[c.to_dict() for c in cues], srcLang=lang or "", tl=tl)
+        job.extra.update(cues=[c.to_dict() for c in cues], srcLang=lang or "", tl=tl, model=res.get("model") or "")
         job.progress = 100
         job.phase = "اكتمل"
     finally:
@@ -393,7 +402,8 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
         job.progress = 90
         segs_file = work / "segs.json"
         segs_file.write_text(json.dumps(segs, ensure_ascii=False), encoding="utf-8")
-        out_name = f"{safe_name(job.title)}.{o['lang']}.dubbed.mp4"
+        audio_only = _is_audio(s, link)
+        out_name = f"{safe_name(job.title)}.{o['lang']}.dubbed.{'m4a' if audio_only else 'mp4'}"
         mp4 = config.DUBBED / out_name
         args = [
             config.PYTHON, "-m", "tarjuman.media.mixer", "--segments", str(segs_file), "--video", str(video),
@@ -483,6 +493,7 @@ async def run_subvideo(s: "Services", job: Job, link: str) -> None:
 
         job.phase = "دمج الترجمة في الصورة"
         job.progress = 50
+        audio_only = _is_audio(s, link)
         out_name = f"{safe_name(job.title)}.{o['lang']}.subtitled.mp4"
         mp4 = config.DUBBED / out_name
         total = max(1, data.lengthSeconds or 0)
@@ -494,13 +505,24 @@ async def run_subvideo(s: "Services", job: Job, link: str) -> None:
                 job.progress = 50 + min(49, round(int(m.group(1)) / 1e6 / total * 49))
 
         # ffmpeg runs from the work folder so the subtitle path inside the filter stays simple.
+        if audio_only:
+            # A voice note has no picture: it gets one, its own moving waveform under the translation,
+            # ready to share where only videos can be posted.
+            picture = [
+                "-filter_complex",
+                "[0:a]aformat=channel_layouts=mono,showwaves=s=1280x300:mode=cline:rate=25:scale=sqrt:draw=full:"
+                "colors=#FFD27A,format=rgba[w];color=c=#121A57:s=1280x720:r=25[bg];[bg][w]overlay=0:170:shortest=1,"
+                f"subtitles=subs.srt:force_style='{BURN_STYLE}'[v]",
+                "-map", "[v]", "-map", "0:a:0", "-c:a", "aac", "-b:a", "160k",
+            ]
+        else:
+            picture = ["-vf", f"subtitles=subs.srt:force_style='{BURN_STYLE}'", "-c:a", "copy"]
         try:
             await run_proc(
                 job,
-                [ffmpeg_exe(), "-y", "-loglevel", "error", "-progress", "pipe:1", "-i", str(video),
-                 "-vf", f"subtitles=subs.srt:force_style='{BURN_STYLE}'",
+                [ffmpeg_exe(), "-y", "-loglevel", "error", "-progress", "pipe:1", "-i", str(video), *picture,
                  "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-pix_fmt", "yuv420p",
-                 "-c:a", "copy", "-movflags", "+faststart", str(mp4)],
+                 "-movflags", "+faststart", str(mp4)],
                 cwd=work, on_line=on_line,
             )
         except ProcError as e:
@@ -621,6 +643,7 @@ async def run_fetch(s: "Services", job: Job, link: str) -> None:
     item.file = file.name
     item.title = safe_name(title) or item.id
     item.size = file.stat().st_size
+    await asyncio.to_thread(s.media.describe, item)
     s.media.save()
     job.title = item.title
     job.extra["media"] = item.public()

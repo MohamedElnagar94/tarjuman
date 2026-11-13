@@ -2,6 +2,8 @@
    Every call resolves with the success shape or throws an ApiError carrying the stable error code.
    A network failure (server closed) becomes code "NO_SERVER". */
 import type {
+  AsrSettings,
+  AsrState,
   AiSettings,
   AiSettingsInput,
   Answer,
@@ -251,6 +253,13 @@ export const api = {
   mediaInfo: (id: string) => get<MediaItem & { ok: true }>("/api/media/info", { id }),
   mediaFileUrl: (id: string) => "/api/media/file" + qs({ id }),
   deleteMedia: (id: string) => post<{ ok: true }>("/api/media/delete", { id }),
+  mediaPeaks: (id: string) => get<{ ok: true; peaks: number[]; duration: number }>("/api/media/peaks", { id }),
+  retranscribe: (id: string) => post<{ ok: true }>("/api/media/retranscribe", { id }),
+
+  /** With the length of a recording, "effective" is what that recording would use. */
+  asr: (duration?: number) => get<AsrState>("/api/asr", duration ? { duration: Math.round(duration) } : {}),
+  setAsr: (b: Partial<AsrSettings>) => post<AsrState>("/api/asr", b),
+  prepareAsr: () => post<AsrState & { started: boolean }>("/api/asr/prepare", {}),
 
   vocab: () => get<{ ok: true; items: VocabItem[] }>("/api/vocab"),
   addVocab: (b: Omit<VocabItem, "id" | "at">) => post<{ ok: true; item: VocabItem; duplicate: boolean }>("/api/vocab", b),

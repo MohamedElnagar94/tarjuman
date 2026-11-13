@@ -31,6 +31,10 @@ class CaptionService:
     def cached(self) -> list[VideoCues]:
         return [d for _, d in self._cache.values()]
 
+    def forget(self, video_id: str) -> None:
+        for k in [k for k in self._cache if k.split("|", 1)[0] == video_id]:
+            self._cache.pop(k, None)
+
     def put(self, data: VideoCues) -> None:
         self._cache[f"{data.videoId}|{norm_lang(data.tl)}"] = (time.time(), data)
 

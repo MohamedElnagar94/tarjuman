@@ -47,6 +47,8 @@ export const session = reactive({
   whisperJob: null as null | { progress: number; phase: string; status: string },
   /** Set by the live dub controller; learning mode stays out of the way while it runs. */
   dubOn: false,
+  /** A file from this computer that holds sound only (a voice note, a song). */
+  audioOnly: false,
 });
 
 /** Cues are big and never mutated in place: keep them out of deep reactivity. */
@@ -67,6 +69,12 @@ let soughtSinceAttach = false; // the user picked a position while the player wa
 let learnFrom = -1;
 let loopCue = -1;
 let lastSavedAt = 0;
+let autoFor = ""; // a link to transcribe as soon as it opens (a recording made in the app)
+
+/** The next time this link opens without a transcript, Whisper starts by itself. */
+export function autoTranscribe(link: string): void {
+  autoFor = link;
+}
 
 export const translatedCount = computed(() => tr.value.reduce((n, s) => n + (s ? 1 : 0), 0));
 export const sourceCount = computed(() => cues.value.reduce((n, c) => n + (c.src ? 1 : 0), 0));
@@ -106,6 +114,10 @@ export async function loadVideo(link: string, opts: { seek?: number | null } = {
       session.whisperJob = null;
       // Keep what we know about the video for the "no captions" screen.
       session.videoId = isMediaId(link) ? link : "";
+      if (autoFor === link) {
+        autoFor = "";
+        void startWhisper();
+      }
       return;
     }
     session.phase = "error";

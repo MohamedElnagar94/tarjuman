@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import ProgressMeter from "@/components/ui/ProgressMeter.vue";
-import { cues, retryTranslation, session, sourceCount, tr, translatedCount } from "@/composables/session";
+import { PhArrowsClockwise } from "@phosphor-icons/vue";
+import { api } from "@/api/client";
+import { cues, loadVideo, retryTranslation, session, sourceCount, tr, translatedCount } from "@/composables/session";
+import { isMediaId } from "@/lib/links";
+import { toast } from "@/composables/toast";
 import { formatTime } from "@/lib/time";
 
 const { t, te, locale } = useI18n();
@@ -34,6 +38,30 @@ const pct = computed(() => {
   if (!w.length) return sourceCount.value ? Math.round((translatedCount.value / sourceCount.value) * 100) : 100;
   return Math.round((w.filter((i) => tr.value[i]).length / w.length) * 100);
 });
+/** A file from this computer can be transcribed again, with a more accurate model or other settings. */
+const canRedo = computed(() => session.whisper && isMediaId(session.videoId));
+const armed = ref(false);
+let disarm: number | undefined;
+function redoClick() {
+  if (!armed.value) {
+    armed.value = true;
+    window.clearTimeout(disarm);
+    disarm = window.setTimeout(() => (armed.value = false), 5000);
+    return;
+  }
+  armed.value = false;
+  void redo();
+}
+async function redo() {
+  const link = session.videoId;
+  try {
+    await api.retranscribe(link.slice(6));
+    await loadVideo(link);
+  } catch {
+    toast(t("errors.UNKNOWN"), { tone: "danger" });
+  }
+}
+
 const showMeter = computed(
   () => !session.already && sourceCount.value > 0 && (pct.value < 100 || (!session.translating && session.translateFailed > 0)),
 );
@@ -48,6 +76,17 @@ const showMeter = computed(
         <span class="chip" :class="'chip--' + source.tone">{{ source.text }}</span>
         <span class="chip">{{ t("watch.chip.lines", { n: cues.length }) }}</span>
         <span v-if="session.lengthSeconds" class="chip mono">{{ formatTime(session.lengthSeconds) }}</span>
+        <button
+          v-if="canRedo"
+          type="button"
+          class="redo"
+          :class="{ armed }"
+          :title="t('watch.redo.hint')"
+          @click="redoClick"
+        >
+          <PhArrowsClockwise :size="14" />
+          {{ armed ? t("watch.redo.confirm") : t("watch.redo.label") }}
+        </button>
       </div>
     </div>
     <div v-if="showMeter" class="progress" aria-live="polite">
@@ -86,6 +125,31 @@ const showMeter = computed(
   flex-wrap: wrap;
   gap: 6px;
   margin-top: var(--s-3);
+}
+.redo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  border: 1px dashed var(--line-strong, var(--line));
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+.redo:hover {
+  background: var(--surface-2);
+}
+.redo.armed {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.redo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .progress {
   flex: none;

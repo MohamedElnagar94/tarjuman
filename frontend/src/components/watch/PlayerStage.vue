@@ -3,6 +3,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useI18n } from "vue-i18n";
 import { PhMicrophoneStage, PhWarningCircle, PhWaveform } from "@phosphor-icons/vue";
 import SubtitleOverlay from "@/components/SubtitleOverlay.vue";
+import AudioStage from "./AudioStage.vue";
+import WaveformBar from "./WaveformBar.vue";
+import type { AsrState, MediaItem } from "@/api/types";
 import ProgressMeter from "@/components/ui/ProgressMeter.vue";
 import { api } from "@/api/client";
 import { errText } from "@/i18n";
@@ -35,6 +38,99 @@ let ro: ResizeObserver | null = null;
 const isMedia = computed(() => isMediaId(session.videoId));
 const mediaSrc = computed(() => (isMedia.value ? api.mediaFileUrl(session.videoId.slice(6)) : ""));
 
+/* ---------- files from this device: audio or video, its waveform, how Whisper will run ---------- */
+
+const audioStage = ref<InstanceType<typeof AudioStage> | null>(null);
+const info = ref<MediaItem | null>(null);
+const peaks = ref<number[]>([]);
+const asr = ref<AsrState | null>(null);
+const mediaId = computed(() => (isMediaId(session.link) ? session.link.slice(6) : ""));
+const isAudio = computed(() => !!mediaId.value && info.value?.id === mediaId.value && info.value.kind === "audio");
+let infoFor = "";
+let infoLoad: Promise<void> | null = null;
+
+function loadInfo(force = false): Promise<void> {
+  const id = mediaId.value;
+  if (!id) return Promise.resolve();
+  if (infoFor === id && infoLoad && !force) return infoLoad;
+  if (infoFor !== id) peaks.value = [];
+  infoFor = id;
+  infoLoad = (async () => {
+    try {
+      const m = await api.mediaInfo(id);
+      if (infoFor !== id) return;
+      info.value = m;
+      session.audioOnly = m.kind === "audio";
+      if (m.kind === "audio" && (!peaks.value.length || !force)) {
+        const p = await api.mediaPeaks(id);
+        if (infoFor === id) peaks.value = p.peaks;
+      }
+    } catch {
+      /* shown as a video without extras */
+    }
+  })();
+  return infoLoad;
+}
+
+watch(
+  mediaId,
+  (id) => {
+    if (!id) session.audioOnly = false;
+    else void loadInfo();
+  },
+  { immediate: true },
+);
+// After Whisper the file knows its transcript, model and exact length.
+watch(
+  () => session.whisper && session.phase === "ready",
+  (fresh, was) => fresh && was === false && void loadInfo(true),
+);
+
+// While Whisper is offered or working: which model it will use, how long it should take, and the
+// model download when it is the first time.
+let asrTimer: number | undefined;
+async function refreshAsr() {
+  try {
+    asr.value = await api.asr(info.value?.duration || undefined);
+  } catch {
+    /* the screen works without it */
+  }
+}
+watch(
+  () => session.phase === "whisper",
+  (on) => {
+    clearInterval(asrTimer);
+    if (!on) return;
+    void refreshAsr();
+    asrTimer = window.setInterval(() => session.whisperJob && void refreshAsr(), 2000);
+  },
+  { immediate: true },
+);
+
+const mediaLength = computed(() => info.value?.duration || 0);
+watch(mediaLength, () => session.phase === "whisper" && void refreshAsr());
+function humanTime(sec: number): string {
+  if (sec < 60) return t("watch.whisper.secs", { n: Math.max(5, Math.round(sec / 5) * 5) });
+  return t("watch.whisper.mins", { n: Math.round(sec / 60) });
+}
+const plan = computed(() => {
+  const e = asr.value?.effective;
+  if (!e) return "";
+  const device = t(e.device === "cuda" ? "watch.whisper.gpu" : "watch.whisper.cpu");
+  if (mediaLength.value > 0) return t("watch.whisper.planFor", { model: e.model, device, time: humanTime((mediaLength.value / 60) * e.secondsPerMinute) });
+  return t("watch.whisper.plan", { model: e.model, device, sec: e.secondsPerMinute });
+});
+const downloading = computed(() => {
+  const l = asr.value?.status.loading;
+  if (!l || !session.whisperJob) return "";
+  return l.progress != null ? t("watch.whisper.downloading", { model: l.model, pct: l.progress }) : t("watch.whisper.preparing", { model: l.model });
+});
+/** Whisper's share of the job (30-80%) as the part of the waveform already heard. */
+const heard = computed(() => {
+  const p = session.whisperJob?.progress ?? 0;
+  return Math.max(0, Math.min(1, (p - 30) / 50));
+});
+
 const cur = computed(() => (session.curIdx >= 0 ? cues.value[session.curIdx] : undefined));
 const curText = computed(() => (session.curIdx >= 0 ? tr.value[session.curIdx] || "" : ""));
 
@@ -48,7 +144,9 @@ async function mount() {
   await nextTick();
   if (isMedia.value) {
     ytPlayer?.pauseVideo();
-    const v = video.value;
+    await loadInfo();
+    await nextTick();
+    const v = isAudio.value ? audioStage.value?.media : video.value;
     if (!v) return;
     if (v.readyState < 1) await new Promise((r) => v.addEventListener("loadedmetadata", r, { once: true }));
     player = html5Player(v);
@@ -100,6 +198,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  clearInterval(asrTimer);
   ro?.disconnect();
   stopCC?.();
   stopLiveDub(false);
@@ -121,7 +220,7 @@ function toggleFullscreen() {
 defineExpose({ toggleFullscreen });
 
 function onDbl(e: MouseEvent) {
-  if (session.phase === "ready" && !(e.target as Element).closest(".subs .w")) toggleFullscreen();
+  if (session.phase === "ready" && !(e.target as Element).closest(".subs .w, button, [role=slider]")) toggleFullscreen();
 }
 
 function onWord(word: string, el: Element) {
@@ -142,10 +241,37 @@ const retry = () => loadVideo(session.link);
   <section ref="frame" class="stage" :class="{ live: session.phase === 'ready' }" :aria-label="$t('watch.player')" @dblclick="onDbl">
     <!-- YouTube player host (kept mounted so the iframe can be reused between videos) -->
     <div v-show="session.phase === 'ready' && !isMedia" ref="ytHost" class="yt"></div>
-    <video v-if="session.phase === 'ready' && isMedia" ref="video" class="media" :src="mediaSrc" controls playsinline preload="auto"></video>
+    <video v-if="session.phase === 'ready' && isMedia && !isAudio" ref="video" class="media" :src="mediaSrc" controls playsinline preload="auto"></video>
+    <AudioStage
+      v-if="session.phase === 'ready' && isAudio"
+      ref="audioStage"
+      :src="mediaSrc"
+      :title="session.title || info?.title || ''"
+      :peaks="peaks"
+      :duration="info?.duration || 0"
+      :model="info?.asr || ''"
+    >
+      <SubtitleOverlay
+        :src="cur?.src || ''"
+        :text="curText"
+        :pending="!!cur && !curText"
+        :bilingual="prefs.bilingual && !session.sameLang"
+        position="bottom"
+        :size="Math.round(prefs.size * 1.25)"
+        :font="prefs.font"
+        :bgo="0"
+        :quiz="prefs.quiz"
+        :hidden="!prefs.show"
+        :rtl="session.tl === 'ar'"
+        :scale="scale"
+        inline
+        @word="onWord"
+      />
+    </AudioStage>
 
     <template v-if="session.phase === 'ready'">
       <SubtitleOverlay
+        v-if="!isAudio"
         :src="cur?.src || ''"
         :text="curText"
         :pending="!!cur && !curText"
@@ -183,10 +309,13 @@ const retry = () => loadVideo(session.link);
     </div>
 
     <!-- no captions: offer Whisper -->
-    <div v-else-if="session.phase === 'whisper'" class="over" :dir="uiDir">
-      <PhWaveform :size="36" class="accent" />
-      <h2>{{ isMediaId(session.link) ? $t("watch.whisper.titleLocal") : $t("watch.whisper.title") }}</h2>
-      <p>{{ isMediaId(session.link) ? $t("watch.whisper.bodyLocal") : $t("watch.whisper.body") }}</p>
+    <div v-else-if="session.phase === 'whisper'" class="over" :class="{ 'over--audio': isAudio }" :dir="uiDir">
+      <div v-if="isAudio" class="pre-wave" dir="ltr">
+        <WaveformBar :peaks="peaks" :progress="heard" :duration="mediaLength" :scanning="!!session.whisperJob" :label="$t('watch.audio.badge')" />
+      </div>
+      <PhWaveform v-else :size="36" class="accent" />
+      <h2>{{ isAudio ? $t("watch.whisper.titleAudio") : isMediaId(session.link) ? $t("watch.whisper.titleLocal") : $t("watch.whisper.title") }}</h2>
+      <p>{{ isAudio ? $t("watch.whisper.bodyAudio") : isMediaId(session.link) ? $t("watch.whisper.bodyLocal") : $t("watch.whisper.body") }}</p>
       <template v-if="whisperMissing">
         <p class="small">{{ $t("watch.whisper.missing") }}</p>
         <CopyCommand cmd="python -m tarjuman setup" />
@@ -196,10 +325,14 @@ const retry = () => loadVideo(session.link);
       </div>
       <button v-else class="btn btn--primary btn--lg" type="button" @click="startWhisper">
         <PhMicrophoneStage :size="18" />
-        {{ session.error.code ? $t("common.retry") : $t("watch.whisper.start") }}
+        {{ session.error.code ? $t("common.retry") : isAudio ? $t("watch.whisper.startAudio") : $t("watch.whisper.start") }}
       </button>
+      <p v-if="downloading" class="small" role="status">{{ downloading }}</p>
       <p v-if="session.error.code" class="err" role="alert">{{ errText(session.error.code, session.error.message, true) }}</p>
-      <p class="small">{{ $t("watch.whisper.note") }}</p>
+      <p v-if="!whisperMissing" class="small">
+        {{ plan || $t("watch.whisper.note") }}
+        <RouterLink class="link" :to="{ name: 'settings', hash: '#transcription' }">{{ $t("watch.whisper.tune") }}</RouterLink>
+      </p>
     </div>
 
     <!-- error -->
@@ -284,6 +417,20 @@ const retry = () => loadVideo(session.link);
 .over .small {
   font-size: var(--fs-xs);
   color: #9aa2cf;
+}
+.over--audio {
+  gap: var(--s-2);
+}
+.pre-wave {
+  width: min(560px, 92%);
+  height: clamp(56px, 14vh, 96px);
+  margin-bottom: var(--s-2);
+}
+.over .link {
+  color: var(--saffron-300);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-inline-start: 6px;
 }
 .over .err {
   color: #ffb4b4;

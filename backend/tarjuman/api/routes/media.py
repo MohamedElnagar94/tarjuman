@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import shutil
@@ -10,6 +11,9 @@ from fastapi import APIRouter, Request
 
 from ... import config
 from ...core.errors import AppError
+from ...core.store import read_json, write_json
+from ...media.probe import peaks as read_peaks
+from ...media.probe import small_peaks
 from ...core.net import ensure_public_url
 from ...jobs import runners
 from ..deps import body, fail, ok, services
@@ -72,6 +76,7 @@ async def upload(request: Request, name: str = "video"):
         s.media.discard(item)
         return fail("EMPTY_FILE", status=400)
     item.size = size
+    await asyncio.to_thread(s.media.describe, item)
     s.media.save()
     return ok(**item.public())
 
@@ -94,14 +99,80 @@ async def media_job(request: Request, id: str = ""):
     return {**j.public(), "media": j.extra.get("media")}
 
 
+async def _describe_missing(s) -> None:
+    """Files added before Tarjuman told audio from video are looked at once."""
+    todo = [m for m in s.media.items.values() if not m.kind and m.path.exists()]
+    for m in todo:
+        await asyncio.to_thread(s.media.describe, m)
+    if todo:
+        s.media.save()
+
+
+async def _peaks(s, m) -> dict:
+    f = s.media.peaks_file(m)
+    hit = read_json(f, None)
+    if isinstance(hit, dict) and hit.get("size") == m.size and hit.get("peaks") is not None:
+        return hit
+    try:
+        data = await asyncio.to_thread(read_peaks, m.path)
+    except Exception as e:  # noqa: BLE001
+        log.info("no waveform for %s: %r", m.id, e)
+        data = {"peaks": [], "duration": 0.0}
+    data["size"] = m.size
+    write_json(f, data)
+    return data
+
+
 @router.get("/api/media")
 async def media_list(request: Request):
-    return ok(items=services(request).media.list())
+    s = services(request)
+    await _describe_missing(s)
+    items = s.media.list()
+    for it in items:
+        # The library shows a small waveform for audio, once the player has drawn the big one.
+        if it["kind"] == "audio":
+            m = s.media.get(it["id"])
+            hit = read_json(s.media.peaks_file(m), None) if m else None
+            if isinstance(hit, dict) and hit.get("peaks"):
+                it["wave"] = small_peaks(hit["peaks"])
+    return ok(items=items)
+
+
+@router.get("/api/media/peaks")
+async def media_peaks(request: Request, id: str = ""):
+    s = services(request)
+    m = s.media.get(id)
+    if not m or not m.path.exists():
+        return fail("NO_MEDIA", status=404)
+    d = await _peaks(s, m)
+    if not m.duration and d.get("duration"):
+        m.duration = float(d["duration"])
+        s.media.save()
+    return ok(peaks=d.get("peaks") or [], duration=d.get("duration") or m.duration or 0)
+
+
+@router.post("/api/media/retranscribe")
+async def media_retranscribe(request: Request):
+    """Forgets the transcript, so the file is transcribed again with the current settings (a more
+    accurate model, a forced language, cleaned audio)."""
+    s = services(request)
+    b = await body(request)
+    m = s.media.get(str(b.get("id") or ""))
+    if not m:
+        return fail("NO_MEDIA", status=404)
+    m.segments, m.lang, m.asr = None, "", ""
+    s.media.save()
+    s.captions.forget(m.link)
+    return ok()
 
 
 @router.get("/api/media/info")
 async def media_info(request: Request, id: str = ""):
-    m = services(request).media.get(id)
+    s = services(request)
+    m = s.media.get(id)
+    if m and not m.kind and m.path.exists():
+        await asyncio.to_thread(s.media.describe, m)
+        s.media.save()
     return ok(**m.public()) if m else fail("NO_MEDIA", status=404)
 
 

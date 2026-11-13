@@ -29,6 +29,22 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - Settings → Updates shows when a newer version is out, with what each version added and fixed, and updates in one click: the installer is downloaded, checked against its SHA-256 file, and Tarjuman restarts updated. A small "Update available" badge appears in the header.
 - Choices: check automatically (every few hours, on by default) and install automatically (off by default).
 
+### Recordings
+
+- Audio files (voice notes, lectures, podcasts, songs) open in a player of their own instead of an empty video frame: the sound drawn live behind the sentence being said, the whole recording as a waveform to click or drag through with its sentences marked under it, 5-second skips, previous/next sentence, speed and repeat-sentence. Every screen says "recording", not "video".
+- Record with your microphone from the home page ("Record your voice"): the voice is drawn as it comes in; stop, and it is saved, transcribed and translated by itself.
+- More formats: Opus, OGG, AAC, AMR, WMA, AIFF, CAF, M4B and more; a file is classed as audio or video by what it holds (an MP3 with cover art is audio, a WebM can be either). Browser recordings are repaired once so they show their length and can be seeked.
+- Dubbing a recording gives an M4A of the same length; "subtitled video" turns it into a video of its moving waveform with the translation on it, to post where only video is accepted.
+- The library shows recordings with a small waveform, their length and the Whisper model that transcribed them. "Transcribe again" redoes a file with the current settings.
+
+### Transcription accuracy
+
+- Settings → Transcription shows this computer (CPU threads, memory, NVIDIA card and whether CUDA can use it), the model it should use and why, and each model's Arabic accuracy, download size, speed on this computer and a warning when it is too heavy. A model can be downloaded and prepared ahead of time.
+- "Automatic" gives short recordings (up to 3 minutes, like voice notes) the most accurate model the computer can hold, and longer ones the faster recommended model.
+- Spoken language (automatic or fixed), how Arabic is written (general with punctuation, MSA, Egyptian, Gulf, Levantine, Maghrebi; given only to Arabic speech), beam search, audio cleanup for noisy recordings, and skipping silences.
+- Long stretches of speech are cut into sentences by the time of each word, so each subtitle shows on time and "repeat sentence" repeats a sentence.
+- On a graphics card that fails, transcription falls back to the CPU and says why. `TARJUMAN_WHISPER_MODEL` is now empty by default; the old default `base` no longer overrides the recommendation.
+
 ### Watching
 
 - Subtitle fonts: Readex (default), Cairo, Naskh, Amiri, Tajawal, Kufi or the system font (Settings → Appearance).

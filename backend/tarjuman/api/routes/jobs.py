@@ -18,6 +18,7 @@ router = APIRouter()
 LIB_DIRS = {"dubbed": config.DUBBED, "subs": config.OUTPUT}
 LIB_TYPES = {
     ".mp4": "video/mp4",
+    ".m4a": "audio/mp4",
     ".srt": "application/x-subrip; charset=utf-8",
     ".vtt": "text/vtt; charset=utf-8",
     ".txt": "text/plain; charset=utf-8",
@@ -74,7 +75,8 @@ async def dub_file(request: Request, id: str = "", dl: str = "0"):
     j = services(request).jobs.get(id)
     if not j or j.status != "done" or not j.mp4 or not j.mp4.exists():
         return fail("NO_FILE", status=404)
-    return send_file(j.mp4, j.fileName or "dubbed.mp4", "video/mp4", dl == "1")
+    mime = "audio/mp4" if j.mp4.suffix.lower() == ".m4a" else "video/mp4"
+    return send_file(j.mp4, j.fileName or "dubbed" + j.mp4.suffix, mime, dl == "1")
 
 
 @router.post("/api/subvideo")

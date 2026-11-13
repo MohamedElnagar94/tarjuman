@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh } from "@phosphor-icons/vue";
+import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
 import AiSettings from "@/components/settings/AiSettings.vue";
 import PhonePairing from "@/components/settings/PhonePairing.vue";
@@ -11,6 +11,7 @@ import PrivacyFlow from "@/components/settings/PrivacyFlow.vue";
 import DesktopLifecycle from "@/components/settings/DesktopLifecycle.vue";
 import UpdatesPanel from "@/components/settings/UpdatesPanel.vue";
 import PronounceEditor from "@/components/settings/PronounceEditor.vue";
+import TranscriptionSettings from "@/components/settings/TranscriptionSettings.vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import SubtitleOverlay from "@/components/SubtitleOverlay.vue";
@@ -28,6 +29,7 @@ onMounted(() => (document.title = t("settings.title") + " | " + t("app.name")));
 
 const SECTIONS = [
   { id: "ai", icon: PhSparkle },
+  { id: "transcription", icon: PhWaveform },
   { id: "phone", icon: PhDeviceMobile },
   { id: "extensions", icon: PhPuzzlePiece },
   { id: "pronounce", icon: PhSpeakerHigh },
@@ -71,6 +73,11 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
         <section id="ai" class="panel sec" aria-labelledby="h-ai">
           <h2 id="h-ai" class="panel__title">{{ t("settings.s.ai") }}</h2>
           <AiSettings />
+        </section>
+
+        <section id="transcription" class="panel sec" aria-labelledby="h-asr">
+          <h2 id="h-asr" class="panel__title">{{ t("settings.s.transcription") }}</h2>
+          <TranscriptionSettings />
         </section>
 
         <section id="phone" class="panel sec" aria-labelledby="h-phone">

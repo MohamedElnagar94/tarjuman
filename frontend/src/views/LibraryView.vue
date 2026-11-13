@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { PhCheckCircle, PhCircleNotch, PhDownloadSimple, PhFileText, PhFilmStrip, PhPlay, PhPlaylist, PhWarningCircle, PhX, PhXCircle } from "@phosphor-icons/vue";
+import { PhCheckCircle, PhCircleNotch, PhDownloadSimple, PhFileText, PhFilmStrip, PhPlay, PhPlaylist, PhWarningCircle, PhWaveform, PhX, PhXCircle } from "@phosphor-icons/vue";
 import ConfirmButton from "@/components/ui/ConfirmButton.vue";
 import ProgressMeter from "@/components/ui/ProgressMeter.vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
@@ -11,7 +11,7 @@ import type { Job, LibraryItem, MediaItem } from "@/api/types";
 import { errText } from "@/i18n";
 import { usePrefs } from "@/composables/prefs";
 import { toast } from "@/composables/toast";
-import { formatSize } from "@/lib/time";
+import { formatSize, formatTime } from "@/lib/time";
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -246,10 +246,21 @@ const isVideo = (f: LibraryItem) => f.name.toLowerCase().endsWith(".mp4");
           </div>
           <ul v-else class="list">
             <li v-for="m in media" :key="m.id" class="item">
-              <span class="item__icon"><PhFilmStrip :size="18" /></span>
+              <span class="item__icon" :class="{ audio: m.kind === 'audio' }">
+                <svg v-if="m.kind === 'audio' && m.wave?.length" class="mini-wave" viewBox="0 0 48 20" preserveAspectRatio="none" aria-hidden="true">
+                  <rect v-for="(v, i) in m.wave" :key="i" :x="i" :y="10 - Math.max(0.6, v * 9)" width="0.6" :height="Math.max(1.2, v * 18)" rx="0.3" />
+                </svg>
+                <PhWaveform v-else-if="m.kind === 'audio'" :size="18" />
+                <PhFilmStrip v-else :size="18" />
+              </span>
               <div class="item__txt">
                 <strong dir="auto">{{ m.title }}</strong>
-                <span>{{ size(m.size) }} · {{ m.transcribed ? t("library.media.transcribed") : t("library.media.notTranscribed") }}</span>
+                <span>
+                  {{ m.kind === "audio" ? t("library.media.audio") : t("library.media.video") }}
+                  <template v-if="m.duration"> · {{ formatTime(m.duration) }}</template>
+                  · {{ size(m.size) }} ·
+                  {{ m.transcribed ? (m.asr ? t("library.media.transcribedWith", { model: m.asr }) : t("library.media.transcribed")) : t("library.media.notTranscribed") }}
+                </span>
               </div>
               <div class="item__ops">
                 <RouterLink :to="{ name: 'watch', query: { url: m.link } }" class="btn btn--outline btn--sm"><PhPlay :size="14" />{{ t("common.open") }}</RouterLink>
@@ -493,6 +504,15 @@ const isVideo = (f: LibraryItem) => f.name.toLowerCase().endsWith(".mp4");
   border-radius: var(--r-sm);
   background: var(--lapis-soft);
   color: var(--lapis);
+}
+.item__icon.audio {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.mini-wave {
+  width: 28px;
+  height: 18px;
+  fill: currentColor;
 }
 .item__icon.accent {
   background: var(--accent-soft);
