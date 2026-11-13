@@ -488,6 +488,13 @@ declare global {
         const batch = todo.slice(0, 40);
         const r = await bg("translate", { texts: batch.map((i) => S.cues[i].src), sl, tl: S.settings.lang });
         if (gen !== S.gen) return;
+        // The app hasn't allowed this copy of the extension yet (a store copy and a copy loaded by hand
+        // have different ids): retrying can't help, and "…" forever told the user nothing. Say what to
+        // do and show the original lines meanwhile.
+        if (r && r.code === "EXTENSION_NOT_ALLOWED") {
+          setPill(t("pillNotAllowed"), { err: true });
+          break;
+        }
         // Nothing at all came back: the translators are pausing after a rate limit; back off and retry.
         if (!r || !r.ok || !r.map || !Object.keys(r.map).length) {
           if (++failStreak === 5) setPill(t("pillTranslateDown"), { err: true, hideAfter: 5000 });

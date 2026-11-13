@@ -2,6 +2,10 @@
 
 Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__init__.py`.
 
+## Browser extension 3.0.4 (2026-11-14)
+
+- When the app hasn't allowed this copy of the extension yet (a copy loaded by hand has a different id from the store's), the subtitles no longer wait on "…" forever: the page says how to allow it and shows the original lines meanwhile.
+
 ## Browser extension 3.0.3
 
 - Keyboard shortcuts on the video page while Tarjuman is translating: Alt+→ next line, Alt+← previous line, Alt+↓ repeat the line (or `]`, `[` and `\`), Alt+S show or hide the subtitles, Alt+V dubbing on or off, Alt+T the transcript. They avoid YouTube's own keys, do nothing while you type in a search or comment box, and work with an Arabic keyboard layout too. The options page lists them and can turn them off; the toolbar's tooltips show them.

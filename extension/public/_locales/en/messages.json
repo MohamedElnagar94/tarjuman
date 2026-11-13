@@ -699,5 +699,8 @@
   },
   "btnOpenAt": {
     "message": "Open in the app at $1"
+  },
+  "pillNotAllowed": {
+    "message": "Tarjuman hasn't allowed this extension yet, so lines can't be translated. Open the app → Settings → Extensions, click “Allow”, then start again."
   }
 }
