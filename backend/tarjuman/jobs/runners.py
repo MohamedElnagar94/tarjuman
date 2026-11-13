@@ -126,6 +126,13 @@ async def run_whisper(s: "Services", job: Job, link: str) -> None:
         segments, lang = res["segments"], res["lang"]
         if not segments:
             raise AppError("NO_SPEECH", "لم يُعثر على كلام مفهوم في هذا الملف")
+        if s.asr.values.get("aiFix") and s.ai.ready:
+            from ..ai.transcript_fix import fix_lines
+
+            job.phase = "تصحيح النص بالذكاء الاصطناعي"
+            fixed = await fix_lines(s.ai_client, [x["text"] for x in segments], lang or "", s.asr.values.get("vocab") or "")
+            segments = [{**x, "text": t} for x, t in zip(segments, fixed)]
+            job.check()
         job.progress = 80
 
         job.phase = "ترجمة النص"

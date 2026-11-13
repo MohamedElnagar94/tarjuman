@@ -129,16 +129,33 @@ export interface AsrSettings {
   quality: "accurate" | "fast";
   enhance: boolean;
   vad: boolean;
+  /** Names and words that come up in the user's recordings, one per line or separated by commas. */
+  vocab: string;
+  /** Fix misheard words with the AI after Whisper. */
+  aiFix: boolean;
 }
 
 export interface AsrState {
   ok: true;
   settings: AsrSettings;
-  hardware: { os: string; threads: number; cores: number; ramGb: number; cuda: number; gpu: string; vramGb: number; cublas: boolean };
+  hardware: {
+    os: string;
+    threads: number;
+    cores: number;
+    ramGb: number;
+    cuda: number;
+    gpu: string;
+    vramGb: number;
+    computeCap: number;
+    /** A card too old to be faster than the CPU for these models. */
+    gpuOld: boolean;
+    cublas: boolean;
+  };
   /** short: the model "auto" gives recordings up to 3 minutes. */
   recommended: { model: AsrModelId; device: "cpu" | "cuda"; short: AsrModelId; why: string[] };
   effective: { model: AsrModelId; device: "cpu" | "cuda"; beam: number; language: string | null; secondsPerMinute: number };
-  models: { id: AsrModelId; size: number; ram: number; ar: number; secondsPerMinute: number; warning: string; downloaded: boolean }[];
+  models: { id: AsrModelId; size: number; ram: number; ar: number; secondsPerMinute: number; warning: string; downloaded: boolean; diskMb: number }[];
+  aiReady: boolean;
   styles: AsrStyle[];
   languages: string[];
   status: {

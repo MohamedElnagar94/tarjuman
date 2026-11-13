@@ -63,7 +63,13 @@ DEFAULTS: dict[str, Any] = {
     "quality": "accurate",  # accurate (beam search 5) | fast (greedy)
     "enhance": False,  # clean the audio first (noise, hum, level)
     "vad": True,  # skip long silences (fewer invented sentences)
+    # Names and words that come up in the user's recordings (people, places, brands): Whisper is told
+    # them, so it writes "هيثم" and "Claude" instead of something that sounds alike.
+    "vocab": "",
+    # Have the AI (Settings -> AI, when set up) fix words Whisper clearly misheard, from the context.
+    "aiFix": False,
 }
+VOCAB_MAX = 600
 
 
 def _ram_gb() -> float:
@@ -101,20 +107,30 @@ def _physical_cores() -> int:
         return 0
 
 
-def _gpu_name() -> tuple[str, float]:
+def _gpu_name() -> tuple[str, float, float]:
+    """(name, memory in GB, CUDA compute capability) of the first NVIDIA card."""
     exe = shutil.which("nvidia-smi")
     if not exe:
-        return "", 0.0
+        return "", 0.0, 0.0
     try:
         out = subprocess.run(
-            [exe, "--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+            [exe, "--query-gpu=name,memory.total,compute_cap", "--format=csv,noheader,nounits"],
             capture_output=True, text=True, timeout=4,
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         ).stdout.strip().splitlines()
-        name, mem = (out[0].split(",") + ["0"])[:2]
-        return name.strip(), round(float(mem) / 1024, 1)
+        name, mem, cap = ([x.strip() for x in out[0].split(",")] + ["0", "0"])[:3]
+        try:
+            cc = float(cap)
+        except ValueError:
+            cc = 0.0
+        return name, round(float(mem) / 1024, 1), cc
     except Exception:  # noqa: BLE001
-        return "", 0.0
+        return "", 0.0, 0.0
+
+
+# Cards before Pascal (compute capability 6.0: GTX 10xx, Quadro P) have neither fast half precision nor
+# int8 for these models: even with CUDA installed the gain over the CPU is small or none.
+MODERN_GPU = 6.0
 
 
 def _cuda_devices() -> int:
@@ -141,7 +157,7 @@ def _cublas_found() -> bool:
 @lru_cache(maxsize=1)
 def hardware() -> dict[str, Any]:
     cuda = _cuda_devices()
-    gpu, vram = _gpu_name() if cuda else ("", 0.0)
+    gpu, vram, cc = _gpu_name() if cuda else ("", 0.0, 0.0)
     return {
         "os": {"win32": "windows", "darwin": "mac"}.get(sys.platform, "linux"),
         "threads": os.cpu_count() or 1,
@@ -150,12 +166,16 @@ def hardware() -> dict[str, Any]:
         "cuda": cuda,  # NVIDIA cards the driver reports
         "gpu": gpu,
         "vramGb": vram,
+        "computeCap": cc,
+        # An old card: CUDA could run on it, but not usefully faster than the CPU.
+        "gpuOld": bool(cuda) and 0 < cc < MODERN_GPU,
         "cublas": bool(cuda) and _cublas_found(),
     }
 
 
-def gpu_usable(hw: dict[str, Any]) -> bool:
-    return bool(hw.get("cuda")) and bool(hw.get("cublas"))
+def gpu_usable(hw: dict[str, Any], allow_old: bool = False) -> bool:
+    """Whether transcription can run on the card. An old card is used only when asked for."""
+    return bool(hw.get("cuda")) and bool(hw.get("cublas")) and (allow_old or not hw.get("gpuOld"))
 
 
 def cpu_threads(hw: dict[str, Any]) -> int:
@@ -181,7 +201,12 @@ def recommend(hw: dict[str, Any]) -> dict[str, Any]:
     if gpu_usable(hw) and vram >= 3:
         why.append(f"لديك بطاقة رسوميات NVIDIA{card} تعمل مع CUDA، وذاكرتها {vram:g} غيغابايت تكفي لنموذج large-v3-turbo.")
         return {"model": "large-v3-turbo", "device": "cuda", "short": "large-v3-turbo", "why": why}
-    if gpu_usable(hw):
+    if hw.get("gpuOld"):
+        why.append(
+            f"بطاقة الرسوميات{card} من جيل قديم (قدرة CUDA {hw.get('computeCap'):g})، لا تدعم طرق الحساب السريعة التي "
+            "تستعملها هذه النماذج، فالفائدة منها قليلة أو معدومة حتى لو ثبّتّ CUDA. يعمل التفريغ على المعالج، ولا تحتاج تثبيت شيء."
+        )
+    elif gpu_usable(hw):
         why.append(f"بطاقة الرسوميات{card} ذاكرتها {vram:g} غيغابايت فقط، لا تكفي النماذج الدقيقة، فيعمل التفريغ على المعالج.")
     elif hw.get("cuda") and not hw.get("cublas"):
         why.append(
@@ -249,9 +274,11 @@ class AsrSettings:
             v["style"] = j["style"]
         if j.get("quality") in ("accurate", "fast"):
             v["quality"] = j["quality"]
-        for k in ("enhance", "vad"):
+        for k in ("enhance", "vad", "aiFix"):
             if k in j:
                 v[k] = bool(j[k])
+        if "vocab" in j:
+            v["vocab"] = str(j.get("vocab") or "")[:VOCAB_MAX]
 
     def update(self, changes: dict[str, Any]) -> dict[str, Any]:
         self._apply(changes or {})
@@ -273,7 +300,7 @@ class AsrSettings:
         else:
             model = rec["model"]
         if v["device"] == "cuda":
-            device = "cuda" if gpu_usable(hw) else "cpu"
+            device = "cuda" if gpu_usable(hw, allow_old=True) else "cpu"
         elif v["device"] == "cpu":
             device = "cpu"
         else:
@@ -289,6 +316,7 @@ class AsrSettings:
             "prompt": PROMPTS.get(v["style"], ""),
             "enhance": bool(v["enhance"]),
             "vad": bool(v["vad"]),
+            "hotwords": vocab_words(v["vocab"]),
             "secondsPerMinute": seconds_per_minute(model, hw, device),
         }
 
@@ -306,12 +334,25 @@ class AsrSettings:
                     "secondsPerMinute": seconds_per_minute(k, hw, eff["device"]),
                     "warning": model_warning(k, eff["device"], hw),
                     "downloaded": model_downloaded(k),
+                    "diskMb": round(model_disk_bytes(k) / 1_000_000),
                 }
                 for k, m in MODELS.items()
             ],
             "styles": list(STYLES),
             "languages": list(LANGS),
         }
+
+
+def vocab_words(text: str) -> str:
+    """The user's list (one per line, or separated by commas) as Whisper's hint: "هيثم، Claude، نجار"."""
+    import re
+
+    words = [w.strip() for w in re.split(r"[\n,،;؛]+", text or "") if w.strip()]
+    seen: list[str] = []
+    for w in words:
+        if w not in seen:
+            seen.append(w)
+    return "، ".join(seen[:60])
 
 
 def _known_language(code: str) -> bool:
@@ -340,6 +381,58 @@ def model_downloaded(name: str) -> bool:
         return isinstance(hit, str) and os.path.exists(hit)
     except Exception:  # noqa: BLE001
         return False
+
+
+def _hub() -> Path:
+    return Path(os.environ.get("HF_HOME") or Path.home() / ".cache" / "huggingface") / "hub"
+
+
+def _repo_dir(name: str) -> Path:
+    return _hub() / ("models--" + model_repo(name).replace("/", "--"))
+
+
+def _repo_files(name: str) -> list[Path]:
+    """The real files of a downloaded model (links are followed to what they point at)."""
+    root, hub = _repo_dir(name), _hub().resolve()
+    out: list[Path] = []
+    if not root.exists():
+        return out
+    for dirpath, _dirs, files in os.walk(root):
+        for f in files:
+            p = Path(dirpath) / f
+            try:
+                real = p.resolve()
+            except OSError:
+                continue
+            if real.is_file() and hub in real.parents and real not in out:
+                out.append(real)
+    return out
+
+
+def model_disk_bytes(name: str) -> int:
+    total = 0
+    for p in _repo_files(name):
+        try:
+            total += p.stat().st_size
+        except OSError:
+            pass
+    return total
+
+
+def delete_model(name: str) -> int:
+    """Removes a downloaded model from the disk; returns the bytes freed."""
+    if name not in MODELS:
+        return 0
+    freed = 0
+    for p in _repo_files(name):
+        try:
+            size = p.stat().st_size
+            p.unlink()
+            freed += size
+        except OSError:
+            pass
+    shutil.rmtree(_repo_dir(name), ignore_errors=True)
+    return freed
 
 
 def hub_bytes() -> int:

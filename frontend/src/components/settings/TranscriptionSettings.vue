@@ -3,7 +3,7 @@
    choice that changes accuracy, each with its cost. */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { PhCheckCircle, PhCpu, PhDownloadSimple, PhGraphicsCard, PhMemory, PhWarning } from "@phosphor-icons/vue";
+import { PhCheckCircle, PhCpu, PhDownloadSimple, PhGraphicsCard, PhMemory, PhSparkle, PhTrash, PhWarning } from "@phosphor-icons/vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import { api } from "@/api/client";
@@ -19,6 +19,7 @@ let timer: number | undefined;
 async function load() {
   try {
     st.value = await api.asr();
+    vocab.value = st.value.settings.vocab || "";
     watchLoading();
   } catch {
     remote.value = true;
@@ -38,6 +39,36 @@ async function set(change: Partial<AsrSettings>) {
   } finally {
     saving.value = false;
   }
+}
+
+/* Deleting a downloaded model takes two clicks: the first arms the button for a few seconds. */
+const armed = ref("");
+const deleting = ref("");
+let disarm: number | undefined;
+async function remove(id: string) {
+  if (armed.value !== id) {
+    armed.value = id;
+    window.clearTimeout(disarm);
+    disarm = window.setTimeout(() => (armed.value = ""), 4000);
+    return;
+  }
+  armed.value = "";
+  deleting.value = id;
+  try {
+    const r = await api.deleteAsrModel(id);
+    st.value = r;
+    toast(t("asrSet.deleted", { model: id, size: sizeLabel(Math.round(r.freed / 1_000_000)) }), { tone: "ok" });
+  } catch (e) {
+    toast((e as Error).message || t("errors.UNKNOWN"), { tone: "danger" });
+  } finally {
+    deleting.value = "";
+  }
+}
+
+/* The list of names is saved when the field is left, not on every key. */
+const vocab = ref("");
+function saveVocab() {
+  if (st.value && vocab.value !== st.value.settings.vocab) void set({ vocab: vocab.value });
 }
 
 async function prepare() {
@@ -66,7 +97,10 @@ function watchLoading(force = false) {
 }
 
 onMounted(load);
-onBeforeUnmount(() => clearInterval(timer));
+onBeforeUnmount(() => {
+  clearInterval(timer);
+  window.clearTimeout(disarm);
+});
 
 const hw = computed(() => st.value?.hardware);
 const rec = computed(() => st.value?.recommended);
@@ -74,6 +108,7 @@ const eff = computed(() => st.value?.effective);
 const gpuState = computed(() => {
   const h = hw.value;
   if (!h?.cuda) return { ok: false, text: t("asrSet.gpuNone") };
+  if (h.gpuOld) return { ok: false, text: t("asrSet.gpuOld") };
   if (!h.cublas) return { ok: false, text: t("asrSet.gpuNoCuda") };
   return { ok: true, text: t("asrSet.gpuReady") };
 });
@@ -166,15 +201,27 @@ const status = computed(() => {
           <span class="m-acc" :aria-label="t('asrSet.accuracy', { n: m.ar })" :title="t('asrSet.accuracy', { n: m.ar })">
             <i v-for="k in 5" :key="k" :class="{ lit: k <= m.ar }"></i>
           </span>
-          <span class="m-meta">{{ t("asrSet.speed", { n: m.secondsPerMinute }) }} · {{ sizeLabel(m.size) }}</span>
+          <span class="m-meta">{{ t("asrSet.speed", { n: m.secondsPerMinute }) }} · {{ sizeLabel(m.downloaded && m.diskMb ? m.diskMb : m.size) }}</span>
           <span v-if="m.warning" class="m-warn"><PhWarning :size="14" />{{ m.warning }}</span>
+          <button
+            v-if="m.downloaded"
+            type="button"
+            class="m-del"
+            :class="{ armed: armed === m.id }"
+            :disabled="deleting === m.id"
+            :aria-label="t('asrSet.delete', { model: m.id })"
+            @click.prevent.stop="remove(m.id)"
+          >
+            <PhTrash :size="15" />
+            <span v-if="armed === m.id">{{ t("asrSet.deleteConfirm") }}</span>
+          </button>
         </label>
       </fieldset>
 
       <div class="prep">
         <span class="muted">{{ status }}</span>
         <button
-          v-if="st.status.installed && !st.status.ready && !st.status.loading"
+          v-if="st.status.installed && !st.status.ready && !st.status.loading && !st.models.find((x) => x.id === eff?.model)?.downloaded"
           class="btn btn--outline btn--sm"
           type="button"
           @click="prepare"
@@ -203,6 +250,33 @@ const status = computed(() => {
         <select id="asr-style" class="select sel" :value="st.settings.style" :disabled="saving" @change="set({ style: ($event.target as HTMLSelectElement).value as AsrSettings['style'] })">
           <option v-for="s in st.styles" :key="s" :value="s">{{ t("asrSet.styles." + s) }}</option>
         </select>
+      </div>
+      <div class="opt opt--stack">
+        <label class="opt__label" for="asr-vocab">
+          {{ t("asrSet.vocab") }}
+          <small>{{ t("asrSet.vocabHint") }}</small>
+        </label>
+        <textarea
+          id="asr-vocab"
+          v-model="vocab"
+          class="input vocab"
+          rows="3"
+          maxlength="600"
+          dir="auto"
+          :placeholder="t('asrSet.vocabPlaceholder')"
+          @blur="saveVocab"
+        ></textarea>
+      </div>
+      <div class="opt">
+        <label class="opt__label" for="asr-ai">
+          <span class="ai-label"><PhSparkle :size="16" />{{ t("asrSet.aiFix") }}</span>
+          <small>{{ t("asrSet.aiFixHint") }}</small>
+          <small v-if="!st.aiReady" class="need-ai">
+            {{ t("asrSet.aiFixNeedsAi") }}
+            <a href="#ai">{{ t("asrSet.aiFixSetup") }}</a>
+          </small>
+        </label>
+        <ToggleSwitch id="asr-ai" :model-value="st.settings.aiFix && st.aiReady" :disabled="saving || !st.aiReady" @update:model-value="set({ aiFix: $event })" />
       </div>
       <div class="opt">
         <span class="opt__label">
@@ -320,7 +394,7 @@ const status = computed(() => {
   grid-template-columns: auto auto 1fr auto;
   grid-template-areas:
     "radio name tags acc"
-    "radio meta meta meta"
+    "radio meta meta del"
     "radio warn warn warn";
   column-gap: 10px;
   row-gap: 2px;
@@ -388,6 +462,53 @@ const status = computed(() => {
   font-size: var(--fs-xs);
   color: var(--danger, #ff9a9a);
 }
+.m-del {
+  grid-area: del;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  opacity: 0.7;
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+.m-del:hover {
+  opacity: 1;
+  background: var(--surface-2);
+}
+.m-del.armed {
+  opacity: 1;
+  color: var(--danger, #e5484d);
+  border-color: currentColor;
+}
+.m-del:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.vocab {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  font: inherit;
+}
+.ai-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-label svg {
+  color: var(--accent-ink);
+}
+.need-ai a {
+  color: var(--accent-ink);
+  text-decoration: underline;
+}
 .prep {
   display: flex;
   flex-wrap: wrap;
@@ -415,7 +536,7 @@ const status = computed(() => {
     grid-template-areas:
       "radio name acc"
       "radio tags tags"
-      "radio meta meta"
+      "radio meta del"
       "radio warn warn";
   }
   .sel {

@@ -260,6 +260,7 @@ export const api = {
   asr: (duration?: number) => get<AsrState>("/api/asr", duration ? { duration: Math.round(duration) } : {}),
   setAsr: (b: Partial<AsrSettings>) => post<AsrState>("/api/asr", b),
   prepareAsr: () => post<AsrState & { started: boolean }>("/api/asr/prepare", {}),
+  deleteAsrModel: (model: string) => post<AsrState & { freed: number }>("/api/asr/delete", { model }),
 
   vocab: () => get<{ ok: true; items: VocabItem[] }>("/api/vocab"),
   addVocab: (b: Omit<VocabItem, "id" | "at">) => post<{ ok: true; item: VocabItem; duplicate: boolean }>("/api/vocab", b),

@@ -122,6 +122,17 @@ class Whisper:
         self.fallback = f"تعذّر تشغيل النموذج على بطاقة الرسوميات ({type(e).__name__}: {str(e)[:160]})، فاستُعمل المعالج."
         log.warning("whisper on the GPU failed, using the CPU: %r", e)
 
+    def forget_model(self, name: str) -> bool:
+        """Lets go of a model in memory before its files are deleted. False while it is working."""
+        if not self._lock.acquire(blocking=False):
+            return False
+        try:
+            if self._key and self._key[0] == name:
+                self._model, self._key = None, None
+            return True
+        finally:
+            self._lock.release()
+
     def prepare(self) -> bool:
         """Downloads and loads the chosen model in the background (Settings -> "prepare now")."""
         if not installed() or self.loading or self.status()["ready"]:
@@ -218,6 +229,7 @@ class Whisper:
             vad_parameters={"min_silence_duration_ms": 500, "speech_pad_ms": 300} if eff["vad"] else None,
             condition_on_previous_text=False,
             initial_prompt=prompt,
+            hotwords=eff.get("hotwords") or None,
             language_detection_segments=3,
             # Word times let a long stretch of speech be cut into sentences that each show on time.
             word_timestamps=True,
@@ -270,7 +282,7 @@ class Whisper:
 
 SENTENCE_END = (".", "?", "!", "؟", "…", "۔")
 SOFT_END = ("،", ",", "؛", ";", ":")
-MAX_WORDS = 16
+MAX_WORDS = 10
 
 
 def split_sentences(seg: Any) -> list[dict]:

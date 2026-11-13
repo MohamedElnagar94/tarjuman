@@ -158,3 +158,52 @@ def test_quit_is_only_for_the_computer_and_only_for_the_desktop_app():
         assert c.post("/api/desktop/quit", json={}).json() == {"ok": True, "quitting": False}
     remote = TestClient(app, base_url="http://192.168.0.104:4318", headers={"host": "192.168.0.104:4318"}, client=("192.168.0.20", 50000))
     assert remote.post("/api/desktop/quit", json={}).status_code in (401, 403)
+
+
+def test_a_downloaded_model_can_be_deleted_to_free_the_disk(tmp_path, monkeypatch):
+    from tarjuman import asr_settings as a
+
+    monkeypatch.setenv("HF_HOME", str(tmp_path))
+    repo = tmp_path / "hub" / "models--Systran--faster-whisper-small"
+    (repo / "snapshots" / "abc").mkdir(parents=True)
+    (repo / "snapshots" / "abc" / "model.bin").write_bytes(b"x" * 5000)
+    (repo / "snapshots" / "abc" / "config.json").write_text("{}")
+    other = tmp_path / "hub" / "models--Systran--faster-whisper-base" / "snapshots" / "d"
+    other.mkdir(parents=True)
+    (other / "model.bin").write_bytes(b"y" * 100)
+    assert a.model_disk_bytes("small") == 5002
+    assert a.delete_model("small") == 5002
+    assert not repo.exists() and (other / "model.bin").exists(), "only that model is removed"
+    assert a.delete_model("not-a-model") == 0
+
+
+def test_the_names_list_becomes_a_hint_for_whisper(tmp_path):
+    from tarjuman.asr_settings import vocab_words
+
+    assert vocab_words("هيثم\nClaude، نجار, هيثم\n\n") == "هيثم، Claude، نجار"
+    s = AsrSettings(tmp_path / "asr.json")
+    s.update({"vocab": "حمود\nكلود"})
+    assert s.effective(HW_LAPTOP)["hotwords"] == "حمود، كلود"
+
+
+def test_an_old_card_is_not_recommended_even_with_cuda():
+    old = {**HW_GPU, "gpu": "Quadro M2000M", "vramGb": 4, "computeCap": 5.0, "gpuOld": True}
+    r = recommend(old)
+    assert r["device"] == "cpu" and any("قديم" in w for w in r["why"])
+
+
+async def test_the_ai_fix_keeps_every_line_in_place():
+    from tarjuman.ai.transcript_fix import fix_lines
+
+    class Fake:
+        def __init__(self, answer):
+            self.answer = answer
+
+        async def complete(self, system, user, **_):
+            assert "dialect" in system and "هيثم" in system
+            return self.answer
+
+    lines = ["انا عايز اوصلهولك انت وهيسم", "العقد بتاعي"]
+    got = await fix_lines(Fake({"lines": ["1. انا عايز اوصلهولك انت وهيثم", "العقد بتاعي"]}), lines, "ar", "هيثم")
+    assert got == ["انا عايز اوصلهولك انت وهيثم", "العقد بتاعي"]
+    assert await fix_lines(Fake({"lines": ["سطر واحد فقط"]}), lines, "ar", "هيثم") == lines, "a wrong count changes nothing"
