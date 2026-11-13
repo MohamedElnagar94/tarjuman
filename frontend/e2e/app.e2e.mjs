@@ -117,14 +117,21 @@ test("a video picked from the computer is uploaded and opens", async () => {
 });
 
 test("settings: language switch, phone pairing code, storage and privacy", async () => {
-  const { ctx, page, errors } = await open("/settings");
+  const { ctx, page, errors } = await open("/settings#phone");
   await page.locator("#phone .qr svg").waitFor();
   assert.match(await page.locator("#phone .link code").innerText(), /\/pair\?code=/);
+  // One section at a time: the others are hidden until their tab is picked.
+  assert.equal(await page.locator("#storage").isVisible(), false);
+  await page.locator('.toc a[href="#storage"]').click();
   await page.locator("#storage table tr").first().waitFor();
+  assert.equal(await page.locator("#phone").isVisible(), false);
+  await page.locator('.toc a[href="#privacy"]').click();
   assert.equal(await page.locator("#privacy .row").count(), 10);
 
+  await page.locator('.toc a[href="#appearance"]').click();
   await page.locator("#appearance button", { hasText: "English" }).click();
   await page.waitForFunction(() => document.documentElement.dir === "ltr");
+  await page.locator('.toc a[href="#privacy"]').click();
   await page.locator("#h-privacy", { hasText: "Privacy" }).waitFor();
   await page.reload();
   await page.waitForFunction(() => document.documentElement.dir === "ltr", null, { timeout: 5000 });

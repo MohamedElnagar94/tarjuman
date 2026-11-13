@@ -31,6 +31,11 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - Settings → Updates shows when a newer version is out, with what each version added and fixed, and updates in one click: the installer is downloaded, checked against its SHA-256 file, and Tarjuman restarts updated. A small "Update available" badge appears in the header.
 - Choices: check automatically (every few hours, on by default) and install automatically (off by default).
 
+### Settings
+
+- Settings show one section at a time: pick it on the side (or along the top on a phone). The address keeps the section, so a link or a reload opens the same one.
+- After an update the app window never keeps running an old script: the web app's files are checked for changes each time.
+
 ### Recordings
 
 - Audio files (voice notes, lectures, podcasts, songs) open in a player of their own instead of an empty video frame: the sound drawn live behind the sentence being said, the whole recording as a waveform to click or drag through with its sentences marked under it, 5-second skips, previous/next sentence, speed and repeat-sentence. Every screen says "recording", not "video".

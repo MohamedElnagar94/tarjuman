@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
@@ -27,6 +28,7 @@ const { voices } = useVoices();
 
 onMounted(() => (document.title = t("settings.title") + " | " + t("app.name")));
 
+
 const SECTIONS = [
   { id: "ai", icon: PhSparkle },
   { id: "transcription", icon: PhWaveform },
@@ -41,6 +43,19 @@ const SECTIONS = [
   { id: "privacy", icon: PhShieldCheck },
   { id: "shortcuts", icon: PhKeyboard },
 ] as const;
+
+/* One section at a time, like tabs: the address keeps it (#transcription), so a link from another page
+   or a reload opens the same section. */
+const route = useRoute();
+const router = useRouter();
+const active = computed(() => {
+  const id = route.hash.replace(/^#/, "");
+  return SECTIONS.some((s) => s.id === id) ? id : SECTIONS[0].id;
+});
+function pick(id: string) {
+  if (id !== active.value) void router.replace({ hash: "#" + id });
+}
+watch(active, () => window.scrollTo({ top: 0 }));
 
 const themeOptions = computed(() => [
   { value: "system" as ThemePref, label: t("appearance.system") },
@@ -63,39 +78,46 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
 
     <div class="layout">
       <nav class="toc" :aria-label="t('settings.sections')">
-        <a v-for="s in SECTIONS" :key="s.id" :href="'#' + s.id">
+        <a
+          v-for="s in SECTIONS"
+          :key="s.id"
+          :href="'#' + s.id"
+          :class="{ on: active === s.id }"
+          :aria-current="active === s.id ? 'page' : undefined"
+          @click.prevent="pick(s.id)"
+        >
           <component :is="s.icon" :size="18" />
           {{ t("settings.s." + s.id) }}
         </a>
       </nav>
 
       <div class="sections">
-        <section id="ai" class="panel sec" aria-labelledby="h-ai">
+        <section id="ai" v-show="active === 'ai'" class="panel sec" aria-labelledby="h-ai">
           <h2 id="h-ai" class="panel__title">{{ t("settings.s.ai") }}</h2>
           <AiSettings />
         </section>
 
-        <section id="transcription" class="panel sec" aria-labelledby="h-asr">
+        <section id="transcription" v-show="active === 'transcription'" class="panel sec" aria-labelledby="h-asr">
           <h2 id="h-asr" class="panel__title">{{ t("settings.s.transcription") }}</h2>
           <TranscriptionSettings />
         </section>
 
-        <section id="phone" class="panel sec" aria-labelledby="h-phone">
+        <section id="phone" v-show="active === 'phone'" class="panel sec" aria-labelledby="h-phone">
           <h2 id="h-phone" class="panel__title">{{ t("settings.s.phone") }}</h2>
           <PhonePairing />
         </section>
 
-        <section id="extensions" class="panel sec" aria-labelledby="h-ext">
+        <section id="extensions" v-show="active === 'extensions'" class="panel sec" aria-labelledby="h-ext">
           <h2 id="h-ext" class="panel__title">{{ t("settings.s.extensions") }}</h2>
           <ExtensionTrust />
         </section>
 
-        <section id="pronounce" class="panel sec" aria-labelledby="h-pr">
+        <section id="pronounce" v-show="active === 'pronounce'" class="panel sec" aria-labelledby="h-pr">
           <h2 id="h-pr" class="panel__title">{{ t("settings.s.pronounce") }}</h2>
           <PronounceEditor />
         </section>
 
-        <section id="defaults" class="panel sec" aria-labelledby="h-def">
+        <section id="defaults" v-show="active === 'defaults'" class="panel sec" aria-labelledby="h-def">
           <h2 id="h-def" class="panel__title">{{ t("settings.s.defaults") }}</h2>
           <p class="panel__lead">{{ t("settings.defaultsLead") }}</p>
           <div class="opts">
@@ -131,7 +153,7 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
           </div>
         </section>
 
-        <section id="appearance" class="panel sec" aria-labelledby="h-app">
+        <section id="appearance" v-show="active === 'appearance'" class="panel sec" aria-labelledby="h-app">
           <h2 id="h-app" class="panel__title">{{ t("settings.s.appearance") }}</h2>
           <div class="opts">
             <div class="opt">
@@ -172,27 +194,27 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
           </div>
         </section>
 
-        <section id="updates" class="panel sec" aria-labelledby="h-updates">
+        <section id="updates" v-show="active === 'updates'" class="panel sec" aria-labelledby="h-updates">
           <h2 id="h-updates" class="panel__title">{{ t("settings.s.updates") }}</h2>
           <UpdatesPanel />
         </section>
 
-        <section id="desktop" class="panel sec" aria-labelledby="h-desktop">
+        <section id="desktop" v-show="active === 'desktop'" class="panel sec" aria-labelledby="h-desktop">
           <h2 id="h-desktop" class="panel__title">{{ t("settings.s.desktop") }}</h2>
           <DesktopLifecycle />
         </section>
 
-        <section id="storage" class="panel sec" aria-labelledby="h-storage">
+        <section id="storage" v-show="active === 'storage'" class="panel sec" aria-labelledby="h-storage">
           <h2 id="h-storage" class="panel__title">{{ t("settings.s.storage") }}</h2>
           <StorageSettings />
         </section>
 
-        <section id="privacy" class="panel sec" aria-labelledby="h-privacy">
+        <section id="privacy" v-show="active === 'privacy'" class="panel sec" aria-labelledby="h-privacy">
           <h2 id="h-privacy" class="panel__title">{{ t("settings.s.privacy") }}</h2>
           <PrivacyFlow />
         </section>
 
-        <section id="shortcuts" class="panel sec" aria-labelledby="h-keys">
+        <section id="shortcuts" v-show="active === 'shortcuts'" class="panel sec" aria-labelledby="h-keys">
           <h2 id="h-keys" class="panel__title">{{ t("settings.s.shortcuts") }}</h2>
           <p class="panel__lead">{{ t("settings.shortcutsLead") }}</p>
           <div class="keys"><ShortcutList /></div>
@@ -229,6 +251,15 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
 .toc a:hover {
   background: var(--surface-1);
   color: var(--text);
+}
+.toc a.on {
+  background: var(--surface-1);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+:dir(rtl) .toc a.on {
+  box-shadow: inset -3px 0 0 var(--accent);
 }
 .sections {
   max-width: 820px;
@@ -278,6 +309,12 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
     border: 1px solid var(--line-2);
     border-radius: var(--r-pill);
     min-height: 36px;
+  }
+  .toc a.on,
+  :dir(rtl) .toc a.on {
+    box-shadow: none;
+    border-color: var(--accent);
+    color: var(--accent-ink);
   }
 }
 @media (max-width: 480px) {

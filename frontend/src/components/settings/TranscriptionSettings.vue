@@ -65,6 +65,14 @@ async function remove(id: string) {
   }
 }
 
+/* What the names list fixes, with words anyone may use (never the user's own names). */
+const vocabExamples = [
+  ["السارم", "CRM"],
+  ["إكسيل", "Excel"],
+  ["الصب كونتراكت", "sub contract"],
+  ["زووم", "Zoom"],
+] as const;
+
 /* The list of names is saved when the field is left, not on every key. */
 const vocab = ref("");
 function saveVocab() {
@@ -262,10 +270,25 @@ const status = computed(() => {
           class="input vocab"
           rows="3"
           maxlength="600"
-          dir="auto"
+          :dir="vocab ? 'auto' : undefined"
           :placeholder="t('asrSet.vocabPlaceholder')"
           @blur="saveVocab"
         ></textarea>
+        <table class="vocab-ex">
+          <caption>{{ t("asrSet.vocabExTitle") }}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ t("asrSet.vocabExHeard") }}</th>
+              <th scope="col">{{ t("asrSet.vocabExWrite") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, i) in vocabExamples" :key="i">
+              <td>{{ row[0] }}</td>
+              <td dir="auto"><code>{{ row[1] }}</code></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div class="opt">
         <label class="opt__label" for="asr-ai">
@@ -496,6 +519,35 @@ const status = computed(() => {
   min-height: 72px;
   resize: vertical;
   font: inherit;
+}
+.vocab-ex {
+  align-self: flex-start;
+  justify-self: start;
+  margin-top: var(--s-2);
+  border-collapse: collapse;
+  font-size: var(--fs-xs);
+  width: 100%;
+  max-width: 420px;
+}
+.vocab-ex caption {
+  text-align: start;
+  padding-bottom: 4px;
+  opacity: 0.8;
+}
+.vocab-ex th,
+.vocab-ex td {
+  text-align: start;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.vocab-ex th {
+  font-weight: 600;
+  background: var(--surface-2);
+}
+.vocab-ex code {
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--accent-ink);
 }
 .ai-label {
   display: inline-flex;

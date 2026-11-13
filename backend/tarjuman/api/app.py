@@ -58,6 +58,17 @@ PAIR_BLOCKED_PAGE = """<!doctype html><html lang="ar" dir="rtl"><meta charset="u
 </body></html>"""
 
 
+class RevalidatedFiles(StaticFiles):
+    """The web app's files. A file can keep its name across versions (the entry script does), so the
+    browser asks each time whether it changed (a quick "not modified" when it didn't): after an update
+    the app never runs an old script against the new server."""
+
+    def file_response(self, *args, **kwargs):
+        res = super().file_response(*args, **kwargs)
+        res.headers["Cache-Control"] = "no-cache"
+        return res
+
+
 def create_app(
     services: Services | None = None, *, port: int = config.DEFAULT_PORT, warm: bool = True, desktop=None
 ) -> FastAPI:
@@ -167,7 +178,7 @@ def create_app(
 
     dist = config.FRONTEND_DIST
     if (dist / "assets").is_dir():
-        app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
+        app.mount("/assets", RevalidatedFiles(directory=dist / "assets"), name="assets")
 
     @app.get("/{path:path}", include_in_schema=False)
     async def spa(path: str):

@@ -13,6 +13,8 @@ export const router = createRouter({
   ],
   scrollBehavior(to, from, saved) {
     if (saved) return saved;
+    // Settings shows one section at a time: its hash picks the section, not a place to scroll to.
+    if (to.name === "settings") return to.name === from.name ? false : { top: 0 };
     if (to.hash) return { el: to.hash, top: 80 };
     if (to.name === from.name) return false;
     return { top: 0 };
