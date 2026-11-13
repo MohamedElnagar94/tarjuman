@@ -4,6 +4,7 @@
 import type {
   AsrSettings,
   AsrState,
+  CustomModelInfo,
   AiSettings,
   AiSettingsInput,
   Answer,
@@ -261,6 +262,9 @@ export const api = {
   setAsr: (b: Partial<AsrSettings>) => post<AsrState>("/api/asr", b),
   prepareAsr: () => post<AsrState & { started: boolean }>("/api/asr/prepare", {}),
   deleteAsrModel: (model: string) => post<AsrState & { freed: number }>("/api/asr/delete", { model }),
+  checkCustomModel: (source: string) => post<{ ok: true; model: CustomModelInfo }>("/api/asr/custom/check", { source }),
+  addCustomModel: (source: string) => post<AsrState>("/api/asr/custom/add", { source }),
+  removeCustomModel: (id: string) => post<AsrState & { freed: number }>("/api/asr/custom/remove", { id }),
 
   vocab: () => get<{ ok: true; items: VocabItem[] }>("/api/vocab"),
   addVocab: (b: Omit<VocabItem, "id" | "at">) => post<{ ok: true; item: VocabItem; duplicate: boolean }>("/api/vocab", b),

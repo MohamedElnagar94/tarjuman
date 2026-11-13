@@ -122,7 +122,8 @@ export type AsrModelId = "tiny" | "base" | "small" | "medium" | "large-v3-turbo"
 export type AsrStyle = "general" | "msa" | "egyptian" | "gulf" | "levantine" | "maghrebi" | "none";
 
 export interface AsrSettings {
-  model: "auto" | AsrModelId;
+  /** A built-in model, or the id of one of the user's own (a repository or a folder). */
+  model: "auto" | AsrModelId | string;
   device: "auto" | "cpu" | "cuda";
   language: string;
   style: AsrStyle;
@@ -133,6 +134,15 @@ export interface AsrSettings {
   terms: { from: string; to: string }[];
   /** Fix misheard words with the AI after Whisper. */
   aiFix: boolean;
+}
+
+export interface CustomModelInfo {
+  id: string;
+  kind: "hf" | "dir";
+  name: string;
+  revision: string;
+  sizeMb: number;
+  license: string;
 }
 
 export interface AsrState {
@@ -154,7 +164,22 @@ export interface AsrState {
   /** short: the model "auto" gives recordings up to 3 minutes. */
   recommended: { model: AsrModelId; device: "cpu" | "cuda"; short: AsrModelId; why: string[] };
   effective: { model: AsrModelId; device: "cpu" | "cuda"; beam: number; language: string | null; secondsPerMinute: number };
-  models: { id: AsrModelId; size: number; ram: number; ar: number; secondsPerMinute: number; warning: string; downloaded: boolean; diskMb: number; arabicOnly: boolean }[];
+  models: {
+    id: AsrModelId | string;
+    size: number;
+    ram: number;
+    /** Arabic accuracy 1-5; 0 for the user's own models (not measured). */
+    ar: number;
+    secondsPerMinute: number;
+    warning: string;
+    downloaded: boolean;
+    diskMb: number;
+    arabicOnly: boolean;
+    custom?: boolean;
+    kind?: "hf" | "dir";
+    name?: string;
+    license?: string;
+  }[];
   aiReady: boolean;
   styles: AsrStyle[];
   languages: string[];

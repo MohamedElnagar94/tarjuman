@@ -219,3 +219,60 @@ async def test_the_ai_fix_keeps_every_line_in_place():
     got = await fix_lines(Fake({"lines": ["1. ابعتلي الملف على Excel يا كريم", "وبعدين نتكلم"]}), lines, "ar", "كريم")
     assert got == ["ابعتلي الملف على Excel يا كريم", "وبعدين نتكلم"]
     assert await fix_lines(Fake({"lines": ["سطر واحد فقط"]}), lines, "ar", "كريم") == lines, "a wrong count changes nothing"
+
+
+async def test_a_model_folder_is_checked_before_it_is_added(tmp_path):
+    import json
+
+    import pytest
+
+    from tarjuman.asr_custom import inspect
+    from tarjuman.core.errors import AppError
+
+    good = tmp_path / "my-whisper"
+    good.mkdir()
+    (good / "model.bin").write_bytes(b"x" * 2_000_000)
+    (good / "config.json").write_text(json.dumps({"alignment_heads": [[1, 2]], "lang_ids": [1]}))
+    info = await inspect(str(good))
+    assert info["kind"] == "dir" and info["name"] == "my-whisper" and info["sizeMb"] == 2
+
+    hf_format = tmp_path / "transformers"
+    hf_format.mkdir()
+    (hf_format / "model.safetensors").write_bytes(b"x")
+    with pytest.raises(AppError) as e:
+        await inspect(str(hf_format))
+    assert e.value.code == "CUSTOM_FORMAT"
+
+    other = tmp_path / "not-whisper"
+    other.mkdir()
+    (other / "model.bin").write_bytes(b"x")
+    (other / "config.json").write_text("{}")
+    with pytest.raises(AppError) as e:
+        await inspect(str(other))
+    assert e.value.code == "CUSTOM_NOT_WHISPER"
+    for bad in ("", "not a name", str(tmp_path / "missing")):
+        with pytest.raises(AppError):
+            await inspect(bad)
+
+
+def test_an_added_model_is_chosen_listed_and_removed(tmp_path, monkeypatch):
+    from tarjuman.api.routes import asr as routes
+
+    folder = tmp_path / "mine"
+    folder.mkdir()
+    (folder / "model.bin").write_bytes(b"x")
+
+    async def fake_inspect(source):
+        return {"id": str(folder), "kind": "dir", "name": "mine", "revision": "", "sizeMb": 1500, "license": ""}
+
+    monkeypatch.setattr(routes, "inspect", fake_inspect)
+    app = create_app(Services(), warm=False)
+    with TestClient(app, headers=LOCAL, client=("127.0.0.1", 50000)) as c:
+        j = c.post("/api/asr/custom/add", json={"source": str(folder)}).json()
+        assert j["settings"]["model"] == str(folder) and j["effective"]["model"] == str(folder)
+        mine = [m for m in j["models"] if m.get("custom")]
+        assert mine and mine[0]["name"] == "mine" and mine[0]["downloaded"] and mine[0]["ar"] == 0
+        j = c.post("/api/asr/custom/remove", json={"id": str(folder)}).json()
+        assert j["settings"]["model"] == "auto" and not [m for m in j["models"] if m.get("custom")]
+        assert (folder / "model.bin").exists(), "a folder of the user's is never deleted"
+        assert c.post("/api/asr", json={"model": "/some/unknown"}).json()["settings"]["model"] == "auto"

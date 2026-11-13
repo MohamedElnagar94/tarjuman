@@ -949,6 +949,23 @@
     "termRemove": "Remove word {n}",
     "termAdd": "Add a word",
     "termsSaved": "Words saved. They are used on the next transcription, or click “Transcribe again” on an older recording.",
-    "tagArabic": "Arabic speech only"
+    "tagArabic": "Arabic speech only",
+    "other": "Add another model",
+    "otherLead": "Any Whisper model in faster-whisper's format (CTranslate2): its name on Hugging Face as on its page, or the path of its folder on this computer. It is checked before anything is downloaded.",
+    "otherPh": "owner/model-name or C:\\Models\\my-whisper",
+    "otherCheck": "Check it",
+    "otherChecking": "Checking…",
+    "otherOnDisk": "On this computer, nothing to download",
+    "otherDownload": "Downloads on the first transcription ({size})",
+    "otherWarn": "A third-party model: its accuracy is its author's. Try it on a recording you know the words of, and compare.",
+    "otherAdd": "Add and use it",
+    "otherAdded": "{model} added and chosen. It is used on the next transcription.",
+    "tagCustom": "Added by you",
+    "tagFolder": "From a folder",
+    "accuracyUnknown": "Accuracy not measured",
+    "speedGuess": "about {n} s per minute of audio (estimate)",
+    "license": "Licence: {name}",
+    "removeConfirm": "Click again to remove",
+    "removed": "{model} was taken off the list. Its folder is still on this computer."
   }
 }

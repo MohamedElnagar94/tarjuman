@@ -48,6 +48,7 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 
 ### Transcription accuracy
 
+- Any Whisper model can be added (Settings -> Transcription -> Add another model): its Hugging Face name or a folder on this computer. It is checked before anything is downloaded (faster-whisper format, really Whisper, size and licence), with a plain reason when it can't be used, and pinned to the version that was checked.
 - A new model, `large-v3-arabic`: Whisper large-v3 trained on Arabic dialects (Apache-2.0, pinned to a known version). On a real 36-second Egyptian voice note it got 29% of the words wrong without the words list and 24% with it, against 41% and 29% for large-v3. With the spoken language set to Arabic, Automatic uses it for short recordings.
 - Settings → Transcription shows this computer (CPU threads, memory, NVIDIA card and whether CUDA can use it), the model it should use and why, and each model's Arabic accuracy, download size, speed on this computer and a warning when it is too heavy. A model can be downloaded and prepared ahead of time.
 - "Automatic" gives short recordings (up to 2 minutes, like voice notes) the most accurate model the computer can hold (large-v3 with 12 GB of memory or more), and longer ones the faster recommended model. On a 36-second Egyptian voice note with names and English words, large-v3 got 29% of the words wrong against 45-50% for large-v3-turbo.

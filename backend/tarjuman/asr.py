@@ -17,7 +17,7 @@ import wave
 from pathlib import Path
 from typing import Any, Callable
 
-from .asr_settings import MODELS, REPOS, AsrSettings, apply_terms, hub_bytes, model_downloaded
+from .asr_settings import AsrSettings, apply_terms, hub_bytes, model_downloaded, model_info, model_source
 from .core.deps import has
 from .core.errors import Cancelled
 
@@ -67,7 +67,7 @@ class Whisper:
         eff = self.effective()
         loading = None
         if self.loading:
-            size = MODELS.get(self.loading["model"], {}).get("size", 0) * 1_000_000
+            size = model_info(self.loading["model"]).get("size", 0) * 1_000_000
             # Only a download has a percentage; loading a model already on disk is "preparing".
             dl = self.loading.get("download") and size
             got = max(0, hub_bytes() - self.loading["base"]) if dl else 0
@@ -332,14 +332,12 @@ def split_sentences(seg: Any) -> list[dict]:
 
 
 def _source(name: str) -> tuple[str, ...]:
-    """What WhisperModel is given: faster-whisper's own name, or a repository pinned to a version."""
-    if name in REPOS:
-        return (REPOS[name][0],)
-    return (name,)
+    """What WhisperModel is given: faster-whisper's own name, a repository, or a folder."""
+    return (model_source(name)[0],)
 
 
 def _revision(name: str) -> str | None:
-    return REPOS[name][1] if name in REPOS else None
+    return model_source(name)[1]
 
 
 def _looks_like_gpu_error(e: BaseException) -> bool:

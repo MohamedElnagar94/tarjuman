@@ -3,11 +3,11 @@
    choice that changes accuracy, each with its cost. */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { PhCheckCircle, PhCpu, PhDownloadSimple, PhGraphicsCard, PhMemory, PhPlus, PhSparkle, PhTrash, PhWarning, PhX } from "@phosphor-icons/vue";
+import { PhCheckCircle, PhCpu, PhDownloadSimple, PhGraphicsCard, PhMagnifyingGlass, PhMemory, PhPlus, PhSparkle, PhTrash, PhWarning, PhX } from "@phosphor-icons/vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import { api } from "@/api/client";
-import type { AsrSettings, AsrState } from "@/api/types";
+import type { AsrSettings, AsrState, CustomModelInfo } from "@/api/types";
 import { toast } from "@/composables/toast";
 
 const { t, te } = useI18n();
@@ -54,14 +54,54 @@ async function remove(id: string) {
   }
   armed.value = "";
   deleting.value = id;
+  const custom = st.value?.models.find((m) => m.id === id)?.custom;
   try {
-    const r = await api.deleteAsrModel(id);
+    const r = custom ? await api.removeCustomModel(id) : await api.deleteAsrModel(id);
     st.value = r;
-    toast(t("asrSet.deleted", { model: id, size: sizeLabel(Math.round(r.freed / 1_000_000)) }), { tone: "ok" });
+    const name = st.value.models.find((m) => m.id === id)?.name || id.split(/[\\/]/).pop() || id;
+    toast(
+      r.freed ? t("asrSet.deleted", { model: name, size: sizeLabel(Math.round(r.freed / 1_000_000)) }) : t("asrSet.removed", { model: name }),
+      { tone: "ok" },
+    );
   } catch (e) {
     toast((e as Error).message || t("errors.UNKNOWN"), { tone: "danger" });
   } finally {
     deleting.value = "";
+  }
+}
+
+/* Another model: a Hugging Face repository or a folder, looked at before it is added. */
+const otherOpen = ref(false);
+const source = ref("");
+const checking = ref(false);
+const found = ref<CustomModelInfo | null>(null);
+const otherError = ref("");
+async function checkOther() {
+  if (!source.value.trim()) return;
+  checking.value = true;
+  found.value = null;
+  otherError.value = "";
+  try {
+    found.value = (await api.checkCustomModel(source.value.trim())).model;
+  } catch (e) {
+    otherError.value = (e as Error).message || t("errors.UNKNOWN");
+  } finally {
+    checking.value = false;
+  }
+}
+async function addOther() {
+  if (!found.value) return;
+  checking.value = true;
+  try {
+    st.value = await api.addCustomModel(found.value.id);
+    toast(t("asrSet.otherAdded", { model: found.value.name }), { tone: "ok" });
+    found.value = null;
+    source.value = "";
+    otherOpen.value = false;
+  } catch (e) {
+    otherError.value = (e as Error).message || t("errors.UNKNOWN");
+  } finally {
+    checking.value = false;
   }
 }
 
@@ -209,20 +249,25 @@ const status = computed(() => {
         </label>
         <label v-for="m in st.models" :key="m.id" class="model" :class="{ on: st.settings.model === m.id }">
           <input type="radio" name="asr-model" :value="m.id" :checked="st.settings.model === m.id" :disabled="saving" @change="set({ model: m.id })" />
-          <span class="m-name" dir="ltr">{{ m.id }}</span>
+          <span class="m-name" dir="ltr" :title="m.custom ? m.id : undefined">{{ m.custom ? m.name : m.id }}</span>
           <span class="m-tags">
             <span v-if="m.id === rec.model" class="chip chip--ok">{{ t("asrSet.tagRec") }}</span>
             <span v-else-if="m.id === rec.short" class="chip chip--accent">{{ t("asrSet.tagShort") }}</span>
             <span v-if="m.arabicOnly" class="chip">{{ t("asrSet.tagArabic") }}</span>
+            <span v-if="m.custom" class="chip chip--accent">{{ m.kind === "dir" ? t("asrSet.tagFolder") : t("asrSet.tagCustom") }}</span>
             <span v-if="m.downloaded" class="chip">{{ t("asrSet.tagDown") }}</span>
           </span>
-          <span class="m-acc" :aria-label="t('asrSet.accuracy', { n: m.ar })" :title="t('asrSet.accuracy', { n: m.ar })">
+          <span v-if="m.ar" class="m-acc" :aria-label="t('asrSet.accuracy', { n: m.ar })" :title="t('asrSet.accuracy', { n: m.ar })">
             <i v-for="k in 5" :key="k" :class="{ lit: k <= m.ar }"></i>
           </span>
-          <span class="m-meta">{{ t("asrSet.speed", { n: m.secondsPerMinute }) }} · {{ sizeLabel(m.downloaded && m.diskMb ? m.diskMb : m.size) }}</span>
+          <span v-else class="m-acc m-unknown">{{ t("asrSet.accuracyUnknown") }}</span>
+          <span class="m-meta">
+            {{ t(m.custom ? "asrSet.speedGuess" : "asrSet.speed", { n: m.secondsPerMinute }) }} · {{ sizeLabel(m.downloaded && m.diskMb ? m.diskMb : m.size) }}
+            <template v-if="m.license"> · {{ t("asrSet.license", { name: m.license }) }}</template>
+          </span>
           <span v-if="m.warning" class="m-warn"><PhWarning :size="14" />{{ m.warning }}</span>
           <button
-            v-if="m.downloaded"
+            v-if="m.downloaded || m.custom"
             type="button"
             class="m-del"
             :class="{ armed: armed === m.id }"
@@ -231,9 +276,44 @@ const status = computed(() => {
             @click.prevent.stop="remove(m.id)"
           >
             <PhTrash :size="15" />
-            <span v-if="armed === m.id">{{ t("asrSet.deleteConfirm") }}</span>
+            <span v-if="armed === m.id">{{ m.custom && m.kind === "dir" ? t("asrSet.removeConfirm") : t("asrSet.deleteConfirm") }}</span>
           </button>
         </label>
+
+        <!-- another model, of the user's choice -->
+        <button v-if="!otherOpen" type="button" class="btn btn--outline btn--sm other-open" @click="otherOpen = true">
+          <PhPlus :size="15" />{{ t("asrSet.other") }}
+        </button>
+        <div v-else class="other">
+          <p class="other__lead">{{ t("asrSet.otherLead") }}</p>
+          <div class="other__row">
+            <input
+              v-model="source"
+              class="input"
+              dir="ltr"
+              spellcheck="false"
+              :placeholder="t('asrSet.otherPh')"
+              :aria-label="t('asrSet.other')"
+              @keydown.enter.prevent="checkOther"
+            />
+            <button type="button" class="btn btn--outline" :disabled="checking || !source.trim()" @click="checkOther">
+              <PhMagnifyingGlass :size="16" />{{ checking && !found ? t("asrSet.otherChecking") : t("asrSet.otherCheck") }}
+            </button>
+          </div>
+          <p v-if="otherError" class="notice notice--danger" role="alert"><PhWarning :size="18" />{{ otherError }}</p>
+          <div v-if="found" class="found" role="status">
+            <p class="found__name" dir="ltr">{{ found.name }}</p>
+            <p class="found__meta">
+              {{ found.kind === "dir" ? t("asrSet.otherOnDisk") : t("asrSet.otherDownload", { size: sizeLabel(found.sizeMb) }) }}
+              <template v-if="found.license"> · {{ t("asrSet.license", { name: found.license }) }}</template>
+            </p>
+            <p class="found__warn"><PhWarning :size="14" />{{ t("asrSet.otherWarn") }}</p>
+            <div class="other__row">
+              <button type="button" class="btn btn--primary btn--sm" :disabled="checking" @click="addOther">{{ t("asrSet.otherAdd") }}</button>
+              <button type="button" class="btn btn--quiet btn--sm" @click="(found = null), (otherOpen = false)">{{ t("common.cancel") }}</button>
+            </div>
+          </div>
+        </div>
       </fieldset>
 
       <div class="prep">
@@ -557,6 +637,56 @@ const status = computed(() => {
 .need-ai a {
   color: var(--accent-ink);
   text-decoration: underline;
+}
+.m-unknown {
+  font-size: var(--fs-xs);
+  opacity: 0.7;
+}
+.other-open {
+  justify-self: start;
+  margin-top: 4px;
+}
+.other {
+  margin-top: 4px;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  border: 1px dashed var(--line-strong, var(--line));
+  display: grid;
+  gap: var(--s-2);
+}
+.other__lead {
+  font-size: var(--fs-sm);
+  opacity: 0.85;
+}
+.other__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.other__row .input {
+  flex: 1;
+  min-width: 0;
+}
+.found {
+  display: grid;
+  gap: 4px;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.found__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.found__meta {
+  font-size: var(--fs-sm);
+}
+.found__warn {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: var(--fs-xs);
+  opacity: 0.85;
 }
 .prep {
   display: flex;

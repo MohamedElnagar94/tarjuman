@@ -38,6 +38,26 @@ MODELS: dict[str, dict[str, Any]] = {
     # words list and 24% with it, against 41% and 29% for large-v3.
     "large-v3-arabic": {"size": 3090, "ram": 4.8, "spm": 170, "ar": 5, "arabicOnly": True},
 }
+# The user's own models (Settings -> Transcription -> another model), by id: a Hugging Face repository
+# or a folder. Kept in step with the settings, so the functions below know them too.
+CUSTOM: dict[str, dict[str, Any]] = {}
+CUSTOM_MAX = 10
+
+
+def model_info(name: str) -> dict[str, Any]:
+    """Size, memory, speed and Arabic accuracy of any model. For the user's own, estimated from its
+    size (0 for accuracy: not measured)."""
+    if name in MODELS:
+        return MODELS[name]
+    c = CUSTOM.get(name) or {}
+    size = float(c.get("sizeMb") or 1500)
+    return {"size": round(size), "ram": round(size / 1000 * 1.6 + 0.4, 1), "spm": max(8, round(190 * size / 3100)), "ar": 0}
+
+
+def known_model(name: str) -> bool:
+    return name in MODELS or name in CUSTOM
+
+
 # Models not in faster-whisper's own list: where they are downloaded from, pinned to a known version.
 REPOS: dict[str, tuple[str, str]] = {
     # Apache-2.0: oddadmix/whisper-large-v3-arabic-dialectal-v2, converted for CTranslate2.
@@ -80,6 +100,8 @@ DEFAULTS: dict[str, Any] = {
     "terms": [],
     # Have the AI (Settings -> AI, when set up) fix words Whisper clearly misheard, from the context.
     "aiFix": False,
+    # The user's own models: [{id, kind: "hf"|"dir", name, revision, sizeMb, license}].
+    "custom": [],
 }
 TERMS_MAX = 80
 TERM_LEN = 60
@@ -196,7 +218,7 @@ def cpu_threads(hw: dict[str, Any]) -> int:
 
 
 def seconds_per_minute(model: str, hw: dict[str, Any], device: str) -> int:
-    spm = MODELS[model]["spm"] * 8 / cpu_threads(hw)
+    spm = model_info(model)["spm"] * 8 / cpu_threads(hw)
     if device == "cuda":
         spm /= GPU_SPEEDUP
     return max(1, round(spm))
@@ -263,7 +285,7 @@ def _recommend(hw: dict[str, Any]) -> dict[str, Any]:
 
 def model_warning(model: str, device: str, hw: dict[str, Any]) -> str:
     """Why a choice may be a bad idea on this computer ("" when it is fine)."""
-    info = MODELS[model]
+    info = model_info(model)
     ram = float(hw.get("ramGb") or 0)
     if device == "cpu" and ram and info["ram"] > ram * 0.6:
         return f"يحتاج قرابة {info['ram']:g} غيغابايت من الذاكرة، وهذا كثير على جهاز ذاكرته {ram:g} غيغابايت."
@@ -283,14 +305,45 @@ class AsrSettings:
         j = read_json(self.file, {}) or {}
         self.values = dict(DEFAULTS)
         self._apply(j)
+        self._sync_custom()
         return self
+
+    def _sync_custom(self) -> None:
+        CUSTOM.clear()
+        for c in self.values.get("custom") or []:
+            CUSTOM[c["id"]] = c
+
+    def add_custom(self, info: dict[str, Any]) -> None:
+        """A model looked at by asr_custom.inspect; it is chosen at once."""
+        keep = [c for c in self.values.get("custom") or [] if c["id"] != info["id"]]
+        entry = {k: info.get(k, "") for k in ("id", "kind", "name", "revision", "sizeMb", "license")}
+        self.values["custom"] = ([entry] + keep)[:CUSTOM_MAX]
+        self.values["model"] = entry["id"]
+        self._sync_custom()
+        self.save()
+
+    def remove_custom(self, model_id: str) -> dict[str, Any] | None:
+        gone = next((c for c in self.values.get("custom") or [] if c["id"] == model_id), None)
+        self.values["custom"] = [c for c in self.values.get("custom") or [] if c["id"] != model_id]
+        if self.values["model"] == model_id:
+            self.values["model"] = "auto"
+        self._sync_custom()
+        self.save()
+        return gone
 
     def save(self) -> None:
         write_json(self.file, self.values, indent=1)
 
     def _apply(self, j: dict[str, Any]) -> None:
         v = self.values
-        if j.get("model") in (*MODELS, "auto"):
+        if isinstance(j.get("custom"), list):
+            v["custom"] = [
+                {k: c.get(k, "") for k in ("id", "kind", "name", "revision", "sizeMb", "license")}
+                for c in j["custom"][:CUSTOM_MAX]
+                if isinstance(c, dict) and c.get("id") and c.get("kind") in ("hf", "dir")
+            ]
+            self._sync_custom()
+        if j.get("model") == "auto" or known_model(str(j.get("model") or "")):
             v["model"] = j["model"]
         if j.get("device") in ("auto", "cpu", "cuda"):
             v["device"] = j["device"]
@@ -310,7 +363,8 @@ class AsrSettings:
             v["terms"] = clean_terms([{"from": "", "to": w} for w in split_words(str(j["vocab"]))])
 
     def update(self, changes: dict[str, Any]) -> dict[str, Any]:
-        self._apply(changes or {})
+        changes = {k: v for k, v in (changes or {}).items() if k != "custom"}  # added through add_custom
+        self._apply(changes)
         self.save()
         return dict(self.values)
 
@@ -368,6 +422,17 @@ class AsrSettings:
                     "diskMb": round(model_disk_bytes(k) / 1_000_000),
                 }
                 for k, m in MODELS.items()
+            ] + [
+                {
+                    "id": c["id"], **model_info(c["id"]),
+                    "custom": True, "kind": c["kind"], "name": c["name"], "license": c.get("license") or "",
+                    "secondsPerMinute": seconds_per_minute(c["id"], hw, eff["device"]),
+                    "warning": model_warning(c["id"], eff["device"], hw),
+                    "downloaded": model_downloaded(c["id"]),
+                    "arabicOnly": False,
+                    "diskMb": round(model_disk_bytes(c["id"]) / 1_000_000) if c["kind"] == "hf" else c.get("sizeMb") or 0,
+                }
+                for c in self.values.get("custom") or []
             ],
             "styles": list(STYLES),
             "languages": list(LANGS),
@@ -430,9 +495,21 @@ def _known_language(code: str) -> bool:
         return code in LANGS
 
 
+def model_source(name: str) -> tuple[str, str | None]:
+    """What faster-whisper is given for a model: a name, a repository, or a folder; and the version."""
+    if name in REPOS:
+        return REPOS[name]
+    c = CUSTOM.get(name)
+    if c:
+        return c["id"], (c.get("revision") or None) if c["kind"] == "hf" else None
+    return name, None
+
+
 def model_repo(name: str) -> str:
     if name in REPOS:
         return REPOS[name][0]
+    if name in CUSTOM:
+        return CUSTOM[name]["id"]
     try:
         from faster_whisper.utils import _MODELS  # type: ignore
 
@@ -442,10 +519,13 @@ def model_repo(name: str) -> str:
 
 
 def model_downloaded(name: str) -> bool:
+    c = CUSTOM.get(name)
+    if c and c["kind"] == "dir":
+        return os.path.isfile(os.path.join(c["id"], "model.bin"))
     try:
         from huggingface_hub import try_to_load_from_cache  # type: ignore
 
-        rev = REPOS[name][1] if name in REPOS else None
+        rev = model_source(name)[1]
         hit = try_to_load_from_cache(model_repo(name), "model.bin", revision=rev)
         return isinstance(hit, str) and os.path.exists(hit)
     except Exception:  # noqa: BLE001
@@ -457,6 +537,8 @@ def _hub() -> Path:
 
 
 def _repo_dir(name: str) -> Path:
+    if name in CUSTOM and CUSTOM[name]["kind"] == "dir":
+        return Path("/nonexistent-tarjuman")  # never listed as hub files
     return _hub() / ("models--" + model_repo(name).replace("/", "--"))
 
 
@@ -489,8 +571,9 @@ def model_disk_bytes(name: str) -> int:
 
 
 def delete_model(name: str) -> int:
-    """Removes a downloaded model from the disk; returns the bytes freed."""
-    if name not in MODELS:
+    """Removes a downloaded model from the disk; returns the bytes freed. A folder the user pointed
+    to is never deleted: it is theirs."""
+    if name not in MODELS and (name not in CUSTOM or CUSTOM[name]["kind"] != "hf"):
         return 0
     freed = 0
     for p in _repo_files(name):

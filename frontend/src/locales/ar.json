@@ -949,6 +949,23 @@
     "termRemove": "احذف الكلمة رقم {n}",
     "termAdd": "أضف كلمة",
     "termsSaved": "حُفظت الكلمات. تُستعمل في التفريغ القادم، أو اضغط «أعد التفريغ» على تسجيل قديم.",
-    "tagArabic": "للكلام العربي ولهجاته"
+    "tagArabic": "للكلام العربي ولهجاته",
+    "other": "أضف نموذجًا آخر",
+    "otherLead": "أي نموذج Whisper بصيغة faster-whisper (CTranslate2): اكتب اسمه على Hugging Face كما في صفحته، أو مسار مجلده على جهازك. يُفحص قبل التنزيل.",
+    "otherPh": "owner/model-name أو C:\\Models\\my-whisper",
+    "otherCheck": "افحصه",
+    "otherChecking": "يُفحص…",
+    "otherOnDisk": "على جهازك، لا يحتاج تنزيلًا",
+    "otherDownload": "يُنزَّل عند أول تفريغ ({size})",
+    "otherWarn": "نموذج من جهة خارجية: دقته وما يكتبه مسؤولية صاحبه. جرّبه على تسجيل تعرف نصّه، وقارن.",
+    "otherAdd": "أضفه واستعمله",
+    "otherAdded": "أُضيف {model} واختير. يُستعمل في التفريغ القادم.",
+    "tagCustom": "مُضاف منك",
+    "tagFolder": "من مجلد على جهازك",
+    "accuracyUnknown": "دقته لم تُقَس",
+    "speedGuess": "قرابة {n} ث لكل دقيقة صوت (تقدير)",
+    "license": "الرخصة: {name}",
+    "removeConfirm": "اضغط ثانيةً للإزالة",
+    "removed": "أُزيل {model} من القائمة. المجلد نفسه بقي على جهازك."
   }
 }
