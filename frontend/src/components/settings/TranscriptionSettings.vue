@@ -303,6 +303,8 @@ const status = computed(() => {
   font-size: var(--fs-sm);
 }
 .models {
+  /* A fieldset is as wide as its content by default: it must shrink with the page. */
+  min-width: 0;
   border: 0;
   padding: 0;
   margin: 0 0 var(--s-2);
@@ -354,7 +356,9 @@ const status = computed(() => {
 .m-tags {
   grid-area: tags;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
 }
 .m-acc {
   grid-area: acc;
@@ -405,6 +409,14 @@ const status = computed(() => {
 @media (max-width: 640px) {
   .machine {
     grid-template-columns: 1fr;
+  }
+  .model {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "radio name acc"
+      "radio tags tags"
+      "radio meta meta"
+      "radio warn warn";
   }
   .sel {
     min-width: 0;
