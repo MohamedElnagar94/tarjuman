@@ -44,18 +44,26 @@ def log_to_file() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", stream=stream, force=True)
 
 
-def running_instance(port: int) -> str | None:
-    """The address of a Tarjuman already running on this computer, if there is one."""
+def running_instances(port: int) -> list[str]:
+    """The addresses of the Tarjumans already running on this computer, in port order. All ports are
+    asked at once, so starting the app doesn't wait for each closed port in turn."""
+    from concurrent.futures import ThreadPoolExecutor
+
     import httpx
 
-    for p in range(port, port + config.PORT_TRIES):
+    def ask(p: int) -> str | None:
         try:
-            j = httpx.get(f"http://127.0.0.1:{p}/api/health", timeout=0.6).json()
-            if j.get("app") == "tarjuman":
-                return f"http://127.0.0.1:{p}"
+            # Connecting is quick or nothing listens (Windows takes ~2 s to say so: don't wait for it);
+            # a copy that has just started can take a moment to answer.
+            j = httpx.get(f"http://127.0.0.1:{p}/api/health", timeout=httpx.Timeout(3, connect=0.4)).json()
+            return f"http://127.0.0.1:{p}" if j.get("app") == "tarjuman" else None
         except Exception:  # noqa: BLE001
-            continue
-    return None
+            return None
+
+    ports = range(port, port + config.PORT_TRIES)
+    with ThreadPoolExecutor(len(ports)) as pool:
+        return [u for u in pool.map(ask, ports) if u]
+
 
 
 async def download_voice() -> None:
@@ -188,12 +196,16 @@ def run(host: str, port: int, free_port, background: bool = False) -> None:
 
     log_to_file()
     ensure_env_file()
-    url = running_instance(port)
-    if url is not None and show_running(url):
-        return  # one Tarjuman at a time: the running one shows its window
+    found = running_instances(port)
+    if any(show_running(u) for u in found):
+        return  # one desktop app at a time: the running one shows its window
+    url = found[0] if found else None
     from . import tray
 
-    if url is None and tray.available():
+    # A Tarjuman started another way (``python -m tarjuman``, for development) has no tray and doesn't
+    # know the desktop settings: the desktop app starts its own engine on the next free port instead
+    # of borrowing that one.
+    if tray.available():
         from .desktop_settings import DesktopSettings
 
         settings = DesktopSettings(config.DATA / "desktop.json").load()
