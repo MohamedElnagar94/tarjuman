@@ -484,5 +484,11 @@
   },
   "appUpdateLink": {
     "message": "حدّث التطبيق"
+  },
+  "verExtension": {
+    "message": "الإضافة $1"
+  },
+  "verApp": {
+    "message": "التطبيق $1"
   }
 }

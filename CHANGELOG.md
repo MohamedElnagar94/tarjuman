@@ -2,6 +2,19 @@
 
 Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__init__.py`.
 
+## Browser extension 3.0.2
+
+- The popup shows the extension's own version, and the app's version next to it when the app is connected (before, the app's version looked like the extension's).
+- Translation no longer stops for good after moving to another video, changing the language, or after a Whisper transcription.
+- A request to the app is no longer sent twice when it times out or the app returns an error; it is retried only when the app can't be reached (for example, after it restarted on another port).
+- The subtitle overlay appears in the interface language chosen in the options right away, not in the browser's language first.
+- Whisper: if the app stops answering during a transcription, the overlay says so and the button works again instead of staying greyed out. Stopping, or opening another video, now cancels the transcription in the app too.
+- YouTube Shorts and pages with several videos: subtitles and dubbing follow the video that is playing, and switch to the new one after navigating.
+- The ON / CC / LIVE badge shows only on the tab being translated, and is cleared there when translation stops.
+- Websites can no longer detect the extension by loading its font files.
+- The popup's "Original volume" slider shows its percentage while dragging.
+- The options page's side menu links to the "Interface language" section.
+
 ## Browser extension 3.0.1 (2026-11-13)
 
 - Subtitle fonts: Plex (default), Cairo, Naskh, Amiri, Tajawal, Kufi or the system font (options page).

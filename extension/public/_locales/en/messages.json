@@ -486,5 +486,11 @@
   },
   "appUpdateLink": {
     "message": "Update the app"
+  },
+  "verExtension": {
+    "message": "Extension $1"
+  },
+  "verApp": {
+    "message": "App $1"
   }
 }

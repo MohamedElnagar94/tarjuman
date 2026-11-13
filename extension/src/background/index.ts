@@ -26,11 +26,15 @@ let serverBase: string | null = null;
 let override: string | null = null;
 /** Set by the popup right before it asks for a site permission (the prompt may close the popup). */
 let pendingStart: { tabId: number; at: number } | null = null;
+/** The tab showing the badge, so it can be cleared there when translation stops or moves to another tab. */
+let badgeTab: number | null = null;
 
 const ready = (async () => {
   try {
     const s = await chrome.storage.session.get(["state", "pendingStart"]);
     if (s.state) state = { ...IDLE, ...s.state };
+    // The worker may have been stopped while a tab showed the badge; remember which, to clear it later.
+    if (state.active) badgeTab = state.tabId;
     if (s.pendingStart) pendingStart = s.pendingStart;
   } catch {}
   try {
@@ -46,13 +50,20 @@ function saveState() {
   updateBadge();
 }
 
+// The badge is set on the translating tab only: a global badge would say "ON" on every other tab too.
 function updateBadge() {
-  const on = state.active;
-  const text = on ? (state.mode === "live" ? "LIVE" : state.mode === "captions" ? "CC" : "ON") : "";
-  chrome.action.setBadgeText({ text }).catch(() => {});
+  const on = state.active && state.tabId != null;
+  if (badgeTab != null && (!on || badgeTab !== state.tabId)) {
+    chrome.action.setBadgeText({ text: "", tabId: badgeTab }).catch(() => {});
+    badgeTab = null;
+  }
   if (!on) return;
-  chrome.action.setBadgeBackgroundColor({ color: "#FFD27A" }).catch(() => {});
-  chrome.action.setBadgeTextColor?.({ color: "#121A57" })?.catch?.(() => {});
+  const tabId = state.tabId!;
+  badgeTab = tabId;
+  const text = state.mode === "live" ? "LIVE" : state.mode === "captions" ? "CC" : "ON";
+  chrome.action.setBadgeText({ text, tabId }).catch(() => {});
+  chrome.action.setBadgeBackgroundColor({ color: "#FFD27A", tabId }).catch(() => {});
+  chrome.action.setBadgeTextColor?.({ color: "#121A57", tabId })?.catch?.(() => {});
 }
 
 /* ------------------------------------------------------------------ */
@@ -84,13 +95,19 @@ const noServer = () => Object.assign(new Error("NO_SERVER"), { code: "NO_SERVER"
 
 async function api(path: string, opts: RequestInit = {}, ms = 60000): Promise<any> {
   if (!currentBase() && !(await locate())) throw noServer();
+  let res: Response;
   try {
-    return await (await fetchTimeout(currentBase() + path, opts, ms)).json();
+    res = await fetchTimeout(currentBase() + path, opts, ms);
   } catch (e) {
-    // The server may have restarted on another port.
-    if (await locate()) return (await fetchTimeout(currentBase() + path, opts, ms)).json();
-    throw (e as any)?.name === "AbortError" ? e : noServer();
+    // A timeout is not retried: the server is there but slow, and asking again would send the
+    // request (a translation, a Whisper job) twice and double the wait.
+    if ((e as any)?.name === "AbortError") throw e;
+    // Nothing answered at all (fetch's TypeError): the server may have restarted on another port.
+    if (!(await locate())) throw noServer();
+    res = await fetchTimeout(currentBase() + path, opts, ms);
   }
+  // The server did answer, so a bad reply is reported as it is rather than sent again.
+  return res.json();
 }
 
 const postJson = (path: string, body: unknown, ms?: number) =>
@@ -386,6 +403,8 @@ const handlers: Record<string, Handler> = {
 
   "whisper-start": (msg) => postJson("/api/whisper/job", { url: msg.url, tl: msg.tl || settings.lang }),
   "whisper-poll": (msg) => api(`/api/whisper/job?id=${encodeURIComponent(msg.id)}`),
+  // The user stopped or moved to another video: free the server from a transcription nobody will see.
+  "whisper-cancel": (msg) => postJson("/api/job/cancel", { id: msg.id }, 5000),
 
   translate: (msg) => postJson("/api/translate", { texts: msg.texts || [], tl: msg.tl || settings.lang, sl: msg.sl || "auto" }),
 

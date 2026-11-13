@@ -25,7 +25,10 @@ const tab = computed(() => status.value?.tab || null);
 const online = computed(() => !!status.value?.health);
 // The app answers but hasn't approved this extension yet (it trusts the first one that connects).
 const notAllowed = computed(() => (status.value?.health as { extensionAllowed?: boolean } | null)?.extensionAllowed === false);
-const version = computed(() => (status.value?.health?.version as string) || "");
+// Two separate versions: this extension's own (its manifest), and the desktop app's when it answers.
+// Showing only the app's made it look like the extension's.
+const extVersion = computed(() => status.value?.version || "");
+const appVersion = computed(() => (online.value && (status.value?.health?.version as string)) || "");
 // The protocol this extension speaks (the app reports its own as `api` since 3.1). An older app
 // still works for the basics; the notice asks to update it.
 const MIN_API = 1;
@@ -262,7 +265,16 @@ onMounted(async () => {
             <div class="row">
               <label for="duck" class="lbl"><span>{{ t("lblDuck") }}</span></label>
               <span class="range">
-                <input id="duck" type="range" min="0" max="0.6" step="0.03" :value="settings.duck" @change="update({ duck: Number(($event.target as HTMLInputElement).value) })" />
+                <input
+                  id="duck"
+                  type="range"
+                  min="0"
+                  max="0.6"
+                  step="0.03"
+                  :value="settings.duck"
+                  @input="settings.duck = Number(($event.target as HTMLInputElement).value)"
+                  @change="update({ duck: Number(($event.target as HTMLInputElement).value) })"
+                />
                 <output>{{ Math.round(settings.duck * 100) }}%</output>
               </span>
             </div>
@@ -311,7 +323,10 @@ onMounted(async () => {
 
     <footer class="foot">
       <span v-if="shortcut" class="kbd"><kbd>{{ shortcut }}</kbd></span>
-      <span v-if="online && version" class="ver">v{{ version }}</span>
+      <span v-if="extVersion || appVersion" class="ver">
+        <span v-if="extVersion">{{ t("verExtension", extVersion) }}</span>
+        <span v-if="appVersion">{{ t("verApp", appVersion) }}</span>
+      </span>
       <span class="spacer"></span>
       <button type="button" class="icon-btn" :title="t('btnSettings')" :aria-label="t('btnSettings')" @click="openOptions">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -657,20 +672,31 @@ body {
 .foot {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 10px 14px;
   border-top: 1px solid var(--line);
   background: rgba(10, 15, 58, 0.6);
 }
+/* Two short lines (extension, app) so they fit beside the shortcut and the buttons. */
 .ver {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
   color: var(--faint);
-  font-size: 11.5px;
+  font-size: 10.5px;
+  line-height: 1.3;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.kbd kbd {
+  padding: 3px 5px;
+  font-size: 10.5px;
 }
 .spacer {
   flex: 1;
 }
 .icon-btn {
+  flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 34px;
@@ -687,6 +713,7 @@ body {
 }
 .open {
   min-height: 34px;
+  padding: 0 12px;
   font-size: 12.5px;
 }
 [dir="rtl"] .flip {

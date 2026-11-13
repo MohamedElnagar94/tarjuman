@@ -44,6 +44,8 @@ export function manifest(version: string) {
       },
     ],
     // The overlay's subtitle font. Pages can load these files but nothing else of the extension.
-    web_accessible_resources: [{ resources: ["fonts/*.woff2"], matches: ["<all_urls>"] }],
+    // use_dynamic_url: the files answer only at a per-session address (the one chrome.runtime.getURL
+    // gives the content script), so a site can't detect the extension by fetching them at its fixed ID.
+    web_accessible_resources: [{ resources: ["fonts/*.woff2"], matches: ["<all_urls>"], use_dynamic_url: true }],
   };
 }

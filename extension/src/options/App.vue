@@ -41,6 +41,7 @@ const sections = computed(() => [
   { id: "sites", label: t("secSites") },
   { id: "connection", label: t("secConnection") },
   { id: "shortcut", label: t("secShortcut") },
+  { id: "language", label: t("secUiLang") },
   { id: "about", label: t("secAbout") },
 ]);
 

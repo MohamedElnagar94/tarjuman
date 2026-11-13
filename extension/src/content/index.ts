@@ -38,7 +38,11 @@ declare global {
     tr: new Map<number, string>(),
     tries: new Map<number, number>(),
     idx: -1,
-    translating: false,
+    /** The activation (gen) whose translation loop is running, 0 when none. A newer activation starts its own
+     *  loop instead of waiting on an older one that is still asleep, and the older one then exits. */
+    translatingGen: 0,
+    /** The server's Whisper job for this page, so it can be cancelled when the user stops or moves on. */
+    whisperJob: "",
     hidden: false,
     settings: mergeSettings(null) as Settings,
     video: null as HTMLVideoElement | null,
@@ -113,8 +117,16 @@ declare global {
     for (const k of Object.keys(UI)) delete UI[k];
   }
 
+  const bigEnough = (v: HTMLVideoElement) => v.offsetWidth > 120 && v.offsetHeight > 70;
+
   function findVideo(): HTMLVideoElement | null {
-    const vids = [...document.querySelectorAll("video")].filter((v) => v.offsetWidth > 120 && v.offsetHeight > 70);
+    // YouTube keeps several <video>s around (Shorts, previews, the hidden watch player): the one playing is
+    // the active Shorts player or the main player, whichever is on screen.
+    for (const sel of ["ytd-reel-video-renderer[is-active] video.html5-main-video", "#shorts-player video.html5-main-video", "#movie_player video.html5-main-video"]) {
+      const v = document.querySelector<HTMLVideoElement>(sel);
+      if (v && bigEnough(v)) return v;
+    }
+    const vids = [...document.querySelectorAll("video")].filter(bigEnough);
     vids.sort((a, b) => b.offsetWidth * b.offsetHeight - a.offsetWidth * a.offsetHeight);
     return vids[0] || null;
   }
@@ -288,9 +300,12 @@ declare global {
     if (S.active && S.mode === "youtube" && vid && vid === S.videoId && (S.loading || S.cues.length)) return;
 
     const gen = ++S.gen;
+    cancelWhisper();
     S.active = true;
     S.mode = "youtube";
     S.videoId = vid;
+    // Another video (or a Short) may play in another <video> element: look for it again.
+    S.video = null;
     S.whisperUrl = url;
     S.cues = [];
     S.idx = -1;
@@ -353,12 +368,13 @@ declare global {
     if (i < 0 || !S.cues[i]) return renderText("", "");
     const c = S.cues[i];
     const tr = S.tr.get(i) || "";
-    renderText(tr || (S.translating ? "…" : c.src), c.src, !tr);
+    renderText(tr || (S.translatingGen === S.gen ? "…" : c.src), c.src, !tr);
   }
 
   async function translateLoop(sl: string, gen: number) {
-    if (S.translating) return;
-    S.translating = true;
+    // Only one loop per activation; a loop left from an earlier one stops at its next check of S.gen.
+    if (S.translatingGen === gen) return;
+    S.translatingGen = gen;
     let failStreak = 0;
     try {
       while (S.active && isSynced() && gen === S.gen) {
@@ -395,8 +411,11 @@ declare global {
         if (batch.includes(S.idx)) renderCurrent();
       }
     } finally {
-      S.translating = false;
-      renderCurrent();
+      // An older loop ending must not mark a newer one as finished.
+      if (S.translatingGen === gen) {
+        S.translatingGen = 0;
+        renderCurrent();
+      }
     }
   }
 
@@ -424,13 +443,25 @@ declare global {
       UI.whisperBtn.textContent = t("btnRetry");
       return;
     }
+    // Stopped or moved on while the job was being created: nobody will see it.
+    if (!S.active || gen !== S.gen) return void bg("whisper-cancel", { id: r.id });
+    S.whisperJob = r.id;
     for (;;) {
       if (!S.active || gen !== S.gen) return;
       const j = await bg("whisper-poll", { id: r.id });
-      if (!j || !j.ok) return;
-      if (!UI.meter) return;
+      if (!S.active || gen !== S.gen || !UI.meter) return;
+      if (!j || !j.ok) {
+        // Lost track of the job (server restarted, timed out): say so and let the user try again,
+        // rather than leaving the button greyed out for good.
+        cancelWhisper();
+        setPill(errorText(j), { err: true });
+        UI.whisperBtn.disabled = false;
+        UI.whisperBtn.textContent = t("btnRetry");
+        return;
+      }
       UI.meter.style.width = (j.progress || 0) + "%";
       if (j.status === "done") {
+        S.whisperJob = "";
         UI.whisper.classList.remove("show");
         fillCues(j.cues || []);
         setPill(t("pillWhisperDone"), { hideAfter: 2200 });
@@ -440,6 +471,7 @@ declare global {
         return;
       }
       if (j.status === "error" || j.status === "cancelled") {
+        S.whisperJob = "";
         setPill("Whisper: " + (j.message || t("errGeneric")), { err: true });
         UI.whisperBtn.disabled = false;
         UI.whisperBtn.textContent = t("btnRetry");
@@ -448,6 +480,13 @@ declare global {
       setPill((j.phase || t("pillWorking")) + " — " + (j.progress || 0) + "%", { busy: true });
       await sleep(1500);
     }
+  }
+
+  /** Stops the server's Whisper job for this page, if one is running. */
+  function cancelWhisper() {
+    if (!S.whisperJob) return;
+    bg("whisper-cancel", { id: S.whisperJob });
+    S.whisperJob = "";
   }
 
   /* ------------------------------------------------------------------ */
@@ -619,17 +658,17 @@ declare global {
         return { ok: true, active: S.active, mode: S.mode };
       case "activate-youtube":
         if (msg.settings) S.settings = mergeSettings(S.settings, msg.settings);
-        activateYouTube(msg.url || location.href);
+        whenI18n(() => activateYouTube(msg.url || location.href));
         return { ok: true };
       case "probe-captions":
         return { ok: true, tracks: probeCaptions() };
       case "activate-captions":
         if (msg.settings) S.settings = mergeSettings(S.settings, msg.settings);
-        activateCaptions(msg.index);
+        whenI18n(() => activateCaptions(msg.index));
         return { ok: true };
       case "activate-live":
         if (msg.settings) S.settings = mergeSettings(S.settings, msg.settings);
-        activateLive();
+        whenI18n(activateLive);
         return { ok: true };
       case "deactivate":
         deactivate();
@@ -668,10 +707,20 @@ declare global {
     }
   }
 
-  // The interface language chosen in the options (the browser's otherwise), before any overlay is built.
-  bg("i18n").then((r) => {
+  // The interface language chosen in the options (the browser's otherwise). The overlay's texts are written
+  // as it is built, so activations wait for this; otherwise they would come out in the browser's language.
+  let i18nLoaded = false;
+  const i18nReady = bg("i18n").then((r) => {
     if (r && r.ok && r.table) useTable(r.lang, r.table);
+    i18nLoaded = true;
   });
+
+  /** Runs an activation once the interface language is known; dropped if a stop or another activation came first. */
+  function whenI18n(run: () => void) {
+    if (i18nLoaded) return run();
+    const gen = S.gen;
+    i18nReady.then(() => gen === S.gen && run());
+  }
 
   chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
     if (!msg || !msg.type || msg.target === "offscreen") return;
@@ -681,8 +730,10 @@ declare global {
 
   function deactivate() {
     restoreTracks();
+    cancelWhisper();
     S.gen++;
     S.active = false;
+    S.video = null;
     S.mode = null;
     S.videoId = "";
     S.cues = [];
@@ -697,6 +748,7 @@ declare global {
 
   // YouTube is a single-page app: reload when the video changes.
   document.addEventListener("yt-navigate-finish", () => {
+    S.video = null; // the new page may play in another <video> (Shorts, for one)
     if (S.active && S.mode === "youtube") activateYouTube(location.href);
   });
 
@@ -710,7 +762,10 @@ declare global {
   document.addEventListener("mousemove", onMouseMove, { passive: true });
 
   // After a reload or a new page in a tab that was translating, pick up where it left off.
-  bg("content-ready", { url: location.href }).then((r) => {
-    if (r && r.ok && r.activate) handle(r.activate);
-  });
+  // Asked once the interface language is in, so the overlay is built in it.
+  i18nReady
+    .then(() => bg("content-ready", { url: location.href }))
+    .then((r) => {
+      if (r && r.ok && r.activate) handle(r.activate);
+    });
 })();
