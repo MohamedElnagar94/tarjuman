@@ -115,6 +115,7 @@ class DesktopApp:
         self.app = None
         self.url = ""
         self.hwnd = 0
+        self.window_opened_at = 0.0
         self.ext_allowed = False
         self.quitting = False
         self.icon = None
@@ -225,7 +226,10 @@ class DesktopApp:
                 self.user32.ShowWindow(h, SW_SHOW)
                 self.user32.SetForegroundWindow(h)
                 return
+        if time.time() - self.window_opened_at < 15:
+            return  # a window was just asked for and is still coming up: don't open a second one
         self.hwnd = 0
+        self.window_opened_at = time.time()
         if desktop.open_window(self.url) is None:
             webbrowser.open(self.url)
 

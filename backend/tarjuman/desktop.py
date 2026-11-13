@@ -184,6 +184,42 @@ def open_window(url: str) -> subprocess.Popen | None:
         return None
 
 
+_instance_lock = None  # held for the life of the desktop app
+
+
+def claim_single_instance() -> bool:
+    """True for the first desktop app on this data folder; False while another one runs or is starting.
+    Taken before anything slow happens, so two quick clicks can't both start an app (the engine takes
+    seconds to answer, so asking the network alone can't tell)."""
+    global _instance_lock
+    if os.name != "nt":
+        return True
+    import ctypes
+    import hashlib
+
+    name = "Local\\Tarjuman.Desktop." + hashlib.sha1(str(config.HOME).lower().encode()).hexdigest()[:12]
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateMutexW.restype = ctypes.c_void_p
+    handle = kernel32.CreateMutexW(None, False, name)
+    if not handle:
+        return True  # can't tell: better a second app than none
+    if ctypes.get_last_error() == 183:  # ERROR_ALREADY_EXISTS
+        kernel32.CloseHandle(ctypes.c_void_p(handle))
+        return False
+    _instance_lock = handle
+    return True
+
+
+def show_when_ready(port: int, wait: float = 45) -> None:
+    """Another desktop app is starting: wait for its engine, then ask it to show its window."""
+    deadline = time.time() + wait
+    while time.time() < deadline:
+        if any(show_running(u) for u in running_instances(port)):
+            return
+        time.sleep(1)
+    log.warning("another Tarjuman is starting but did not answer in %.0f s", wait)
+
+
 def show_running(url: str) -> bool:
     """Asks a Tarjuman already running here to bring its window up. False when it can't (it was
     started without the desktop app, for example with ``python -m tarjuman``)."""
@@ -212,6 +248,10 @@ def run(host: str, port: int, free_port, background: bool = False) -> None:
     # of borrowing that one.
     if tray.available():
         from .desktop_settings import DesktopSettings
+
+        if not claim_single_instance():
+            show_when_ready(port)
+            return
 
         settings = DesktopSettings(config.DATA / "desktop.json").load()
         tray.DesktopApp(host, port, free_port, settings).run(background=background)
