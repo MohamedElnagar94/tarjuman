@@ -27,6 +27,9 @@ It opens a window on the copy that is already running, instead of starting anoth
 **`update` fails in the installed app.**
 The program is in Program Files, which only an administrator can change. Right-click `Tarjuman.cmd` in the install folder, choose *Run as administrator*, and run it with `update`.
 
+**Updating.**
+Settings → Updates checks GitHub and installs a new version after verifying its checksum; Windows asks for permission, Tarjuman closes, and it starts again updated. If it says the download does not match its checksum, nothing was installed: check again later, or download the installer from the Releases page yourself. A copy run from source updates with `git pull`.
+
 ## Phone
 
 **The phone says the site can't be reached.**

@@ -12,10 +12,20 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 - Links to other sites open in your own browser, not inside the app window.
 - Settings → Extensions has a button to get the extension from the Chrome Web Store.
 
+### Updates
+
+- Settings → Updates shows when a newer version is out, with what each version added and fixed, and updates in one click: the installer is downloaded, checked against its SHA-256 file, and Tarjuman restarts updated. A small "Update available" badge appears in the header.
+- Choices: check automatically (every few hours, on by default) and install automatically (off by default).
+
+### Watching
+
+- Subtitle fonts: Readex (default), Cairo, Naskh, Amiri, Tajawal, Kufi or the system font (Settings → Appearance).
+- Speech already in the target language (an Arabic voice note watched in Arabic) is shown once per line and not sent for translation; the original line takes its own direction.
+
 ### For developers
 
 - `/api/health` reports the protocol version (`api`), for clients to check compatibility.
-- Each release has a SHA-256 checksum file next to the installer.
+- Each release has a SHA-256 checksum file next to the installer, and its notes come from this changelog.
 
 ## 3.0.0 (2026-11-11)
 

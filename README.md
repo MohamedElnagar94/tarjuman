@@ -88,6 +88,7 @@ Download `Tarjuman-Setup-<version>.exe` from the [Releases](https://github.com/M
 - If Setup stops at once with "unable to create the directory ...\Temp\is-*.tmp, access is denied", the installer file sits in a folder marked low-integrity (some sandboxing tools mark their working folders this way; `icacls <file>` then shows `Low Mandatory Level`). Windows runs such a file with fewer rights. Copy it to another folder, such as Downloads, and run the copy.
 - The installer isn't code-signed yet, so Windows SmartScreen may say "unknown publisher": choose *More info → Run anyway*.
 - The first start downloads the offline Arabic voice (about 60 MB) in the background. The Whisper model downloads itself the first time a video needs it.
+- Updates: Settings → Updates shows what a new version adds and fixes, and installs it in one click (or by itself, if you turn that on).
 - Your videos, subtitles, settings and `.env` are kept in `%LOCALAPPDATA%\Tarjuman`, apart from the program. An update keeps them; uninstalling asks whether to delete them.
 - Get the browser extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp). (The Start menu also has a shortcut to a copy of it on disk, for *Load unpacked*.)
 
@@ -169,6 +170,7 @@ Tarjuman is local-first. Your videos, subtitles, saved words, settings and API k
 | Video download | A request for the video | The site that hosts it | A file already on your computer |
 | AI (optional, off by default) | The video's text and your question | The provider you chose | Leave it off, or use a local server such as Ollama |
 | Model downloads | A download request, once | Hugging Face, GitHub | Nothing after the first download |
+| Update checks | A request for the list of newer versions, every few hours | GitHub | Turn off "Check for updates automatically" in Settings → Updates |
 | Speech recognition, music separation, your files | Nothing | – | Always local |
 
 The same table is in the app, under Settings → Privacy. The API refuses requests from other websites, and the AI settings can only be changed from the computer running the app.

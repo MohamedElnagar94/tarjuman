@@ -16,6 +16,7 @@ from .. import __version__, config, storage
 from ..core import http
 from ..core.errors import AppError
 from ..desktop_settings import DesktopSettings
+from ..updates import Updater
 from ..services import Services
 from .deps import fail
 from .extensions import ExtensionTrust, extension_id
@@ -83,6 +84,7 @@ def create_app(
     # The desktop app (tray icon and window) when this server runs inside it; None otherwise.
     app.state.desktop = desktop
     app.state.desktop_settings = desktop.settings if desktop is not None else DesktopSettings(config.DATA / "desktop.json").load()
+    app.state.updates = getattr(desktop, "updater", None) or Updater()
     pairing = app.state.pairing = Pairing(config.DATA / "pairing.json")
     pairing.load()
     trust = app.state.extensions = ExtensionTrust(config.DATA / "extensions.json")

@@ -84,6 +84,35 @@ async def desktop_open(request: Request):
     return ok()
 
 
+def _update_state(request: Request) -> dict:
+    s = request.app.state.desktop_settings
+    return {**request.app.state.updates.state(), "settings": {"checkUpdates": s["checkUpdates"], "autoUpdate": s["autoUpdate"]}}
+
+
+@router.get("/api/update")
+async def update_state(request: Request, force: str = "0"):
+    """Newer releases and their notes (Settings -> Updates). Asks GitHub at most every few hours, or now
+    with force=1; never when checking is turned off, unless forced."""
+    if force == "1" or request.app.state.desktop_settings["checkUpdates"]:
+        await asyncio.to_thread(request.app.state.updates.check, force == "1")
+    return ok(**_update_state(request))
+
+
+@router.post("/api/update/install")
+async def update_install(request: Request):
+    """Downloads and verifies the latest installer, starts it, and closes the desktop app so it can be
+    replaced; the installer starts Tarjuman again. {force: true} goes ahead while jobs are running."""
+    b = await body(request)
+    d = request.app.state.desktop
+    if d is None:
+        return fail("UPDATE_NEEDS_APP", "Update from the installed desktop app.")
+    if services(request).jobs.running_count() and not b.get("force"):
+        return fail("JOBS_RUNNING")
+    if not request.app.state.updates.start_install(on_ready=lambda: d.quit(confirm=False)):
+        return fail("UPDATE_UNAVAILABLE")
+    return ok(**_update_state(request))
+
+
 @router.post("/api/desktop/show")
 async def desktop_show(request: Request):
     """Brings the app window up. A second start of the app asks the running one this, then exits."""

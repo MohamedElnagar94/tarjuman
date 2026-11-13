@@ -47,6 +47,8 @@ export interface DesktopSettings {
   closeToTray: boolean;
   startWithWindows: boolean;
   keepEngine: boolean;
+  checkUpdates: boolean;
+  autoUpdate: boolean;
 }
 export interface DesktopState {
   ok: true;
@@ -55,6 +57,30 @@ export interface DesktopState {
   /** The system has them at all (Windows). */
   supported: boolean;
   settings: DesktopSettings;
+}
+
+export interface ReleaseInfo {
+  version: string;
+  notes: string;
+  date: string;
+  page: string;
+}
+export interface UpdateState {
+  ok: true;
+  current: string;
+  latest: string | null;
+  available: boolean;
+  /** Newer releases, newest first, with what each one added and fixed. */
+  releases: ReleaseInfo[];
+  /** The installed app, with a verified installer to download. */
+  canInstall: boolean;
+  installed: boolean;
+  checkedAt: number;
+  error: string;
+  phase: "idle" | "downloading" | "verifying" | "starting" | "error";
+  progress: number;
+  message: string;
+  settings: { checkUpdates: boolean; autoUpdate: boolean };
 }
 
 export class ApiError extends Error {
@@ -233,6 +259,8 @@ export const api = {
     post<{ ok: true; allowed: string[]; pending: string[] }>("/api/extensions/set", { id, allow }),
   desktop: () => get<DesktopState>("/api/desktop"),
   setDesktop: (changes: Partial<DesktopSettings>) => post<DesktopState>("/api/desktop", changes),
+  update: (force = false) => get<UpdateState>("/api/update" + (force ? "?force=1" : "")),
+  installUpdate: (force = false) => post<UpdateState>("/api/update/install", { force }),
   openExternal: (url: string) => post<{ ok: true }>("/api/desktop/open", { url }),
   storage: () => get<{ ok: true; usage: Record<string, { bytes: number; files: number }>; voiceLimit: number }>("/api/storage"),
   clearStorage: (what: string) => post<{ ok: true; usage: Record<string, { bytes: number; files: number }> }>("/api/storage/clear", { what }),

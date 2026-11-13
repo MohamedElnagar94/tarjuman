@@ -44,7 +44,10 @@ class FakeReg:
 
 def test_settings_start_off_and_are_kept(tmp_path):
     s = DesktopSettings(tmp_path / "desktop.json").load()
-    assert s.values == {"minimizeToTray": False, "closeToTray": False, "startWithWindows": False, "keepEngine": False}
+    assert s.values == {
+        "minimizeToTray": False, "closeToTray": False, "startWithWindows": False, "keepEngine": False,
+        "checkUpdates": True, "autoUpdate": False,
+    }
     s.update({"closeToTray": True, "keepEngine": 1, "unknown": True})
     again = DesktopSettings(tmp_path / "desktop.json").load()
     assert again["closeToTray"] is True and again["keepEngine"] is True and "unknown" not in again.values

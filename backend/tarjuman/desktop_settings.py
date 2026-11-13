@@ -20,6 +20,9 @@ DEFAULTS: dict[str, bool] = {
     "closeToTray": False,
     "startWithWindows": False,
     "keepEngine": False,
+    # Updates (Settings -> Updates): look for a new version every few hours, and install it without asking.
+    "checkUpdates": True,
+    "autoUpdate": False,
 }
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 RUN_VALUE = "Tarjuman"

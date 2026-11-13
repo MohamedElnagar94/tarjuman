@@ -72,7 +72,9 @@ Name: "{group}\{cm:ExtensionFolder}"; Filename: "{app}\extension"
 Name: "{autodesktop}\Tarjuman"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; IconFilename: "{app}\assets\brand\icon.ico"; AppUserModelID: "Tarjuman.Desktop"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; Description: "{cm:Launch}"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; Description: "{cm:Launch}"; Flags: postinstall nowait skipifsilent runasoriginaluser
+; An update started from the app runs silently: start the app again when it is done.
+Filename: "{app}\python\pythonw.exe"; Parameters: "-m tarjuman app"; WorkingDir: "{app}"; Flags: nowait runasoriginaluser; Check: WizardSilent
 
 [Registry]
 ; "Start with Windows" (Settings → Desktop) is a value under Run that the app itself adds or removes.

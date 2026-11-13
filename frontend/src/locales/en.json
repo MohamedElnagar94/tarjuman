@@ -491,7 +491,8 @@
       "extensions": "Extensions",
       "storage": "Storage",
       "privacy": "Privacy",
-      "desktop": "Desktop"
+      "desktop": "Desktop",
+      "updates": "Updates"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -623,7 +624,9 @@
     "EXTENSION_NOT_ALLOWED": "This extension isn't allowed. Allow it in the Tarjuman app under Settings, Extensions.",
     "JOBS_RUNNING": "Jobs are running. Wait for them to finish, then try again.",
     "URL_NOT_ALLOWED": "This link points inside your local network, so nothing is downloaded from it.",
-    "QUEUE_FULL": "Too many jobs are waiting. Let some finish, or cancel the ones you don't need."
+    "QUEUE_FULL": "Too many jobs are waiting. Let some finish, or cancel the ones you don't need.",
+    "UPDATE_NEEDS_APP": "Update from the installed desktop app.",
+    "UPDATE_UNAVAILABLE": "There is no update to install right now."
   },
   "phone": {
     "lead": "Open Tarjuman on your phone over the same Wi-Fi. Each device is paired once, and an unpaired device can't reach your files.",
@@ -738,6 +741,11 @@
     "files": {
       "name": "Your files and settings",
       "what": "Videos, subtitles, saved words, settings and the AI key stay in the data folder on your computer."
+    },
+    "updates": {
+      "name": "Update checks",
+      "what": "Every few hours Tarjuman asks GitHub for the list of newer versions, and downloads the installer when you choose to update. Nothing about you or your videos is sent.",
+      "local": "Alternative: turn off \"Check for updates automatically\" in Settings → Updates."
     }
   },
   "desktop": {
@@ -762,5 +770,37 @@
     "tajawal": "Tajawal",
     "kufi": "Kufi",
     "system": "System font"
+  },
+  "updates": {
+    "lead": "Tarjuman looks for a newer version on its GitHub releases page, and shows you what was added and fixed before you update.",
+    "current": "Current version: {v}",
+    "upToDate": "You have the latest version.",
+    "never": "Not checked yet.",
+    "newer": "A newer version is available: {v}",
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "checkFailed": "Couldn't reach GitHub. Check the internet connection and try again.",
+    "version": "Version {v}",
+    "noNotes": "No notes for this version.",
+    "install": "Update to {v}",
+    "installHint": "The installer is downloaded and its checksum verified; then Tarjuman closes, updates and starts again. Windows will ask for permission.",
+    "installAnyway": "Update and stop the jobs",
+    "jobsRunning": "Jobs are running, and updating stops them.",
+    "openPage": "Open the release page",
+    "fromSource": "You run Tarjuman from source: update it with git pull, then restart it.",
+    "noChecksum": "This version has no checksum file, so download its installer from its page.",
+    "failed": "Updating failed: {m}",
+    "checkAuto": "Check for updates automatically",
+    "checkAutoHint": "Every few hours, asks GitHub for newer versions. Nothing about you or your videos is sent.",
+    "auto": "Install updates automatically",
+    "autoHint": "When a newer version is found and no job is running, it is installed without asking (Windows still asks for permission). Installed app only.",
+    "badge": "Update available: {v}",
+    "phase": {
+      "downloading": "Downloading {p}%",
+      "verifying": "Verifying…",
+      "starting": "Starting the update…",
+      "idle": "",
+      "error": ""
+    }
   }
 }

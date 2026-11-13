@@ -12,6 +12,7 @@ const ROWS = [
   { id: "fetch", online: true },
   { id: "ai", online: true },
   { id: "models", online: true },
+  { id: "updates", online: true },
   { id: "whisper", online: false },
   { id: "separate", online: false },
   { id: "files", online: false },

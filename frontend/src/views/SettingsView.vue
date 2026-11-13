@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh } from "@phosphor-icons/vue";
+import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
 import AiSettings from "@/components/settings/AiSettings.vue";
 import PhonePairing from "@/components/settings/PhonePairing.vue";
@@ -9,6 +9,7 @@ import ExtensionTrust from "@/components/settings/ExtensionTrust.vue";
 import StorageSettings from "@/components/settings/StorageSettings.vue";
 import PrivacyFlow from "@/components/settings/PrivacyFlow.vue";
 import DesktopLifecycle from "@/components/settings/DesktopLifecycle.vue";
+import UpdatesPanel from "@/components/settings/UpdatesPanel.vue";
 import PronounceEditor from "@/components/settings/PronounceEditor.vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
@@ -32,6 +33,7 @@ const SECTIONS = [
   { id: "pronounce", icon: PhSpeakerHigh },
   { id: "defaults", icon: PhSlidersHorizontal },
   { id: "appearance", icon: PhPaintBrush },
+  { id: "updates", icon: PhArrowsClockwise },
   { id: "desktop", icon: PhDesktop },
   { id: "storage", icon: PhHardDrives },
   { id: "privacy", icon: PhShieldCheck },
@@ -161,6 +163,11 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
               inline
             />
           </div>
+        </section>
+
+        <section id="updates" class="panel sec" aria-labelledby="h-updates">
+          <h2 id="h-updates" class="panel__title">{{ t("settings.s.updates") }}</h2>
+          <UpdatesPanel />
         </section>
 
         <section id="desktop" class="panel sec" aria-labelledby="h-desktop">

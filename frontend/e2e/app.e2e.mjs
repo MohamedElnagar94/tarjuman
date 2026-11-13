@@ -121,7 +121,7 @@ test("settings: language switch, phone pairing code, storage and privacy", async
   await page.locator("#phone .qr svg").waitFor();
   assert.match(await page.locator("#phone .link code").innerText(), /\/pair\?code=/);
   await page.locator("#storage table tr").first().waitFor();
-  assert.equal(await page.locator("#privacy .row").count(), 9);
+  assert.equal(await page.locator("#privacy .row").count(), 10);
 
   await page.locator("#appearance button", { hasText: "English" }).click();
   await page.waitForFunction(() => document.documentElement.dir === "ltr");

@@ -27,6 +27,7 @@ import webbrowser
 from . import config, desktop
 from .core.deps import has
 from .desktop_settings import DesktopSettings, after_window_closed
+from .updates import Updater
 
 log = logging.getLogger("tarjuman.tray")
 
@@ -117,6 +118,7 @@ class DesktopApp:
         self.ext_allowed = False
         self.quitting = False
         self.icon = None
+        self.updater = Updater()
 
     def t(self, key: str, **kw) -> str:
         return TEXT[self.lang][key].format(**kw)
@@ -262,6 +264,27 @@ class DesktopApp:
         if self.icon is not None:
             self.icon.stop()
 
+    # ---------------- updates ----------------
+
+    def auto_update(self) -> None:
+        """Looks for a new version a little after start and then every few hours. With "install updates
+        automatically" on, installs it once no job is running (Windows asks for permission first)."""
+        time.sleep(30)
+        while not self.quitting:
+            try:
+                if self.settings["checkUpdates"]:
+                    self.updater.check()
+                    st = self.updater.state()
+                    if st["available"] and self.settings["autoUpdate"] and st["canInstall"] and self.jobs() == 0:
+                        log.info("installing update %s by itself", st["latest"])
+                        self.updater.start_install(on_ready=lambda: self.quit(confirm=False))
+            except Exception:  # noqa: BLE001
+                log.exception("update check failed")
+            for _ in range(600):  # ten minutes, then look again (check() itself waits hours between asks)
+                if self.quitting:
+                    return
+                time.sleep(1)
+
     # ---------------- icon ----------------
 
     def status_text(self) -> str:
@@ -324,6 +347,7 @@ class DesktopApp:
                 self.start_engine()
                 if not background:
                     self.show_window()
+                threading.Thread(target=self.auto_update, name="updates", daemon=True).start()
                 self.watch()
             except Exception:  # noqa: BLE001
                 log.exception("desktop app failed")

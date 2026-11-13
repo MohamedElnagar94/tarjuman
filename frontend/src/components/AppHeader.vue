@@ -5,6 +5,7 @@ import { PhMoon, PhSun, PhArrowRight, PhArrowLeft } from "@phosphor-icons/vue";
 import BrandMark from "./BrandMark.vue";
 import ServerDot from "./ServerDot.vue";
 import { NAV } from "./nav";
+import { useUpdates } from "@/composables/updates";
 import { useAppearance } from "@/composables/appearance";
 import { useIntake } from "@/composables/intake";
 import { usePrefs } from "@/composables/prefs";
@@ -21,6 +22,7 @@ const isActive = (name: string) => route.name === name || (name === "home" && ro
 async function submitQuick() {
   if (await openLink(quick.value)) quick.value = "";
 }
+const { state: update } = useUpdates();
 </script>
 
 <template>
@@ -47,6 +49,7 @@ async function submitQuick() {
       </form>
 
       <div class="tools">
+        <RouterLink v-if="update?.available" to="/settings#updates" class="upd">{{ $t("updates.badge", { v: update.latest }) }}</RouterLink>
         <ServerDot />
         <button class="btn btn--quiet btn--sm lang" type="button" :aria-label="$t('appearance.switchLang')" @click="toggleLang">
           <span :lang="prefs.uiLang === 'ar' ? 'en' : 'ar'">{{ prefs.uiLang === "ar" ? "EN" : "ع" }}</span>
@@ -61,6 +64,16 @@ async function submitQuick() {
 </template>
 
 <style scoped>
+.upd {
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+}
 .bar {
   position: sticky;
   top: 0;

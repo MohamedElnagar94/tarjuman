@@ -80,5 +80,13 @@ jobs:
         run: |
           $files = (Get-ChildItem build\windows\Tarjuman-Setup-*.exe*).FullName
           gh release view $env:GITHUB_REF_NAME *> $null
-          if ($LASTEXITCODE -ne 0) { gh release create $env:GITHUB_REF_NAME --title "Tarjuman $env:GITHUB_REF_NAME" --generate-notes }
+          $exists = $LASTEXITCODE -eq 0
+          # The notes are this version's section of CHANGELOG.md: the app shows them before updating.
+          $v = $env:GITHUB_REF_NAME.TrimStart('v')
+          $log = Get-Content CHANGELOG.md -Raw -Encoding utf8
+          $m = [regex]::Match($log, "(?ms)^## $([regex]::Escape($v))\b[^\n]*\n(.*?)(?=^## |\z)")
+          $notes = if ($m.Success) { $m.Groups[1].Value.Trim() } else { "Tarjuman $v" }
+          Set-Content -Path notes.md -Value $notes -Encoding utf8
+          if (-not $exists) { gh release create $env:GITHUB_REF_NAME --title "Tarjuman $v" --notes-file notes.md }
+          else { gh release edit $env:GITHUB_REF_NAME --title "Tarjuman $v" --notes-file notes.md }
           gh release upload $env:GITHUB_REF_NAME @files --clobber
