@@ -67,10 +67,10 @@ async function remove(id: string) {
 
 /* What the names list fixes, with words anyone may use (never the user's own names). */
 const vocabExamples = [
-  ["السارم", "CRM"],
   ["إكسيل", "Excel"],
-  ["الصب كونتراكت", "sub contract"],
   ["زووم", "Zoom"],
+  ["باور بوينت", "PowerPoint"],
+  ["واتس اب", "WhatsApp"],
 ] as const;
 
 /* The list of names is saved when the field is left, not on every key. */

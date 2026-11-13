@@ -180,10 +180,10 @@ def test_a_downloaded_model_can_be_deleted_to_free_the_disk(tmp_path, monkeypatc
 def test_the_names_list_becomes_a_hint_for_whisper(tmp_path):
     from tarjuman.asr_settings import vocab_words
 
-    assert vocab_words("هيثم\nClaude، نجار, هيثم\n\n") == "هيثم، Claude، نجار"
+    assert vocab_words("كريم\nExcel، Zoom, كريم\n\n") == "كريم، Excel، Zoom"
     s = AsrSettings(tmp_path / "asr.json")
-    s.update({"vocab": "حمود\nكلود"})
-    assert s.effective(HW_LAPTOP)["hotwords"] == "حمود، كلود"
+    s.update({"vocab": "كريم\nZoom"})
+    assert s.effective(HW_LAPTOP)["hotwords"] == "كريم، Zoom"
 
 
 def test_an_old_card_is_not_recommended_even_with_cuda():
@@ -200,10 +200,10 @@ async def test_the_ai_fix_keeps_every_line_in_place():
             self.answer = answer
 
         async def complete(self, system, user, **_):
-            assert "dialect" in system and "هيثم" in system
+            assert "dialect" in system and "كريم" in system
             return self.answer
 
-    lines = ["انا عايز اوصلهولك انت وهيسم", "العقد بتاعي"]
-    got = await fix_lines(Fake({"lines": ["1. انا عايز اوصلهولك انت وهيثم", "العقد بتاعي"]}), lines, "ar", "هيثم")
-    assert got == ["انا عايز اوصلهولك انت وهيثم", "العقد بتاعي"]
-    assert await fix_lines(Fake({"lines": ["سطر واحد فقط"]}), lines, "ar", "هيثم") == lines, "a wrong count changes nothing"
+    lines = ["ابعتلي الملف على الإكسيل يا كريب", "وبعدين نتكلم"]
+    got = await fix_lines(Fake({"lines": ["1. ابعتلي الملف على Excel يا كريم", "وبعدين نتكلم"]}), lines, "ar", "كريم")
+    assert got == ["ابعتلي الملف على Excel يا كريم", "وبعدين نتكلم"]
+    assert await fix_lines(Fake({"lines": ["سطر واحد فقط"]}), lines, "ar", "كريم") == lines, "a wrong count changes nothing"

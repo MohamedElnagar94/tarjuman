@@ -66,7 +66,7 @@ DEFAULTS: dict[str, Any] = {
     "enhance": False,  # clean the audio first (noise, hum, level)
     "vad": True,  # skip long silences (fewer invented sentences)
     # Names and words that come up in the user's recordings (people, places, brands): Whisper is told
-    # them, so it writes "هيثم" and "Claude" instead of something that sounds alike.
+    # them, so it writes "Excel" and "Zoom" instead of something that sounds alike.
     "vocab": "",
     # Have the AI (Settings -> AI, when set up) fix words Whisper clearly misheard, from the context.
     "aiFix": False,
@@ -346,7 +346,7 @@ class AsrSettings:
 
 
 def vocab_words(text: str) -> str:
-    """The user's list (one per line, or separated by commas) as Whisper's hint: "هيثم، Claude، نجار"."""
+    """The user's list (one per line, or separated by commas) as Whisper's hint: "Excel، Zoom، كريم"."""
     import re
 
     words = [w.strip() for w in re.split(r"[\n,،;؛]+", text or "") if w.strip()]
