@@ -171,7 +171,12 @@ def open_window(url: str) -> subprocess.Popen | None:
     try:
         return subprocess.Popen([
             exe, f"--app={url}", f"--user-data-dir={profile}", "--window-size=1280,820", "--no-first-run",
-            "--no-default-browser-check", "--disable-background-mode", "--disable-features=msEdgeStartupBoost,Translate",
+            "--no-default-browser-check", "--disable-background-mode",
+            # The window must not look or act like the user's browser. Edge signs a new profile into the
+            # Windows account by itself and syncs its extensions, which then open their own tabs and
+            # windows: no extensions, no sync, no implicit sign-in here.
+            "--disable-extensions", "--disable-sync",
+            "--disable-features=msEdgeStartupBoost,Translate,msImplicitSignin,msEdgeSidebarV2,msUndersideButton",
             "--autoplay-policy=no-user-gesture-required",
         ])
     except OSError as e:

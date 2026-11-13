@@ -8,9 +8,10 @@ on:
   workflow_dispatch:
   push:
     tags: ["v*"]
-    # A change to the installer itself is built too, so a broken script shows up at once.
+    # Every change to what the installers carry is built too, so there is always a fresh installer to
+    # try (Actions -> this workflow -> artifacts) and a broken build shows up at once.
     branches: [main]
-    paths: ["installer/**", ".github/workflows/release.yml"]
+    paths: ["installer/**", "backend/**", "frontend/**", "extension/**", "shared/**", ".github/workflows/release.yml"]
 
 permissions:
   contents: write
