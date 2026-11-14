@@ -172,3 +172,56 @@ def test_a_lone_word_between_two_pauses_finishes_the_sentence_before_it():
     texts = [c.text for c in reconstruct_asr(parse_captions(xml))]
     k = next(i for i, t in enumerate(texts) if t.endswith("large language models"))
     assert texts[k + 1].startswith("large language models represent"), texts
+
+
+# ---------------- chapters from the description ----------------
+
+from tarjuman.captions.chapters import parse_chapters  # noqa: E402
+
+DESC = """Learn the basics in one video.
+
+0:00 Intro
+1:15 - Setting up
+05:30 | First steps
+1:02:03 Wrapping up
+
+Thanks to the team at 12:30 for the help.
+Follow me: https://example.com
+"""
+
+
+def test_chapters_are_read_from_the_description():
+    assert parse_chapters(DESC, 4000) == [
+        {"start": 0, "title": "Intro"},
+        {"start": 75, "title": "Setting up"},
+        {"start": 330, "title": "First steps"},
+        {"start": 3723, "title": "Wrapping up"},
+    ]
+
+
+def test_a_timestamp_later_in_the_description_ends_the_list():
+    # "12:30" comes after 1:02:03, so it is a mention, not a fifth chapter.
+    assert len(parse_chapters(DESC)) == 4
+
+
+def test_no_chapters_without_youtubes_rules():
+    assert parse_chapters("1:00 a\n2:00 b\n3:00 c") == []  # must start at 0:00
+    assert parse_chapters("0:00 a\n1:00 b") == []  # at least three
+    assert parse_chapters("0:00 a\n0:05 b\n1:00 c") == []  # each at least 10 seconds
+    assert parse_chapters("") == []
+
+
+def test_chapter_titles_can_come_first_or_carry_a_range():
+    got = parse_chapters("Intro - 0:00\nPart one - 2:00\nPart two - 4:00")
+    assert [c["title"] for c in got] == ["Intro", "Part one", "Part two"]
+    got = parse_chapters("0:00 مقدمة\n2:00 - 6:00 الجزء الأول\n6:00 الخاتمة")
+    assert [c["title"] for c in got] == ["مقدمة", "الجزء الأول", "الخاتمة"]
+
+
+def test_chapters_past_the_end_of_the_video_are_dropped():
+    assert [c["start"] for c in parse_chapters(DESC, 400)] == [0, 75, 330]
+
+
+def test_emoji_and_brackets_around_the_time_are_not_part_of_the_title():
+    desc = "Try it: https://example.com\n⌨️ (0:00) Introduction\n⌨️ (1:45) Installing Python & PyCharm\n⌨️ (0:06:40) Setup [new]"
+    assert [c["title"] for c in parse_chapters(desc)] == ["Introduction", "Installing Python & PyCharm", "Setup [new]"]

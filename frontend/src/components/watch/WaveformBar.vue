@@ -16,8 +16,10 @@ const props = withDefaults(
     /** Whisper is reading the audio: the edge of the progress glows and moves. */
     scanning?: boolean;
     label?: string;
+    /** Chapter starts (seconds): the bar is cut there. */
+    marks?: number[];
   }>(),
-  { regions: () => [], active: -1, interactive: false, scanning: false, label: "" },
+  { regions: () => [], active: -1, interactive: false, scanning: false, label: "", marks: () => [] },
 );
 const emit = defineEmits<{ seek: [seconds: number] }>();
 
@@ -113,6 +115,10 @@ function draw(now = performance.now()) {
     });
   }
 
+  if (props.duration > 0) {
+    for (const m of props.marks) if (m > 0) ctx.clearRect(Math.round((m / props.duration) * width) - 1.5, 0, 3, height);
+  }
+
   if (props.interactive && props.duration > 0) {
     ctx.fillStyle = "#fff";
     ctx.fillRect(Math.min(width - 2, Math.max(0, playedX - 1)), 0, 2, waveH);
@@ -197,7 +203,7 @@ watch(
     } else draw();
   },
 );
-watch(() => [props.progress, props.active, props.regions] as const, () => draw());
+watch(() => [props.progress, props.active, props.regions, props.marks] as const, () => draw());
 watch(
   () => props.scanning,
   (s) => (s ? kick() : draw()),

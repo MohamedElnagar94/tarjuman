@@ -4,11 +4,15 @@
    sentence at that moment; click or drag to go there. Time runs left to right, as on every player. */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { cues, getPlayer, seekTo, session, tr } from "@/composables/session";
+import { usePrefs } from "@/composables/prefs";
+import { chapters, cues, getPlayer, seekTo, session, tr } from "@/composables/session";
+import { chapterAt } from "@/lib/chapters";
 import { activeIndex } from "@/lib/cues";
 import { formatTime } from "@/lib/time";
 
 const { t } = useI18n();
+const prefs = usePrefs();
+const marks = computed(() => (prefs.chapters ? chapters.value : []));
 const box = ref<HTMLElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const hover = ref<number | null>(null); // seconds under the pointer
@@ -74,6 +78,12 @@ function draw() {
     rr(g, x0, mid - lane / 2, w, lane, Math.min(3, w / 2));
   });
   g.globalAlpha = 1;
+
+  // Chapters: the strip is cut where each one starts, as on YouTube's own bar.
+  for (const ch of marks.value) {
+    if (ch.start <= 0) continue;
+    g.clearRect(Math.round(x(ch.start)) - 1.5, 0, 3, height);
+  }
 
   // What has been played: a soft veil up to the playhead.
   g.fillStyle = "rgba(255, 210, 122, 0.10)";
@@ -155,7 +165,9 @@ const preview = computed(() => {
   const near = i >= 0 ? i : cues.value.findIndex((c) => c.start > hover.value!);
   const cue = near >= 0 ? cues.value[near] : undefined;
   const text = cue ? tr.value[near] || cue.src : "";
+  const k = chapterAt(marks.value, hover.value);
   return {
+    chapter: k >= 0 ? marks.value[k]!.title : "",
     time: formatTime(hover.value),
     text: text.length > 110 ? text.slice(0, 108) + "…" : text,
     pending: !!cue && !tr.value[near] && !session.already,
@@ -163,7 +175,12 @@ const preview = computed(() => {
   };
 });
 
-watch(() => [session.time, session.curIdx, cues.value, tr.value, duration.value] as const, schedule, { deep: false });
+const current = computed(() => {
+  const k = chapterAt(marks.value, session.time);
+  return k >= 0 ? marks.value[k]!.title : "";
+});
+
+watch(() => [session.time, session.curIdx, cues.value, tr.value, duration.value, marks.value] as const, schedule, { deep: false });
 watch(() => tr.value.length, schedule);
 
 onMounted(() => {
@@ -200,6 +217,7 @@ onBeforeUnmount(() => {
       <canvas ref="canvas" aria-hidden="true"></canvas>
       <Transition name="peek">
         <div v-if="preview" class="tl__peek" :style="{ left: preview.left }">
+          <span v-if="preview.chapter" class="tl__chap" dir="auto">{{ preview.chapter }}</span>
           <span class="tl__time">{{ preview.time }}</span>
           <span v-if="preview.text" class="tl__text" :class="{ pending: preview.pending }" dir="auto">{{ preview.text }}</span>
         </div>
@@ -208,6 +226,9 @@ onBeforeUnmount(() => {
     <div class="tl__legend" :dir="$i18n.locale === 'ar' ? 'rtl' : 'ltr'">
       <span><i class="k done"></i>{{ t("watch.timeline.done", { pct }) }}</span>
       <span v-if="pct < 100 && !session.already"><i class="k todo"></i>{{ t("watch.timeline.todo") }}</span>
+      <Transition name="peek" mode="out-in">
+        <span v-if="current" :key="current" class="tl__now" dir="auto">{{ t("watch.timeline.chapter", { title: current }) }}</span>
+      </Transition>
     </div>
   </div>
 </template>
@@ -259,6 +280,20 @@ onBeforeUnmount(() => {
   font-weight: 600;
   color: var(--accent-ink);
   font-variant-numeric: tabular-nums;
+}
+.tl__chap {
+  font-size: var(--fs-sm);
+  font-weight: 650;
+}
+.tl__now {
+  margin-inline-start: auto;
+  color: var(--text-2);
+  font-weight: 600;
+  max-width: 60%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block !important;
 }
 .tl__text {
   font-size: var(--fs-sm);

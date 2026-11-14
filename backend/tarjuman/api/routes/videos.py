@@ -9,7 +9,7 @@ from ... import config
 from ...captions.formats import SUB_FORMATS
 from ...captions.models import Cue
 from ...core.errors import AppError
-from ...core.text import norm_lang, safe_name
+from ...core.text import is_media_link, norm_lang, parse_video_id, safe_name
 from ...voice.gate import PLAY
 from ..deps import body, content_disposition, fail, ok, qnum, services
 
@@ -20,6 +20,26 @@ router = APIRouter()
 async def cues(request: Request, url: str = "", tl: str = "ar", fresh: str = "0"):
     data = await services(request).captions.get(url, tl, fresh=fresh == "1")
     return ok(**data.to_dict())
+
+
+@router.get("/api/chapters")
+async def chapters(request: Request, url: str = "", tl: str = "ar"):
+    """The owner's chapters for a YouTube video, with titles translated. [] for a file from this
+    computer or a video without them: chapters are a bonus, never an error."""
+    s = services(request)
+    video_id = "" if is_media_link(url) else parse_video_id(url)
+    if not video_id:
+        return ok(chapters=[])
+    try:
+        found = await s.captions.chapters(video_id)
+    except Exception:  # noqa: BLE001 — no chapters rather than a broken page
+        return ok(chapters=[])
+    titles = [c["title"] for c in found]
+    try:
+        names = await s.translator.translate_many(titles, sl="auto", tl=norm_lang(tl)) if titles else {}
+    except Exception:  # noqa: BLE001 — the original titles still help
+        names = {}
+    return ok(chapters=[{"start": c["start"], "title": names.get(c["title"]) or c["title"], "src": c["title"]} for c in found])
 
 
 @router.post("/api/translate")

@@ -11,6 +11,7 @@ from ..core.errors import AppError
 from ..core.text import is_media_link, media_id_of, norm_lang, parse_video_id
 from urllib.parse import quote
 
+from .chapters import parse_chapters
 from .models import Cue, Line, VideoCues
 from .repair import align_source, reconstruct_asr
 from .youtube import fetch_track_lines, player_response
@@ -27,6 +28,7 @@ class CaptionService:
         self._cache: dict[str, tuple[float, VideoCues]] = {}
         self._src_urls: dict[str, str] = {}  # video id -> its source caption track
         self._yt_translations: dict[str, list[Line]] = {}
+        self._chapters: dict[str, tuple[float, list[dict]]] = {}  # video id -> (when, chapters)
 
     def cached(self) -> list[VideoCues]:
         return [d for _, d in self._cache.values()]
@@ -56,6 +58,7 @@ class CaptionService:
         resp = await player_response(video_id)
         tracks = ((resp.get("captions") or {}).get("playerCaptionsTracklistRenderer") or {}).get("captionTracks") or []
         details = resp.get("videoDetails") or {}
+        self._remember_chapters(video_id, details)
         title = details.get("title") or video_id
         author = details.get("author") or ""
         length = int(details.get("lengthSeconds") or 0)
@@ -142,6 +145,20 @@ class CaptionService:
             return []
         self._yt_translations[key] = lines
         return lines
+
+    def _remember_chapters(self, video_id: str, details: dict) -> list[dict]:
+        found = parse_chapters(details.get("shortDescription") or "", float(details.get("lengthSeconds") or 0))
+        self._chapters[video_id] = (time.time(), found)
+        return found
+
+    async def chapters(self, video_id: str) -> list[dict]:
+        """The chapters the video's owner listed in its description ([] when none). Read with the
+        captions, so usually there is no second request."""
+        hit = self._chapters.get(video_id)
+        if hit and time.time() - hit[0] < TTL:
+            return hit[1]
+        resp = await player_response(video_id)
+        return self._remember_chapters(video_id, resp.get("videoDetails") or {})
 
     async def title(self, video_id: str) -> str:
         if is_media_link(video_id):

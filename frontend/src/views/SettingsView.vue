@@ -76,7 +76,7 @@ const densityOptions = computed(() => [
   { value: "cozy" as const, label: t("transcript.density.cozy") },
   { value: "compact" as const, label: t("transcript.density.compact") },
 ]);
-const WATCH_TOGGLES = ["follow", "tTimes", "karaoke", "tTurns", "tTags", "timeline", "glow"] as const;
+const WATCH_TOGGLES = ["follow", "tTimes", "karaoke", "tTurns", "tTags", "chapters", "timeline", "glow"] as const;
 const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label: q + "p" }));
 </script>
 

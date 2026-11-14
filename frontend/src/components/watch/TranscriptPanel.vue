@@ -23,7 +23,8 @@ import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import { openLookup } from "@/composables/lookup";
 import { T_SIZE, usePrefs } from "@/composables/prefs";
-import { cues, editLine, edited, seekToCue, session, tr } from "@/composables/session";
+import { chapters, cues, editLine, edited, seekTo, seekToCue, session, tr } from "@/composables/session";
+import { chapterAt, chapterHeads, type Chapter } from "@/lib/chapters";
 import { toast } from "@/composables/toast";
 import { litWords, pieces, speakers, startsTurn, type Piece, type SoundKind } from "@/lib/cueText";
 import { formatTime } from "@/lib/time";
@@ -86,6 +87,15 @@ const SOUND_ICON: Record<SoundKind, unknown> = {
   laughter: PhSmiley,
   other: PhChatCenteredDots,
 };
+
+/* ---------- chapters: a heading above the first line of each ---------- */
+
+const heads = computed(() => (prefs.chapters && !needle.value && chapters.value.length ? chapterHeads(chapters.value, cues.value) : null));
+const curChapter = computed(() => chapterAt(chapters.value, session.time));
+function headAt(i: number): { k: number; ch: Chapter } | null {
+  const k = heads.value?.get(i);
+  return k == null ? null : { k, ch: chapters.value[k]! };
+}
 
 /* ---------- the line being said: progress and lit words ---------- */
 
@@ -288,6 +298,18 @@ defineExpose({ focusSearch: () => search.value?.focus() });
       <p v-if="!cues.length" class="tp__empty">{{ t("transcript.empty") }}</p>
       <p v-else-if="matches && !matches.size" class="tp__empty">{{ t("transcript.noMatch", { q }) }}</p>
       <template v-for="(c, i) in cues" :key="i">
+        <button
+          v-if="headAt(i)"
+          type="button"
+          class="chap"
+          :class="{ on: headAt(i)!.k === curChapter }"
+          :title="session.chapterSource === 'ai' ? t('transcript.chapterAi') : headAt(i)!.ch.src"
+          :aria-label="t('transcript.chapter', { n: headAt(i)!.k + 1, title: headAt(i)!.ch.title })"
+          @click.stop="seekTo(headAt(i)!.ch.start)"
+        >
+          <span class="chap__n mono">{{ formatTime(headAt(i)!.ch.start) }}</span>
+          <span class="chap__t" dir="auto">{{ headAt(i)!.ch.title }}</span>
+        </button>
         <div
           v-show="!matches || matches.has(i)"
           class="row"
@@ -368,6 +390,44 @@ defineExpose({ focusSearch: () => search.value?.focus() });
 </template>
 
 <style scoped>
+.chap {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-4) var(--s-4) var(--s-2);
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 650;
+  font-size: calc(var(--t-size) + 1px);
+  text-align: start;
+  cursor: pointer;
+}
+.chap:first-child {
+  border-top: 0;
+}
+.chap:hover {
+  background: var(--surface-2);
+}
+.chap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.chap__n {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.chap.on .chap__t {
+  color: var(--accent-ink);
+}
+.chap.on .chap__n {
+  color: var(--accent-ink);
+}
 .tp {
   position: relative;
   display: flex;

@@ -279,7 +279,8 @@
     "timeline": {
       "label": "Video timeline: where people speak and what is translated",
       "done": "{pct}% translated",
-      "todo": "Not translated yet"
+      "todo": "Not translated yet",
+      "chapter": "Chapter: {title}"
     }
   },
   "transcript": {
@@ -317,7 +318,10 @@
     "looping": "This line repeats. Stop with the O key",
     "copy": "Copy the line",
     "copied": "Line copied",
-    "backToNow": "Back to the current line"
+    "backToNow": "Back to the current line",
+    "chapter": "Chapter {n}: {title}",
+    "chapterAi": "Suggested by the AI summary",
+    "chapters": "Chapters"
   },
   "dub": {
     "voice": "Voice",
@@ -590,7 +594,9 @@
       "timeline": "Video timeline below it",
       "timelineHint": "Shows where people speak and what is translated, and the sentence when you hover over it.",
       "glow": "Ambient light",
-      "glowHint": "A soft light around the video in its colours, breathing while it plays."
+      "glowHint": "A soft light around the video in its colours, breathing while it plays.",
+      "chapters": "Chapters",
+      "chaptersHint": "Headings in the transcript and marks on the timeline. From the video's owner on YouTube, or from the AI summary."
     }
   },
   "ai": {

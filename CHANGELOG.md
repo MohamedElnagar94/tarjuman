@@ -2,6 +2,20 @@
 
 Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__init__.py`.
 
+## Unreleased
+
+- **Chapters.** A YouTube video whose owner listed chapters in its description shows them:
+  - a heading above the first line of each chapter in the transcript (click it to go there);
+  - cuts on the timeline, with the chapter's name when you hover;
+  - the chapter playing named under the timeline, or on the sound stage for a recording.
+
+  Chapter titles are translated. A video without chapters gets the ones the AI summary suggests, once you ask for a summary. Settings → Watching can turn chapters off.
+- **Browser tests** now cover:
+  - the sound stage of a voice note;
+  - the "transcribe this recording" screen;
+  - choosing a transcription model for each use, and saving the words list;
+  - chapters in the transcript.
+
 ## Browser extension 3.0.5 (2026-11-14)
 
 - **Course sites (Udemy, Coursera and others):** captions are read again as the site loads more of them, and when the next lesson starts in the same player. Before, the translation could stop after the first part or stay on the previous lesson.

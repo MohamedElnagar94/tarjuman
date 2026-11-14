@@ -1,5 +1,6 @@
 /* The video being watched. One session at a time, shared by the player, the transcript and every panel. */
 import { computed, markRaw, reactive, ref, shallowRef } from "vue";
+import { cleanChapters, type Chapter } from "@/lib/chapters";
 import { api, ApiError, errorCode } from "@/api/client";
 import type { Cue, VideoCues, WhisperJob } from "@/api/types";
 import { errText, i18n } from "@/i18n";
@@ -49,7 +50,12 @@ export const session = reactive({
   dubOn: false,
   /** A file from this computer that holds sound only (a voice note, a song). */
   audioOnly: false,
+  /** Where the chapters came from: the video's owner, the AI summary, or none. */
+  chapterSource: "" as "" | "youtube" | "ai",
 });
+
+/** The video's chapters (lib/chapters.ts), shown in the transcript and on the timeline. */
+export const chapters = shallowRef<Chapter[]>([]);
 
 /** Cues are big and never mutated in place: keep them out of deep reactivity. */
 export const cues = shallowRef<Cue[]>([]);
@@ -150,9 +156,36 @@ function applyCues(link: string, d: Omit<VideoCues, "ok">): void {
   learnFrom = -1;
   loopCue = -1;
   session.phase = "ready";
+  chapters.value = [];
+  session.chapterSource = "";
+  void loadChapters(link, gen);
   useRecent().remember({ videoId: d.videoId, title: d.title, lengthSeconds: d.lengthSeconds });
   document.title = (d.title ? d.title + " | " : "") + t("app.name");
   if (!session.already) void translateLoop();
+}
+
+/** The owner's chapters for a YouTube video (none for a file from this computer, or when it has none). */
+async function loadChapters(link: string, my: number): Promise<void> {
+  if (isMediaId(link)) return;
+  try {
+    const r = await api.chapters(link, session.tl);
+    if (my !== gen || session.chapterSource === "ai") return;
+    const list = cleanChapters(r.chapters, session.lengthSeconds);
+    if (!list.length) return;
+    chapters.value = Object.freeze(list) as Chapter[];
+    session.chapterSource = "youtube";
+  } catch {
+    /* chapters are a bonus */
+  }
+}
+
+/** Chapters suggested by the AI summary, for a video whose owner didn't list any. */
+export function useAiChapters(list: Chapter[]): void {
+  if (session.chapterSource === "youtube") return;
+  const clean = cleanChapters(list, session.lengthSeconds || cues.value[cues.value.length - 1]?.end || 0);
+  if (!clean.length) return;
+  chapters.value = Object.freeze(clean) as Chapter[];
+  session.chapterSource = "ai";
 }
 
 /* ---------------- Whisper (no captions) ---------------- */

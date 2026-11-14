@@ -29,6 +29,7 @@ import type {
   Voice,
   WhisperJob,
 } from "./types";
+import type { Chapter } from "@/lib/chapters";
 
 export interface PairedDevice {
   id: string;
@@ -179,6 +180,7 @@ export const api = {
   health: (signal?: AbortSignal) => get<Health>("/api/health", {}, signal),
 
   cues: (url: string, tl: string, fresh = false) => get<VideoCues>("/api/cues", { url, tl, fresh: fresh || undefined }),
+  chapters: (url: string, tl: string) => get<{ chapters: Chapter[] }>("/api/chapters", { url, tl }),
   translate: (texts: string[], tl: string, sl = "auto") =>
     post<{ ok: true; map: Record<string, string> }>("/api/translate", { texts: texts.slice(0, 200), sl, tl }),
   editTranslation: (src: string, ar: string, tl: string) => post<{ ok: true }>("/api/translate/edit", { src, ar, tl }),

@@ -477,3 +477,24 @@ def test_live_audio_as_raw_bytes_matches_the_json_form(client, services, monkeyp
     too_long = b"\0" * (system.LIVE_MAX_BYTES + 1)
     assert client.post("/api/live/raw", content=too_long, headers={"content-type": "application/octet-stream"}).status_code == 413
     assert client.post("/api/live/raw", content=pcm, headers={"content-type": "text/plain"}).status_code == 415
+
+
+def test_chapters_come_translated_and_are_never_an_error(client, services, monkeypatch):
+    async def fake_chapters(video_id):
+        assert video_id == "abcdefghijk"
+        return [{"start": 0, "title": "Intro"}, {"start": 60, "title": "Setup"}, {"start": 120, "title": "End"}]
+
+    async def fake_translate(texts, sl="auto", tl="ar"):
+        return {t: "ع " + t for t in texts}
+
+    monkeypatch.setattr(services.captions, "chapters", fake_chapters)
+    monkeypatch.setattr(services.translator, "translate_many", fake_translate)
+    r = client.get("/api/chapters", params={"url": "https://youtu.be/abcdefghijk", "tl": "ar"}).json()
+    assert r["ok"] and r["chapters"][1] == {"start": 60, "title": "ع Setup", "src": "Setup"}
+
+    async def broken(video_id):
+        raise RuntimeError("offline")
+
+    monkeypatch.setattr(services.captions, "chapters", broken)
+    assert client.get("/api/chapters", params={"url": "abcdefghijk"}).json() == {"ok": True, "chapters": []}
+    assert client.get("/api/chapters", params={"url": "media:abc"}).json() == {"ok": True, "chapters": []}

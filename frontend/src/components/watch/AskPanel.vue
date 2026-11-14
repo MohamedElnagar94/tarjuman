@@ -6,7 +6,7 @@ import { PhArrowBendDownLeft, PhListBullets, PhSparkle, PhWarningCircle } from "
 import { api, errorCode } from "@/api/client";
 import type { Answer, Summary } from "@/api/types";
 import { errText } from "@/i18n";
-import { seekTo, session } from "@/composables/session";
+import { seekTo, session, useAiChapters } from "@/composables/session";
 import { formatTime } from "@/lib/time";
 
 const { t } = useI18n();
@@ -40,6 +40,8 @@ async function summarize() {
   sumErr.value = "";
   try {
     summary.value = await api.summary(session.link, session.tl);
+    // A video whose owner listed no chapters gets these in the transcript and on the timeline.
+    useAiChapters(summary.value.chapters);
     needsSetup.value = false;
   } catch (e) {
     fail(e, sumErr);

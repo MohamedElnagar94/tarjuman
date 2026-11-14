@@ -39,6 +39,16 @@ ARABIC = {
 }
 
 
+# A 30-second voice note with three sentences, and one with no transcript yet.
+VOICE = [
+    {"start": 1.0, "end": 6.0, "text": "This is the start of my voice note."},
+    {"start": 12.0, "end": 18.0, "text": "Here is the middle part."},
+    {"start": 23.0, "end": 28.0, "text": "And this is the end."},
+]
+# What the fake AI summary suggests for the voice note: three chapters.
+VOICE_CHAPTERS = [{"start": 0, "title": "البداية"}, {"start": 11, "title": "الوسط"}, {"start": 22, "title": "النهاية"}]
+
+
 def silence(seconds: float) -> bytes:
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
@@ -73,7 +83,24 @@ def make_services() -> Services:
     )
     item.size = item.path.stat().st_size
     item.segments, item.lang, item.duration = SEGMENTS, "en", 9.0
+
+    for title, segments in (("Voice note", VOICE), ("Silent memo", [])):
+        note = s.media.new_item(title, "m4a", "upload")
+        subprocess.run(
+            [ffmpeg_exe(), "-loglevel", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=220:duration=30", "-c:a", "aac", str(note.path)],
+            check=True,
+        )
+        note.size = note.path.stat().st_size
+        note.duration, note.kind = 30.0, "audio"
+        if segments:
+            note.segments, note.lang = segments, "en"
     s.media.save()
+
+    # The AI isn't set up in tests; its summary is a fixed one so the chapters it suggests can be checked.
+    async def summary(data, tl):
+        return {"summary": "ملخص قصير.", "points": ["نقطة"], "chapters": VOICE_CHAPTERS if data.title == "Voice note" else []}
+
+    s.insights.summary = summary
     return s
 
 

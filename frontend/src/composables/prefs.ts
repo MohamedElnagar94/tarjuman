@@ -36,6 +36,8 @@ export interface Prefs {
   glow: boolean;
   /** The timeline under the video: where people speak, what is translated, a preview on hover. */
   timeline: boolean;
+  /** Chapter headings in the transcript and chapter marks on the timeline. */
+  chapters: boolean;
   /** Dim everything but the video. */
   cinema: boolean;
   learn: boolean;
@@ -77,6 +79,7 @@ export const DEFAULT_PREFS: Prefs = {
   karaoke: true,
   glow: true,
   timeline: true,
+  chapters: true,
   cinema: false,
   learn: false,
   loop: false,

@@ -14,7 +14,8 @@ import {
   PhWaveform,
 } from "@phosphor-icons/vue";
 import WaveformBar from "./WaveformBar.vue";
-import { armLoop, applySpeed, cues, seekTo, session, stepLine, togglePlay } from "@/composables/session";
+import { armLoop, applySpeed, chapters, cues, seekTo, session, stepLine, togglePlay } from "@/composables/session";
+import { chapterAt } from "@/lib/chapters";
 import { usePrefs } from "@/composables/prefs";
 import { formatTime } from "@/lib/time";
 
@@ -28,6 +29,12 @@ const props = defineProps<{
 }>();
 
 const { t, te } = useI18n();
+const marks = computed(() => (prefs.chapters ? chapters.value.map((c) => c.start) : []));
+const chapterNow = computed(() => {
+  if (!prefs.chapters) return "";
+  const k = chapterAt(chapters.value, session.time);
+  return k >= 0 ? chapters.value[k]!.title : "";
+});
 const prefs = usePrefs();
 const el = ref<HTMLAudioElement | null>(null);
 const viz = ref<HTMLCanvasElement | null>(null);
@@ -240,6 +247,7 @@ const lang = computed(() => {
           :duration="length"
           :regions="regions"
           :active="session.curIdx"
+          :marks="marks"
           interactive
           :label="t('watch.audio.seek')"
           @seek="onSeek"
@@ -247,6 +255,9 @@ const lang = computed(() => {
       </div>
       <div class="controls">
         <span class="time">{{ formatTime(session.time) }}<i>/</i>{{ formatTime(length) }}</span>
+        <Transition name="fade" mode="out-in">
+          <span v-if="chapterNow" :key="chapterNow" class="chap-now" dir="auto">{{ t("watch.timeline.chapter", { title: chapterNow }) }}</span>
+        </Transition>
         <div class="buttons">
           <button type="button" class="ctl" :aria-label="t('watch.audio.back5')" :title="t('watch.audio.back5')" @click="skip(-5)">
             <PhArrowCounterClockwise :size="20" /><small>5</small>
@@ -492,6 +503,28 @@ const lang = computed(() => {
   .ctl,
   .chip {
     transition: none;
+  }
+}
+.chap-now {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: rgba(226, 232, 255, 0.78);
+  max-width: 40%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 160ms var(--ease);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+@media (max-width: 600px) {
+  .chap-now {
+    display: none;
   }
 }
 </style>
