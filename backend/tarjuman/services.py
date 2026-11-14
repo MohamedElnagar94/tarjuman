@@ -14,6 +14,7 @@ from .dub.live import LivePlanner
 from .jobs.manager import JobManager
 from .learn.vocab import Vocab
 from .media.library import MediaLibrary
+from .translate.local import LocalMT
 from .translate.service import Translator
 from .voice.pronounce import PronunciationDict
 from .voice.service import TtsService
@@ -25,7 +26,8 @@ class Services:
         c = config.CACHE
         self.media = MediaLibrary(config.MEDIA_DIR)
         self.captions = CaptionService(self.media)
-        self.translator = Translator(c / "translations.json", c / "edits.json")
+        self.local_mt = LocalMT(config.MODELS / "opus", config.DATA / "mt.json")
+        self.translator = Translator(c / "translations.json", c / "edits.json", self.local_mt)
         self.pronounce = PronunciationDict(config.DATA / "pronounce.json")
         self.tts = TtsService(config.TTS_DIR, config.PIPER_MODEL, self.pronounce)
         self.tts.cache_limit = config.VOICE_CACHE_BYTES
@@ -40,7 +42,7 @@ class Services:
         self.vocab = Vocab(config.DATA / "vocab.json")
 
     def load(self) -> None:
-        for part in (self.media, self.translator, self.pronounce, self.tts, self.ai, self.asr, self.writer, self.vocab):
+        for part in (self.media, self.local_mt, self.translator, self.pronounce, self.tts, self.ai, self.asr, self.writer, self.vocab):
             part.load()
 
     def flush(self) -> None:

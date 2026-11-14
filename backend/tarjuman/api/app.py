@@ -21,7 +21,7 @@ from ..services import Services
 from .deps import fail
 from .extensions import ExtensionTrust, extension_id
 from .pairing import COOKIE, HEADER, Pairing
-from .routes import ai, asr, jobs, learn, media, system, videos
+from .routes import ai, asr, jobs, learn, media, system, videos, mt
 from .security import LOCAL_ONLY, OPEN_TO_ALL, is_loopback, post_allowed, request_allowed
 
 log = logging.getLogger("tarjuman")
@@ -158,7 +158,7 @@ def create_app(
             status_code=500,
         )
 
-    for r in (system.router, videos.router, jobs.router, media.router, learn.router, ai.router, asr.router):
+    for r in (system.router, videos.router, jobs.router, media.router, learn.router, ai.router, asr.router, mt.router):
         app.include_router(r)
 
     @app.get("/pair", include_in_schema=False)

@@ -317,3 +317,13 @@ export interface Failure {
   code: string;
   message?: string;
 }
+
+/** Offline translation models (backend translate/local.py). */
+export interface MtState {
+  ok: true;
+  prefer: "online" | "offline";
+  installed: string[];
+  bytes: Record<string, number>;
+  available: string[];
+  installs: Record<string, { status: "working" | "error" | "done"; progress: number; phase: string; error: string }>;
+}

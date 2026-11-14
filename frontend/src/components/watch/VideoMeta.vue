@@ -10,7 +10,7 @@ import { toast } from "@/composables/toast";
 import { formatTime } from "@/lib/time";
 import { langName as nameOf } from "@/lib/langs";
 
-const { t, te, locale } = useI18n();
+const { t, locale } = useI18n();
 // An English title on an Arabic page still lines up with the rest of the page.
 const align = computed(() => ({ textAlign: locale.value === "ar" ? ("right" as const) : ("left" as const) }));
 

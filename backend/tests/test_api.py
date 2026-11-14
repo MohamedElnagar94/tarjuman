@@ -498,3 +498,11 @@ def test_chapters_come_translated_and_are_never_an_error(client, services, monke
     monkeypatch.setattr(services.captions, "chapters", broken)
     assert client.get("/api/chapters", params={"url": "abcdefghijk"}).json() == {"ok": True, "chapters": []}
     assert client.get("/api/chapters", params={"url": "media:abc"}).json() == {"ok": True, "chapters": []}
+
+
+def test_offline_translation_api_lists_models_and_refuses_unknown_pairs(client):
+    r = client.get("/api/mt").json()
+    assert r["ok"] and r["prefer"] in ("online", "offline") and "en-ar" in r["available"]
+    assert client.post("/api/mt/install", json={"pair": "xx-yy"}).status_code == 404
+    assert client.post("/api/mt", json={"prefer": "offline"}).json()["prefer"] == "offline"
+    client.post("/api/mt", json={"prefer": "online"})

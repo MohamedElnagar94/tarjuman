@@ -28,6 +28,7 @@ import type {
   VocabItem,
   Voice,
   WhisperJob,
+  MtState,
 } from "./types";
 import type { Chapter } from "@/lib/chapters";
 
@@ -261,6 +262,10 @@ export const api = {
   retranscribe: (id: string) => post<{ ok: true }>("/api/media/retranscribe", { id }),
 
   /** With the length of a recording, "effective" is what that recording would use. */
+  mt: () => get<MtState>("/api/mt"),
+  setMt: (prefer: "online" | "offline") => post<MtState>("/api/mt", { prefer }),
+  installMt: (pair: string) => post<MtState>("/api/mt/install", { pair }),
+  deleteMt: (pair: string) => post<MtState>("/api/mt/delete", { pair }),
   asr: (duration?: number, use: AsrUse = "audio") => get<AsrState>("/api/asr", { use, ...(duration ? { duration: Math.round(duration) } : {}) }),
   setAsr: (b: Partial<AsrSettings>) => post<AsrState>("/api/asr", b),
   prepareAsr: () => post<AsrState & { started: boolean }>("/api/asr/prepare", {}),

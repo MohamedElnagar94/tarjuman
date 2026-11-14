@@ -573,7 +573,8 @@
       "desktop": "Desktop",
       "updates": "Updates",
       "transcription": "Transcription",
-      "watching": "Watching"
+      "watching": "Watching",
+      "offline": "Offline translation"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -1038,5 +1039,27 @@
     "twoInMemory": "Two models stay in memory, so moving between a recording, a video and live captions needs no reload.",
     "oneInMemory": "This computer's memory holds one model at a time: switching between two reloads it.",
     "otherFor": "Use it for:"
+  },
+  "mt": {
+    "lead": "Translation models that run on your computer, from the University of Helsinki (OPUS-MT). Each language is downloaded once, and the text never leaves your computer.",
+    "honest": "In our test on an English talk: about 10 meaning errors in 50 lines, against about 3 with Google. So they are the fallback when Google stops or the internet is down, or the choice for anyone who wants nothing to leave the computer.",
+    "prefer": "When to use them",
+    "online": "Only when the internet fails",
+    "offline": "Always, before Google",
+    "onlineHint": "Google first, as now. When it refuses or the internet is down, the downloaded models translate.",
+    "offlineHint": "The downloaded models first for the languages they cover, Google for the rest.",
+    "toLangs": "From English to",
+    "fromLangs": "From other languages to English",
+    "fromHint": "To translate through English: a Chinese video into Arabic needs “Chinese → English” and “English → Arabic”.",
+    "get": "Download",
+    "remove": "Delete",
+    "installed": "Downloaded · {size}",
+    "downloading": "Downloading {pct}%",
+    "converting": "Preparing it for your computer…",
+    "failed": "Download failed",
+    "retry": "Try again",
+    "size": "About 0.3–0.9 GB to download per language, 80–250 MB once prepared.",
+    "none": "The other target languages work online only: there is no official model from English for them yet.",
+    "search": "Find a language"
   }
 }

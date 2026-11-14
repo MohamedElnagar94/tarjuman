@@ -2,7 +2,7 @@
 import { computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform, PhMonitorPlay } from "@phosphor-icons/vue";
+import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform, PhMonitorPlay, PhTranslate } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
 import AiSettings from "@/components/settings/AiSettings.vue";
 import PhonePairing from "@/components/settings/PhonePairing.vue";
@@ -13,18 +13,19 @@ import DesktopLifecycle from "@/components/settings/DesktopLifecycle.vue";
 import UpdatesPanel from "@/components/settings/UpdatesPanel.vue";
 import PronounceEditor from "@/components/settings/PronounceEditor.vue";
 import TranscriptionSettings from "@/components/settings/TranscriptionSettings.vue";
+import OfflineTranslation from "@/components/settings/OfflineTranslation.vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import SubtitleOverlay from "@/components/SubtitleOverlay.vue";
 import type { Quality } from "@/api/types";
 import { SUB_SIZE, T_SIZE, usePrefs, type ThemePref, type UiLang } from "@/composables/prefs";
 import { useVoices } from "@/composables/voices";
-import { langOptions } from "@/lib/langs";
+import { langOptions as targetLangOptions } from "@/lib/langs";
 import { FONTS } from "@/lib/fonts";
 
 const { t, locale } = useI18n();
 // Every language, named in the interface's language.
-const tlOptions = computed(() => langOptions(locale.value));
+const tlOptions = computed(() => targetLangOptions(locale.value));
 const prefs = usePrefs();
 const { voices } = useVoices();
 
@@ -34,6 +35,7 @@ onMounted(() => (document.title = t("settings.title") + " | " + t("app.name")));
 const SECTIONS = [
   { id: "ai", icon: PhSparkle },
   { id: "transcription", icon: PhWaveform },
+  { id: "offline", icon: PhTranslate },
   { id: "phone", icon: PhDeviceMobile },
   { id: "extensions", icon: PhPuzzlePiece },
   { id: "pronounce", icon: PhSpeakerHigh },
@@ -113,6 +115,11 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
         <section id="transcription" v-show="active === 'transcription'" class="panel sec" aria-labelledby="h-asr">
           <h2 id="h-asr" class="panel__title">{{ t("settings.s.transcription") }}</h2>
           <TranscriptionSettings />
+        </section>
+
+        <section id="offline" v-show="active === 'offline'" class="panel sec" aria-labelledby="h-off">
+          <h2 id="h-off" class="panel__title">{{ t("settings.s.offline") }}</h2>
+          <OfflineTranslation />
         </section>
 
         <section id="phone" v-show="active === 'phone'" class="panel sec" aria-labelledby="h-phone">

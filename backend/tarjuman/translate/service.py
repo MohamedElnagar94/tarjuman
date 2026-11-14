@@ -10,6 +10,7 @@ from ..captions.models import Cue
 from ..core.store import Debounced, read_json, write_json
 from ..core.text import norm_lang
 from ..voice.gate import PriorityGate
+from .local import LocalMT
 from .providers import Google, GoogleExtension, MyMemory
 
 BATCH_CHARS = 1400
@@ -45,7 +46,7 @@ async def map_limit(items: list, limit: int, fn) -> list:
 
 
 class Translator:
-    def __init__(self, cache_file: Path, edits_file: Path):
+    def __init__(self, cache_file: Path, edits_file: Path, local: "LocalMT | None" = None):
         self.cache_file = cache_file
         self.edits_file = edits_file
         self.cache: dict[str, str] = {}
@@ -56,7 +57,12 @@ class Translator:
         # the background translation of a long video's subtitles (1).
         self.gate = PriorityGate(3)
         self.mymemory = MyMemory()
-        self.stats = {"google": 0, "mymemory": 0, "failed": 0, "batches": 0, "lastProvider": ""}
+        # Models on this computer (translate/local.py): first when the user chose "offline", otherwise
+        # the fallback when Google refuses. Their lines are kept in memory only, so a Google translation
+        # replaces them once the internet is back.
+        self.local = local
+        self.local_cache: dict[str, str] = {}
+        self.stats = {"google": 0, "mymemory": 0, "local": 0, "failed": 0, "batches": 0, "lastProvider": ""}
         self._save = Debounced(self._write_cache, 1.2)
         self.edit_listeners: list[Callable[[str, str, str], None]] = []
 
@@ -79,7 +85,8 @@ class Translator:
 
     def lookup(self, tl: str, text: str) -> str | None:
         tl = norm_lang(tl)
-        return self.edits.get(f"{tl}|{text}") or self.cache.get(f"{tl}|{text}")
+        key = f"{tl}|{text}"
+        return self.edits.get(key) or self.cache.get(key) or self.local_cache.get(key)
 
     def set_edit(self, tl: str, src: str, ar: str) -> None:
         key = f"{norm_lang(tl)}|{src}"
@@ -148,8 +155,30 @@ class Translator:
                 out[t] = tr
                 self.cache[f"{tl}|{t}"] = tr
 
+        async def run_local(chunk: list[str]) -> bool:
+            if not self.local:
+                return False
+            try:
+                res = await self.local.translate(chunk, sl, tl)
+            except Exception:  # noqa: BLE001 — a broken model must not stop the translation
+                res = None
+            if not res:
+                return False
+            for t, tr in zip(chunk, res):
+                if tr:
+                    out[t] = tr
+                    self.local_cache[f"{tl}|{t}"] = tr
+            self.stats["local"] += len(chunk)
+            self.stats["lastProvider"] = "local"
+            return True
+
         async def run(chunk: list[str]) -> None:
             nonlocal done
+            if self.local and self.local.prefer == "offline" and await run_local(chunk):
+                done += len(chunk)
+                if on_progress:
+                    on_progress(done, len(unique))
+                return
             res = None
             for g in self.googles:
                 if g.cooling:
@@ -166,6 +195,8 @@ class Translator:
             if res:
                 for t, tr in zip(chunk, res):
                     put(t, tr)
+            elif await run_local(chunk):
+                pass  # Google refused or there is no internet: this computer's model translated it
             else:
                 for t in chunk:
                     tr = await self.gate.run(priority, lambda t=t: self.translate_text(t, sl, tl))
