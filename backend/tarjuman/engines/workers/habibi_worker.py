@@ -57,6 +57,10 @@ def synth(req: dict) -> dict:
 
 
 def main() -> None:
+    # Answers go to the real stdout; everything the libraries print (download notes, progress) goes to
+    # stderr, so it can never be mistaken for an answer.
+    answers = sys.stdout
+    sys.stdout = sys.stderr
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -66,8 +70,8 @@ def main() -> None:
             res = {"ok": True} if req.get("cmd") == "ping" else synth(req)
         except Exception as e:  # noqa: BLE001
             res = {"ok": False, "error": f"{type(e).__name__}: {e}"[:300]}
-        sys.stdout.write(json.dumps(res) + "\n")
-        sys.stdout.flush()
+        answers.write(json.dumps(res) + "\n")
+        answers.flush()
 
 
 if __name__ == "__main__":
