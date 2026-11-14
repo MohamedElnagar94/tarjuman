@@ -12,6 +12,7 @@ import { errText } from "@/i18n";
 import { usePrefs } from "@/composables/prefs";
 import { toast } from "@/composables/toast";
 import { formatSize, formatTime } from "@/lib/time";
+import { langName as nameOf } from "@/lib/langs";
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -221,7 +222,7 @@ const isVideo = (f: LibraryItem) => f.name.toLowerCase().endsWith(".mp4");
             <div class="field narrow">
               <label for="b-limit">{{ t("library.batch.limit") }}</label>
               <input id="b-limit" v-model.number="batchLimit" class="input" type="number" min="1" max="200" />
-              <span class="field__help">{{ t("library.batch.uses", { lang: t("langs." + prefs.tl), quality: prefs.quality }) }}</span>
+              <span class="field__help">{{ t("library.batch.uses", { lang: nameOf(prefs.tl, locale), quality: prefs.quality }) }}</span>
             </div>
             <div>
               <button class="btn btn--primary" type="submit" :disabled="batchBusy">{{ t("library.batch.start") }}</button>

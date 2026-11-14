@@ -262,3 +262,20 @@ describe("store readiness", () => {
     expect(m.content_scripts[0].matches).toEqual(["*://*.youtube.com/*"]);
   });
 });
+
+import { joinFragments, JOIN_MAX_CHARS } from "../src/shared/cues";
+
+describe("joinFragments: one sentence over several site caption lines", () => {
+  const c = (start: number, end: number, src: string) => ({ start, end, src, ar: "" });
+  it("joins the pieces of a sentence, stops at its end", () => {
+    const got = joinFragments([c(0, 1, "And one day I woke up"), c(1.1, 3, "still not having written a word."), c(3.1, 4, "Then.")]);
+    expect(got.map((x) => x.src)).toEqual(["And one day I woke up still not having written a word.", "Then."]);
+    expect(got[0].end).toBe(3);
+  });
+  it("keeps sound tags, pauses and long lines apart", () => {
+    expect(joinFragments([c(0, 1, "So he said"), c(1.1, 2, "(Laughter)"), c(2.1, 3, "fine.")])).toHaveLength(3);
+    expect(joinFragments([c(0, 1, "So he said"), c(5, 6, "fine.")])).toHaveLength(2);
+    const w = "word ".repeat(25).trim();
+    expect(joinFragments([c(0, 1, w), c(1.1, 2, w), c(2.1, 3, "end.")]).every((x) => x.src.length <= JOIN_MAX_CHARS)).toBe(true);
+  });
+});

@@ -1,11 +1,16 @@
-"""The voices: Microsoft neural voices (free, online) and Piper (offline, Arabic)."""
+"""The voices: Microsoft neural voices (free, online) and Piper (offline, Arabic).
+
+Arabic and the first five languages are listed here by hand; every other language Microsoft speaks comes
+from edge_voices.json (a man and a woman from its main region, generated from edge-tts's voice list)."""
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
-from ..core.text import norm_lang
+from ..core.langs import NAMES, target
 
 # The first voice of each language is its default.
 VOICES: dict[str, list[dict[str, str]]] = {
@@ -47,15 +52,21 @@ VOICES: dict[str, list[dict[str, str]]] = {
     ],
 }
 
+_GENERATED = json.loads((Path(__file__).with_name("edge_voices.json")).read_text(encoding="utf-8"))
+for _lang, _voices in _GENERATED["voices"].items():
+    VOICES.setdefault(_lang, _voices)
+
 # Piper pitch presets (the prototype's voice names keep working).
 PIPER_VOICES = {"piper": 1.0, "natural": 1.0, "deep": 0.9, "female": 1.17}
 
 # Characters per second at rate 0, used to estimate speech length before synthesizing.
-CHARS_PER_SEC = {"edge": {"ar": 13, "default": 15}, "piper": {"ar": 11, "default": 11}}
+# Measured per language with its default voice (edge_voices.json); Arabic keeps the value tuned by use.
+# Languages written without spaces say far fewer characters per second (one character is a word).
+CHARS_PER_SEC = {"edge": {**_GENERATED["cps"], "ar": 13, "default": 15}, "piper": {"ar": 11, "default": 11}}
 
-LANG_LABEL = {"ar": "Arabic", "en": "English", "fr": "French", "es": "Spanish", "de": "German", "tr": "Turkish"}
+LANG_LABEL = NAMES
 
-_EDGE_ID = re.compile(r"^[a-z]{2}-[A-Z]{2}-\w+Neural$")
+_EDGE_ID = re.compile(r"^[a-z]{2,3}-[A-Z]{2}-\w+Neural$")
 
 
 @dataclass(frozen=True)
@@ -71,7 +82,7 @@ class Voice:
 
 
 def voices_for(lang: str, piper_available: bool) -> list[dict[str, str]]:
-    lang = norm_lang(lang) or "ar"
+    lang = target(lang)
     out = [{**v, "engine": "edge"} for v in VOICES.get(lang, VOICES["en"])]
     if lang == "ar" and piper_available:
         out.append({"id": "piper", "name": "كريم", "accent": "أوفلاين", "gender": "m", "engine": "piper"})
@@ -80,7 +91,7 @@ def voices_for(lang: str, piper_available: bool) -> list[dict[str, str]]:
 
 def resolve_voice(voice: str | None, lang: str | None) -> Voice:
     """``voice`` is an Edge voice id, a Piper preset, or ``auto``/``auto-m``/``auto-f``."""
-    lang = norm_lang(lang) or "ar"
+    lang = target(lang)
     v = str(voice or "")
     if v in PIPER_VOICES and lang == "ar":
         return Voice("piper", "piper", lang, PIPER_VOICES[v])
@@ -90,3 +101,17 @@ def resolve_voice(voice: str | None, lang: str | None) -> Voice:
     gender = "f" if v == "auto-f" else "m"
     pick = next((x for x in voices if x["gender"] == gender), voices[0])
     return Voice("edge", pick["id"], lang)
+
+
+def alternatives(v: Voice, limit: int = 2) -> list[Voice]:
+    """Up to ``limit`` other Microsoft voices of the same language, tried when one voice fails (Microsoft's
+    service sometimes refuses a voice for a while): the same accent first (an Egyptian voice for an
+    Egyptian one), then the same gender. Few, so a dead connection doesn't mean a dozen failures in a row."""
+    if v.engine != "edge":
+        return []
+    region = v.voice.rsplit("-", 1)[0]  # "ar-EG"
+    voices = VOICES.get(v.lang, [])
+    me = next((x for x in voices if x["id"] == v.voice), None)
+    rest = [x for x in voices if x["id"] != v.voice]
+    rest.sort(key=lambda x: (not x["id"].startswith(region + "-"), bool(me) and x["gender"] != me["gender"]))
+    return [Voice("edge", x["id"], v.lang) for x in rest[:limit]]

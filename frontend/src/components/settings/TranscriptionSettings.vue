@@ -9,8 +9,9 @@ import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import { api } from "@/api/client";
 import type { AsrSettings, AsrState, AsrUse, CustomModelInfo } from "@/api/types";
 import { toast } from "@/composables/toast";
+import { langName as nameOf } from "@/lib/langs";
 
-const { t, te } = useI18n();
+const { t, locale } = useI18n();
 const st = ref<AsrState | null>(null);
 const remote = ref(false);
 const saving = ref(false);
@@ -192,7 +193,7 @@ const gpuState = computed(() => {
   return { ok: true, text: t("asrSet.gpuReady") };
 });
 
-const langLabel = (c: string) => (c === "auto" ? t("asrSet.langAuto") : te("langs." + c) ? t("langs." + c) : c);
+const langLabel = (c: string) => (c === "auto" ? t("asrSet.langAuto") : nameOf(c, locale.value));
 const sizeLabel = (mb: number) => (mb >= 1000 ? t("asrSet.gb", { n: (mb / 1000).toFixed(1) }) : t("asrSet.mb", { n: mb }));
 const qualityOptions = computed(() => [
   { value: "accurate" as const, label: t("asrSet.accurate") },

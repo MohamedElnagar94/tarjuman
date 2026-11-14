@@ -45,14 +45,30 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
 export const SIZE_MIN = 14;
 export const SIZE_MAX = 48;
 
-export const TARGET_LANGS: { code: string; name: string }[] = [
-  { code: "ar", name: "العربية" },
-  { code: "en", name: "English" },
-  { code: "fr", name: "Français" },
-  { code: "es", name: "Español" },
-  { code: "de", name: "Deutsch" },
-  { code: "tr", name: "Türkçe" },
+/** Every language the app translates and dubs into (the app's core/langs.py has the same list). */
+export const TARGET_CODES = [
+  "ar", "en", "fr", "es", "de", "tr", "af", "am", "az", "bg", "bn", "bs", "ca", "cs", "cy", "da", "el", "et", "fa",
+  "fi", "fil", "ga", "gl", "gu", "he", "hi", "hr", "hu", "id", "is", "it", "ja", "jv", "ka", "kk", "km", "kn", "ko",
+  "lo", "lt", "lv", "mk", "ml", "mn", "mr", "ms", "mt", "my", "nb", "ne", "nl", "pl", "ps", "pt", "ro", "ru", "si",
+  "sk", "sl", "so", "sq", "sr", "su", "sv", "sw", "ta", "te", "th", "uk", "ur", "uz", "vi", "zh", "zu",
 ];
+
+/** The languages for a menu, named in the interface's language: the first six, then the rest by name. */
+export function targetLangs(ui: string): { code: string; name: string }[] {
+  let dn: Intl.DisplayNames | null = null;
+  try {
+    dn = new Intl.DisplayNames([ui], { type: "language" });
+  } catch {}
+  const name = (c: string) => {
+    try {
+      return dn?.of(c) || c;
+    } catch {
+      return c;
+    }
+  };
+  const all = TARGET_CODES.map((code) => ({ code, name: name(code) }));
+  return [...all.slice(0, 6), ...all.slice(6).sort((a, b) => a.name.localeCompare(b.name, ui))];
+}
 
 const RTL_LANGS = new Set(["ar", "fa", "he", "ur", "ps", "ku", "yi"]);
 export const langDir = (code: string): "rtl" | "ltr" => (RTL_LANGS.has(String(code).split("-")[0]) ? "rtl" : "ltr");

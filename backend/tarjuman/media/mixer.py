@@ -22,11 +22,18 @@ from pathlib import Path
 
 import numpy as np
 
+from ..core.langs import BURN_FONT, ISO3
 from .pitch import estimate_f0, pcm_from_video
 
 # Burned subtitles: a font with Arabic shaping, a translucent box, size relative to the video height.
 BURN_STYLE = "FontName=Arial,FontSize=17,BorderStyle=3,Outline=1,Shadow=0,BackColour=&H90000000,MarginV=24"
-LANG3 = {"ar": "ara", "en": "eng", "fr": "fra", "es": "spa", "de": "deu", "tr": "tur"}
+LANG3 = ISO3
+
+
+def burn_style(lang: str | None) -> str:
+    """The burned-in subtitle style with a font that has the language's letters (Japanese, Hindi…)."""
+    font = BURN_FONT.get(str(lang or ""), "Arial")
+    return BURN_STYLE.replace("FontName=Arial", f"FontName={font}")
 MAX_TEMPO = 1.25
 
 
@@ -243,7 +250,7 @@ def main(argv: list[str] | None = None) -> None:
         has_subs = False
     elif burn:
         # libass shapes Arabic correctly. The path is relative: ffmpeg runs from the subtitle's folder.
-        filters += f";[0:v:0]subtitles={os.path.basename(args.subs)}:force_style='{BURN_STYLE}'[vout]"
+        filters += f";[0:v:0]subtitles={os.path.basename(args.subs)}:force_style='{burn_style(args.sub_lang)}'[vout]"
         cmd += ["-filter_complex", filters, "-map", "[vout]", "-map", "[aout]",
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-pix_fmt", "yuv420p"]
     else:

@@ -508,7 +508,9 @@ async def run_subvideo(s: "Services", job: Job, link: str) -> None:
         out_name = f"{safe_name(job.title)}.{o['lang']}.subtitled.mp4"
         mp4 = config.DUBBED / out_name
         total = max(1, data.lengthSeconds or 0)
-        from ..media.mixer import BURN_STYLE
+        from ..media.mixer import burn_style
+
+        style = burn_style(o["lang"])
 
         def on_line(line: str) -> None:
             m = re.search(r"out_time_ms=(\d+)", line)
@@ -523,11 +525,11 @@ async def run_subvideo(s: "Services", job: Job, link: str) -> None:
                 "-filter_complex",
                 "[0:a]aformat=channel_layouts=mono,showwaves=s=1280x300:mode=cline:rate=25:scale=sqrt:draw=full:"
                 "colors=#FFD27A,format=rgba[w];color=c=#121A57:s=1280x720:r=25[bg];[bg][w]overlay=0:170:shortest=1,"
-                f"subtitles=subs.srt:force_style='{BURN_STYLE}'[v]",
+                f"subtitles=subs.srt:force_style='{style}'[v]",
                 "-map", "[v]", "-map", "0:a:0", "-c:a", "aac", "-b:a", "160k",
             ]
         else:
-            picture = ["-vf", f"subtitles=subs.srt:force_style='{BURN_STYLE}'", "-c:a", "copy"]
+            picture = ["-vf", f"subtitles=subs.srt:force_style='{style}'", "-c:a", "copy"]
         try:
             await run_proc(
                 job,

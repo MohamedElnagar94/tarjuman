@@ -8,6 +8,7 @@ import time
 from urllib.parse import quote
 
 from ..core import http
+from ..core.langs import google_code, mymemory_code
 
 GT_ENDPOINTS = (
     "https://translate.googleapis.com/translate_a/single?client=gtx",
@@ -17,6 +18,11 @@ GT_ENDPOINTS = (
 # it keeps refusing (up to 5 minutes), back to 30 s after the next success.
 GT_BACKOFF_MIN = 30.0
 GT_BACKOFF_MAX = 300.0
+
+
+def _g(lang: str | None) -> str:
+    """Google's code for a language ("zh" is "zh-CN", Hebrew is "iw"); "auto" stays as it is."""
+    return google_code(lang) if lang and lang != "auto" else "auto"
 
 
 class Google:
@@ -35,7 +41,7 @@ class Google:
             raise RuntimeError("GT_COOLDOWN")
         last: Exception | None = None
         for base in GT_ENDPOINTS:
-            url = f"{base}&sl={quote(sl or 'auto')}&tl={quote(tl)}&dt=t&q={quote(text)}"
+            url = f"{base}&sl={quote(_g(sl))}&tl={quote(_g(tl))}&dt=t&q={quote(text)}"
             try:
                 j = await http.get_json(url, attempts=2, timeout=20)
                 if isinstance(j, list) and j and isinstance(j[0], list):
@@ -81,7 +87,7 @@ class GoogleExtension(Google):
             raise RuntimeError("GT_COOLDOWN")
         query = "&".join("q=" + quote(t) for t in texts)
         try:
-            j = await http.get_json(f"{self.URL}&sl={quote(sl or 'auto')}&tl={quote(tl)}&{query}", attempts=2, timeout=20)
+            j = await http.get_json(f"{self.URL}&sl={quote(_g(sl))}&tl={quote(_g(tl))}&{query}", attempts=2, timeout=20)
         except http.HttpError as e:
             if e.status == 429:
                 self.cool_until = time.time() + self.backoff
@@ -126,8 +132,8 @@ def split_bytes(text: str, limit: int) -> list[str]:
 
 class MyMemory:
     async def translate(self, text: str, sl: str, tl: str) -> str:
-        src = (sl if sl and sl != "auto" else "en").split("-")[0]
-        tgt = (tl or "ar").split("-")[0]
+        src = mymemory_code((sl if sl and sl != "auto" else "en").split("-")[0])
+        tgt = mymemory_code((tl or "ar").split("-")[0])
         parts = []
         for q in split_bytes(text, MYMEMORY_MAX_BYTES):
             url = f"https://api.mymemory.translated.net/get?q={quote(q)}&langpair={quote(src + '|' + tgt)}"

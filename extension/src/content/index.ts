@@ -10,7 +10,7 @@ import { DubEngine, type DubMedia } from "@tarjuman/dub-engine";
 import { t, useTable } from "@/shared/i18n";
 import { FONT_STACK } from "@/shared/fonts";
 import { mergeSettings, langDir, SIZE_MIN, SIZE_MAX, type Settings } from "@/shared/settings";
-import { cueIndexAt, ytVideoId, isYouTube, normalizeTrackCues, stepLine, type Cue, type TrackInfo } from "@/shared/cues";
+import { cueIndexAt, ytVideoId, isYouTube, joinFragments, normalizeTrackCues, stepLine, type Cue, type TrackInfo } from "@/shared/cues";
 import { b64ToObjectUrl } from "@/shared/audio";
 import type { Reply } from "@/shared/messages";
 import { replyError } from "@/shared/errors";
@@ -1190,7 +1190,7 @@ declare global {
     if (!hiddenTracks.has(track)) hiddenTracks.set(track, track.mode);
     track.mode = "hidden";
     for (let k = 0; k < 25 && !(track.cues && track.cues.length); k++) await sleep(200);
-    return normalizeTrackCues((track.cues || []) as unknown as ArrayLike<VTTCue>);
+    return joinFragments(normalizeTrackCues((track.cues || []) as unknown as ArrayLike<VTTCue>));
   }
 
   function restoreTracks() {
@@ -1225,7 +1225,7 @@ declare global {
     const n = capTrack.cues ? capTrack.cues.length : 0;
     if (n === capCount) return;
     capCount = n;
-    mergeCues(normalizeTrackCues((capTrack.cues || []) as unknown as ArrayLike<VTTCue>));
+    mergeCues(joinFragments(normalizeTrackCues((capTrack.cues || []) as unknown as ArrayLike<VTTCue>)));
   }
 
   /** New cues for the same video: keeps the translations already made. */

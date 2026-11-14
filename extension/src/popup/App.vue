@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { t } from "@/shared/i18n";
+import { t, uiLang } from "@/shared/i18n";
 import { send } from "@/shared/messages";
-import { TARGET_LANGS } from "@/shared/settings";
+import { targetLangs } from "@/shared/settings";
 import { OFFSET_STEPS, formatOffset } from "@/shared/timing";
 import { clock } from "@/shared/cueText";
 import { hasChannel, mergeAuto, setChannel, type AutoStart, type Channel } from "@/shared/autostart";
@@ -13,6 +13,9 @@ import SegmentedControl from "@/ui/SegmentedControl.vue";
 import SizeStepper from "@/ui/SizeStepper.vue";
 import SubtitlePreview from "@/ui/SubtitlePreview.vue";
 import VoicePicker from "@/ui/VoicePicker.vue";
+
+// Every language the app speaks, named in the interface's language.
+const langs = targetLangs(uiLang());
 
 const { settings, status, loaded, voices, previewing, refresh, update, loadVoices, previewVoice } = useExtension();
 
@@ -390,7 +393,7 @@ onMounted(async () => {
           <div class="row">
             <label for="lang" class="lbl"><span>{{ t("lblLang") }}</span></label>
             <select id="lang" class="select" :value="settings.lang" @change="changeLang(($event.target as HTMLSelectElement).value)">
-              <option v-for="l in TARGET_LANGS" :key="l.code" :value="l.code">{{ l.name }}</option>
+              <option v-for="l in langs" :key="l.code" :value="l.code">{{ l.name }}</option>
             </select>
           </div>
           <div class="row">

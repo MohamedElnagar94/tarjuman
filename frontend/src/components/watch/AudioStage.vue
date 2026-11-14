@@ -18,6 +18,7 @@ import { armLoop, applySpeed, chapters, cues, seekTo, session, stepLine, toggleP
 import { chapterAt } from "@/lib/chapters";
 import { usePrefs } from "@/composables/prefs";
 import { formatTime } from "@/lib/time";
+import { langName as nameOf } from "@/lib/langs";
 
 const props = defineProps<{
   src: string;
@@ -28,7 +29,7 @@ const props = defineProps<{
   model: string;
 }>();
 
-const { t, te } = useI18n();
+const { t, locale } = useI18n();
 const marks = computed(() => (prefs.chapters ? chapters.value.map((c) => c.start) : []));
 const chapterNow = computed(() => {
   if (!prefs.chapters) return "";
@@ -216,7 +217,7 @@ onBeforeUnmount(() => {
 const lang = computed(() => {
   const c = session.srcLang;
   if (!c || c === "auto") return "";
-  return te("langs." + c) ? t("langs." + c) : c;
+  return nameOf(c, locale.value);
 });
 </script>
 

@@ -7,6 +7,7 @@ import asyncio
 import hashlib
 import os
 import tempfile
+import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -14,7 +15,7 @@ from ..core.errors import AppError
 from ..core.store import Debounced, read_json, write_json
 from ..core.text import chars_of
 from .audio import decode_to_pcm, duration_of, trim_silence, write_wav
-from .catalog import CHARS_PER_SEC, Voice, resolve_voice, voices_for
+from .catalog import CHARS_PER_SEC, Voice, alternatives, resolve_voice, voices_for
 from .engines import Piper, edge_available, edge_synth, google_tts
 from .gate import PLAY, PriorityGate
 from .pronounce import PronunciationDict
@@ -56,6 +57,8 @@ class TtsService:
         self.meta: dict[str, float] = {}  # clip key -> duration
         self.cps: dict[str, dict] = {}  # voice key -> {"cps": float, "n": int}
         self.stats = {"edge": 0, "piper": 0, "fallback": 0, "google": 0}
+        # Microsoft voices that failed lately (voice id -> when): the next sentences start with another voice.
+        self._failed: dict[str, float] = {}
         self._inflight: dict[str, asyncio.Future] = {}
         self._meta_file = cache_dir / "_meta.json"
         self._save_meta = Debounced(self._write_meta, 3.0)
@@ -110,10 +113,12 @@ class TtsService:
 
     def learn_cps(self, v: Voice, text: str, rate: float, duration: float) -> None:
         n = chars_of(text)
-        if v.engine != "edge" or not duration or duration <= 1 or n < 15:
+        if v.engine != "edge" or not duration or duration <= 1 or n < 8:
             return
         obs = n / (duration * (1 + rate / 100))
-        if obs < 5 or obs > 30:
+        # Plausible for this language: Chinese says ~5 characters a second, English ~19.
+        base = CHARS_PER_SEC["edge"].get(v.lang, CHARS_PER_SEC["edge"]["default"])
+        if obs < base * 0.4 or obs > base * 2.5:
             return
         prev = self.cps.get(v.key)
         self.cps[v.key] = {"cps": prev["cps"] * 0.9 + obs * 0.1 if prev else obs, "n": (prev["n"] if prev else 0) + 1}
@@ -163,13 +168,19 @@ class TtsService:
                 self._set_meta(key, duration)
                 return TtsResult(buf, mime, duration, v.engine)
 
-        attempts = [v]
+        # Another voice of the same language before a different engine; a voice that failed in the last
+        # ten minutes is tried last, so each sentence doesn't wait for it to fail again.
+        now = time.monotonic()
+        attempts = [v, *alternatives(v)]
+        attempts.sort(key=lambda a: now - self._failed.get(a.voice, -1e9) < 600)
         if v.engine == "edge" and v.lang == "ar" and self.piper.available:
             attempts.append(Voice("piper", "piper", "ar", 1.0))
         for a in attempts:
             try:
                 res = await self.gate.run(priority, lambda a=a: self._synth_bytes(text, a, rate if a.engine == "edge" else 0), key if a is v else None)
-            except Exception:  # noqa: BLE001 — try the next engine
+            except Exception:  # noqa: BLE001 — try the next voice or engine
+                if a.engine == "edge":
+                    self._failed[a.voice] = time.monotonic()
                 continue
             if a is v:
                 # A fallback voice is never cached under the requested voice's key; otherwise this

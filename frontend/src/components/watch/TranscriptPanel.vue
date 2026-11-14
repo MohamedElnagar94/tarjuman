@@ -28,6 +28,7 @@ import { chapterAt, chapterHeads, type Chapter } from "@/lib/chapters";
 import { toast } from "@/composables/toast";
 import { litWords, pieces, speakers, startsTurn, type Piece, type SoundKind } from "@/lib/cueText";
 import { formatTime } from "@/lib/time";
+import { isRtl } from "@/lib/langs";
 import { highlight, tokenize } from "@/lib/words";
 
 const { t } = useI18n();
@@ -51,10 +52,9 @@ const matches = computed(() => {
   return set;
 });
 const canEdit = computed(() => !session.already);
-const RTL = new Set(["ar", "fa", "ur", "he", "ps", "yi"]);
-const trDir = computed(() => (RTL.has(session.tl) ? "rtl" : "ltr"));
+const trDir = computed(() => (isRtl(session.tl) ? "rtl" : "ltr"));
 // The original's direction follows its own language (an Arabic recording reads right to left).
-const srcDir = computed(() => (RTL.has(session.srcLang) ? "rtl" : session.srcLang === "auto" ? "auto" : "ltr"));
+const srcDir = computed(() => (isRtl(session.srcLang) ? "rtl" : session.srcLang === "auto" ? "auto" : "ltr"));
 const showSrc = computed(() => prefs.tView !== "tr" || session.sameLang);
 const showTr = computed(() => prefs.tView !== "src" && !session.sameLang);
 

@@ -107,3 +107,35 @@ export function stepLine(cues: readonly Cue[], t: number, delta: -1 | 0 | 1): nu
   if (cur < 0) return 0;
   return Math.min(cues.length - 1, Math.max(0, cur + delta));
 }
+
+/* A sentence written over several caption lines is joined back before translating, so each piece keeps its
+   subject ("still not having written a word" is "I hadn't", not "he hadn't"). Same limits as the app's
+   captions/repair.py join_fragments. */
+const ENDS_SENTENCE = /[.!?…؟。！？।]["'”’)\]]*$/;
+const TAG_ONLY = /^\s*[[(][^\])]{1,40}[\])]\s*$/;
+export const JOIN_MAX_CHARS = 150;
+const JOIN_MAX_SECONDS = 9;
+const JOIN_MAX_GAP = 1.2;
+
+export function joinFragments(cues: readonly Cue[]): Cue[] {
+  const out: Cue[] = [];
+  for (const c of cues) {
+    const text = c.src.trim();
+    if (!text) continue;
+    const prev = out[out.length - 1];
+    if (
+      prev &&
+      !prev.ar &&
+      !c.ar &&
+      !ENDS_SENTENCE.test(prev.src) &&
+      !TAG_ONLY.test(prev.src) &&
+      !TAG_ONLY.test(text) &&
+      c.start - prev.end <= JOIN_MAX_GAP &&
+      prev.src.length + 1 + text.length <= JOIN_MAX_CHARS &&
+      c.end - prev.start <= JOIN_MAX_SECONDS
+    ) {
+      out[out.length - 1] = { ...prev, end: Math.max(prev.end, c.end), src: `${prev.src} ${text}` };
+    } else out.push({ ...c, src: text });
+  }
+  return out;
+}

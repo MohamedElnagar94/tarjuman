@@ -1,0 +1,1092 @@
+{
+ "_note": "Generated from edge-tts list_voices() on 2026-11-14 (scripts in tarjuman-lab); cps measured with each language's first voice.",
+ "voices": {
+  "af": [
+   {
+    "id": "af-ZA-WillemNeural",
+    "name": "Willem",
+    "accent": "ZA",
+    "gender": "m"
+   },
+   {
+    "id": "af-ZA-AdriNeural",
+    "name": "Adri",
+    "accent": "ZA",
+    "gender": "f"
+   }
+  ],
+  "am": [
+   {
+    "id": "am-ET-AmehaNeural",
+    "name": "Ameha",
+    "accent": "ET",
+    "gender": "m"
+   },
+   {
+    "id": "am-ET-MekdesNeural",
+    "name": "Mekdes",
+    "accent": "ET",
+    "gender": "f"
+   }
+  ],
+  "az": [
+   {
+    "id": "az-AZ-BabekNeural",
+    "name": "Babek",
+    "accent": "AZ",
+    "gender": "m"
+   },
+   {
+    "id": "az-AZ-BanuNeural",
+    "name": "Banu",
+    "accent": "AZ",
+    "gender": "f"
+   }
+  ],
+  "bg": [
+   {
+    "id": "bg-BG-BorislavNeural",
+    "name": "Borislav",
+    "accent": "BG",
+    "gender": "m"
+   },
+   {
+    "id": "bg-BG-KalinaNeural",
+    "name": "Kalina",
+    "accent": "BG",
+    "gender": "f"
+   }
+  ],
+  "bn": [
+   {
+    "id": "bn-BD-PradeepNeural",
+    "name": "Pradeep",
+    "accent": "BD",
+    "gender": "m"
+   },
+   {
+    "id": "bn-BD-NabanitaNeural",
+    "name": "Nabanita",
+    "accent": "BD",
+    "gender": "f"
+   },
+   {
+    "id": "bn-IN-BashkarNeural",
+    "name": "Bashkar",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "bn-IN-TanishaaNeural",
+    "name": "Tanishaa",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "bs": [
+   {
+    "id": "bs-BA-GoranNeural",
+    "name": "Goran",
+    "accent": "BA",
+    "gender": "m"
+   },
+   {
+    "id": "bs-BA-VesnaNeural",
+    "name": "Vesna",
+    "accent": "BA",
+    "gender": "f"
+   }
+  ],
+  "ca": [
+   {
+    "id": "ca-ES-EnricNeural",
+    "name": "Enric",
+    "accent": "ES",
+    "gender": "m"
+   },
+   {
+    "id": "ca-ES-JoanaNeural",
+    "name": "Joana",
+    "accent": "ES",
+    "gender": "f"
+   }
+  ],
+  "cs": [
+   {
+    "id": "cs-CZ-AntoninNeural",
+    "name": "Antonin",
+    "accent": "CZ",
+    "gender": "m"
+   },
+   {
+    "id": "cs-CZ-VlastaNeural",
+    "name": "Vlasta",
+    "accent": "CZ",
+    "gender": "f"
+   }
+  ],
+  "cy": [
+   {
+    "id": "cy-GB-AledNeural",
+    "name": "Aled",
+    "accent": "GB",
+    "gender": "m"
+   },
+   {
+    "id": "cy-GB-NiaNeural",
+    "name": "Nia",
+    "accent": "GB",
+    "gender": "f"
+   }
+  ],
+  "da": [
+   {
+    "id": "da-DK-JeppeNeural",
+    "name": "Jeppe",
+    "accent": "DK",
+    "gender": "m"
+   },
+   {
+    "id": "da-DK-ChristelNeural",
+    "name": "Christel",
+    "accent": "DK",
+    "gender": "f"
+   }
+  ],
+  "el": [
+   {
+    "id": "el-GR-NestorasNeural",
+    "name": "Nestoras",
+    "accent": "GR",
+    "gender": "m"
+   },
+   {
+    "id": "el-GR-AthinaNeural",
+    "name": "Athina",
+    "accent": "GR",
+    "gender": "f"
+   }
+  ],
+  "et": [
+   {
+    "id": "et-EE-KertNeural",
+    "name": "Kert",
+    "accent": "EE",
+    "gender": "m"
+   },
+   {
+    "id": "et-EE-AnuNeural",
+    "name": "Anu",
+    "accent": "EE",
+    "gender": "f"
+   }
+  ],
+  "fa": [
+   {
+    "id": "fa-IR-FaridNeural",
+    "name": "Farid",
+    "accent": "IR",
+    "gender": "m"
+   },
+   {
+    "id": "fa-IR-DilaraNeural",
+    "name": "Dilara",
+    "accent": "IR",
+    "gender": "f"
+   }
+  ],
+  "fi": [
+   {
+    "id": "fi-FI-HarriNeural",
+    "name": "Harri",
+    "accent": "FI",
+    "gender": "m"
+   },
+   {
+    "id": "fi-FI-NooraNeural",
+    "name": "Noora",
+    "accent": "FI",
+    "gender": "f"
+   }
+  ],
+  "fil": [
+   {
+    "id": "fil-PH-AngeloNeural",
+    "name": "Angelo",
+    "accent": "PH",
+    "gender": "m"
+   },
+   {
+    "id": "fil-PH-BlessicaNeural",
+    "name": "Blessica",
+    "accent": "PH",
+    "gender": "f"
+   }
+  ],
+  "ga": [
+   {
+    "id": "ga-IE-ColmNeural",
+    "name": "Colm",
+    "accent": "IE",
+    "gender": "m"
+   },
+   {
+    "id": "ga-IE-OrlaNeural",
+    "name": "Orla",
+    "accent": "IE",
+    "gender": "f"
+   }
+  ],
+  "gl": [
+   {
+    "id": "gl-ES-RoiNeural",
+    "name": "Roi",
+    "accent": "ES",
+    "gender": "m"
+   },
+   {
+    "id": "gl-ES-SabelaNeural",
+    "name": "Sabela",
+    "accent": "ES",
+    "gender": "f"
+   }
+  ],
+  "gu": [
+   {
+    "id": "gu-IN-NiranjanNeural",
+    "name": "Niranjan",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "gu-IN-DhwaniNeural",
+    "name": "Dhwani",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "he": [
+   {
+    "id": "he-IL-AvriNeural",
+    "name": "Avri",
+    "accent": "IL",
+    "gender": "m"
+   },
+   {
+    "id": "he-IL-HilaNeural",
+    "name": "Hila",
+    "accent": "IL",
+    "gender": "f"
+   }
+  ],
+  "hi": [
+   {
+    "id": "hi-IN-MadhurNeural",
+    "name": "Madhur",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "hi-IN-SwaraNeural",
+    "name": "Swara",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "hr": [
+   {
+    "id": "hr-HR-SreckoNeural",
+    "name": "Srecko",
+    "accent": "HR",
+    "gender": "m"
+   },
+   {
+    "id": "hr-HR-GabrijelaNeural",
+    "name": "Gabrijela",
+    "accent": "HR",
+    "gender": "f"
+   }
+  ],
+  "hu": [
+   {
+    "id": "hu-HU-TamasNeural",
+    "name": "Tamas",
+    "accent": "HU",
+    "gender": "m"
+   },
+   {
+    "id": "hu-HU-NoemiNeural",
+    "name": "Noemi",
+    "accent": "HU",
+    "gender": "f"
+   }
+  ],
+  "id": [
+   {
+    "id": "id-ID-ArdiNeural",
+    "name": "Ardi",
+    "accent": "ID",
+    "gender": "m"
+   },
+   {
+    "id": "id-ID-GadisNeural",
+    "name": "Gadis",
+    "accent": "ID",
+    "gender": "f"
+   }
+  ],
+  "is": [
+   {
+    "id": "is-IS-GunnarNeural",
+    "name": "Gunnar",
+    "accent": "IS",
+    "gender": "m"
+   },
+   {
+    "id": "is-IS-GudrunNeural",
+    "name": "Gudrun",
+    "accent": "IS",
+    "gender": "f"
+   }
+  ],
+  "it": [
+   {
+    "id": "it-IT-DiegoNeural",
+    "name": "Diego",
+    "accent": "IT",
+    "gender": "m"
+   },
+   {
+    "id": "it-IT-ElsaNeural",
+    "name": "Elsa",
+    "accent": "IT",
+    "gender": "f"
+   }
+  ],
+  "ja": [
+   {
+    "id": "ja-JP-KeitaNeural",
+    "name": "Keita",
+    "accent": "JP",
+    "gender": "m"
+   },
+   {
+    "id": "ja-JP-NanamiNeural",
+    "name": "Nanami",
+    "accent": "JP",
+    "gender": "f"
+   }
+  ],
+  "jv": [
+   {
+    "id": "jv-ID-DimasNeural",
+    "name": "Dimas",
+    "accent": "ID",
+    "gender": "m"
+   },
+   {
+    "id": "jv-ID-SitiNeural",
+    "name": "Siti",
+    "accent": "ID",
+    "gender": "f"
+   }
+  ],
+  "ka": [
+   {
+    "id": "ka-GE-GiorgiNeural",
+    "name": "Giorgi",
+    "accent": "GE",
+    "gender": "m"
+   },
+   {
+    "id": "ka-GE-EkaNeural",
+    "name": "Eka",
+    "accent": "GE",
+    "gender": "f"
+   }
+  ],
+  "kk": [
+   {
+    "id": "kk-KZ-DauletNeural",
+    "name": "Daulet",
+    "accent": "KZ",
+    "gender": "m"
+   },
+   {
+    "id": "kk-KZ-AigulNeural",
+    "name": "Aigul",
+    "accent": "KZ",
+    "gender": "f"
+   }
+  ],
+  "km": [
+   {
+    "id": "km-KH-PisethNeural",
+    "name": "Piseth",
+    "accent": "KH",
+    "gender": "m"
+   },
+   {
+    "id": "km-KH-SreymomNeural",
+    "name": "Sreymom",
+    "accent": "KH",
+    "gender": "f"
+   }
+  ],
+  "kn": [
+   {
+    "id": "kn-IN-GaganNeural",
+    "name": "Gagan",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "kn-IN-SapnaNeural",
+    "name": "Sapna",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "ko": [
+   {
+    "id": "ko-KR-InJoonNeural",
+    "name": "InJoon",
+    "accent": "KR",
+    "gender": "m"
+   },
+   {
+    "id": "ko-KR-SunHiNeural",
+    "name": "SunHi",
+    "accent": "KR",
+    "gender": "f"
+   }
+  ],
+  "lo": [
+   {
+    "id": "lo-LA-ChanthavongNeural",
+    "name": "Chanthavong",
+    "accent": "LA",
+    "gender": "m"
+   },
+   {
+    "id": "lo-LA-KeomanyNeural",
+    "name": "Keomany",
+    "accent": "LA",
+    "gender": "f"
+   }
+  ],
+  "lt": [
+   {
+    "id": "lt-LT-LeonasNeural",
+    "name": "Leonas",
+    "accent": "LT",
+    "gender": "m"
+   },
+   {
+    "id": "lt-LT-OnaNeural",
+    "name": "Ona",
+    "accent": "LT",
+    "gender": "f"
+   }
+  ],
+  "lv": [
+   {
+    "id": "lv-LV-NilsNeural",
+    "name": "Nils",
+    "accent": "LV",
+    "gender": "m"
+   },
+   {
+    "id": "lv-LV-EveritaNeural",
+    "name": "Everita",
+    "accent": "LV",
+    "gender": "f"
+   }
+  ],
+  "mk": [
+   {
+    "id": "mk-MK-AleksandarNeural",
+    "name": "Aleksandar",
+    "accent": "MK",
+    "gender": "m"
+   },
+   {
+    "id": "mk-MK-MarijaNeural",
+    "name": "Marija",
+    "accent": "MK",
+    "gender": "f"
+   }
+  ],
+  "ml": [
+   {
+    "id": "ml-IN-MidhunNeural",
+    "name": "Midhun",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "ml-IN-SobhanaNeural",
+    "name": "Sobhana",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "mn": [
+   {
+    "id": "mn-MN-BataaNeural",
+    "name": "Bataa",
+    "accent": "MN",
+    "gender": "m"
+   },
+   {
+    "id": "mn-MN-YesuiNeural",
+    "name": "Yesui",
+    "accent": "MN",
+    "gender": "f"
+   }
+  ],
+  "mr": [
+   {
+    "id": "mr-IN-ManoharNeural",
+    "name": "Manohar",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "mr-IN-AarohiNeural",
+    "name": "Aarohi",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "ms": [
+   {
+    "id": "ms-MY-OsmanNeural",
+    "name": "Osman",
+    "accent": "MY",
+    "gender": "m"
+   },
+   {
+    "id": "ms-MY-YasminNeural",
+    "name": "Yasmin",
+    "accent": "MY",
+    "gender": "f"
+   }
+  ],
+  "mt": [
+   {
+    "id": "mt-MT-JosephNeural",
+    "name": "Joseph",
+    "accent": "MT",
+    "gender": "m"
+   },
+   {
+    "id": "mt-MT-GraceNeural",
+    "name": "Grace",
+    "accent": "MT",
+    "gender": "f"
+   }
+  ],
+  "my": [
+   {
+    "id": "my-MM-ThihaNeural",
+    "name": "Thiha",
+    "accent": "MM",
+    "gender": "m"
+   },
+   {
+    "id": "my-MM-NilarNeural",
+    "name": "Nilar",
+    "accent": "MM",
+    "gender": "f"
+   }
+  ],
+  "nb": [
+   {
+    "id": "nb-NO-FinnNeural",
+    "name": "Finn",
+    "accent": "NO",
+    "gender": "m"
+   },
+   {
+    "id": "nb-NO-PernilleNeural",
+    "name": "Pernille",
+    "accent": "NO",
+    "gender": "f"
+   }
+  ],
+  "ne": [
+   {
+    "id": "ne-NP-SagarNeural",
+    "name": "Sagar",
+    "accent": "NP",
+    "gender": "m"
+   },
+   {
+    "id": "ne-NP-HemkalaNeural",
+    "name": "Hemkala",
+    "accent": "NP",
+    "gender": "f"
+   }
+  ],
+  "nl": [
+   {
+    "id": "nl-NL-MaartenNeural",
+    "name": "Maarten",
+    "accent": "NL",
+    "gender": "m"
+   },
+   {
+    "id": "nl-NL-ColetteNeural",
+    "name": "Colette",
+    "accent": "NL",
+    "gender": "f"
+   }
+  ],
+  "pl": [
+   {
+    "id": "pl-PL-MarekNeural",
+    "name": "Marek",
+    "accent": "PL",
+    "gender": "m"
+   },
+   {
+    "id": "pl-PL-ZofiaNeural",
+    "name": "Zofia",
+    "accent": "PL",
+    "gender": "f"
+   }
+  ],
+  "ps": [
+   {
+    "id": "ps-AF-GulNawazNeural",
+    "name": "GulNawaz",
+    "accent": "AF",
+    "gender": "m"
+   },
+   {
+    "id": "ps-AF-LatifaNeural",
+    "name": "Latifa",
+    "accent": "AF",
+    "gender": "f"
+   }
+  ],
+  "pt": [
+   {
+    "id": "pt-BR-AntonioNeural",
+    "name": "Antonio",
+    "accent": "BR",
+    "gender": "m"
+   },
+   {
+    "id": "pt-BR-FranciscaNeural",
+    "name": "Francisca",
+    "accent": "BR",
+    "gender": "f"
+   },
+   {
+    "id": "pt-PT-DuarteNeural",
+    "name": "Duarte",
+    "accent": "PT",
+    "gender": "m"
+   },
+   {
+    "id": "pt-PT-RaquelNeural",
+    "name": "Raquel",
+    "accent": "PT",
+    "gender": "f"
+   }
+  ],
+  "ro": [
+   {
+    "id": "ro-RO-EmilNeural",
+    "name": "Emil",
+    "accent": "RO",
+    "gender": "m"
+   },
+   {
+    "id": "ro-RO-AlinaNeural",
+    "name": "Alina",
+    "accent": "RO",
+    "gender": "f"
+   }
+  ],
+  "ru": [
+   {
+    "id": "ru-RU-SvetlanaNeural",
+    "name": "Svetlana",
+    "accent": "RU",
+    "gender": "f"
+   },
+   {
+    "id": "ru-RU-DmitryNeural",
+    "name": "Dmitry",
+    "accent": "RU",
+    "gender": "m"
+   }
+  ],
+  "si": [
+   {
+    "id": "si-LK-SameeraNeural",
+    "name": "Sameera",
+    "accent": "LK",
+    "gender": "m"
+   },
+   {
+    "id": "si-LK-ThiliniNeural",
+    "name": "Thilini",
+    "accent": "LK",
+    "gender": "f"
+   }
+  ],
+  "sk": [
+   {
+    "id": "sk-SK-LukasNeural",
+    "name": "Lukas",
+    "accent": "SK",
+    "gender": "m"
+   },
+   {
+    "id": "sk-SK-ViktoriaNeural",
+    "name": "Viktoria",
+    "accent": "SK",
+    "gender": "f"
+   }
+  ],
+  "sl": [
+   {
+    "id": "sl-SI-RokNeural",
+    "name": "Rok",
+    "accent": "SI",
+    "gender": "m"
+   },
+   {
+    "id": "sl-SI-PetraNeural",
+    "name": "Petra",
+    "accent": "SI",
+    "gender": "f"
+   }
+  ],
+  "so": [
+   {
+    "id": "so-SO-MuuseNeural",
+    "name": "Muuse",
+    "accent": "SO",
+    "gender": "m"
+   },
+   {
+    "id": "so-SO-UbaxNeural",
+    "name": "Ubax",
+    "accent": "SO",
+    "gender": "f"
+   }
+  ],
+  "sq": [
+   {
+    "id": "sq-AL-IlirNeural",
+    "name": "Ilir",
+    "accent": "AL",
+    "gender": "m"
+   },
+   {
+    "id": "sq-AL-AnilaNeural",
+    "name": "Anila",
+    "accent": "AL",
+    "gender": "f"
+   }
+  ],
+  "sr": [
+   {
+    "id": "sr-RS-NicholasNeural",
+    "name": "Nicholas",
+    "accent": "RS",
+    "gender": "m"
+   },
+   {
+    "id": "sr-RS-SophieNeural",
+    "name": "Sophie",
+    "accent": "RS",
+    "gender": "f"
+   }
+  ],
+  "su": [
+   {
+    "id": "su-ID-JajangNeural",
+    "name": "Jajang",
+    "accent": "ID",
+    "gender": "m"
+   },
+   {
+    "id": "su-ID-TutiNeural",
+    "name": "Tuti",
+    "accent": "ID",
+    "gender": "f"
+   }
+  ],
+  "sv": [
+   {
+    "id": "sv-SE-MattiasNeural",
+    "name": "Mattias",
+    "accent": "SE",
+    "gender": "m"
+   },
+   {
+    "id": "sv-SE-SofieNeural",
+    "name": "Sofie",
+    "accent": "SE",
+    "gender": "f"
+   }
+  ],
+  "sw": [
+   {
+    "id": "sw-KE-RafikiNeural",
+    "name": "Rafiki",
+    "accent": "KE",
+    "gender": "m"
+   },
+   {
+    "id": "sw-KE-ZuriNeural",
+    "name": "Zuri",
+    "accent": "KE",
+    "gender": "f"
+   },
+   {
+    "id": "sw-TZ-DaudiNeural",
+    "name": "Daudi",
+    "accent": "TZ",
+    "gender": "m"
+   },
+   {
+    "id": "sw-TZ-RehemaNeural",
+    "name": "Rehema",
+    "accent": "TZ",
+    "gender": "f"
+   }
+  ],
+  "ta": [
+   {
+    "id": "ta-IN-ValluvarNeural",
+    "name": "Valluvar",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "ta-IN-PallaviNeural",
+    "name": "Pallavi",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "te": [
+   {
+    "id": "te-IN-MohanNeural",
+    "name": "Mohan",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "te-IN-ShrutiNeural",
+    "name": "Shruti",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "th": [
+   {
+    "id": "th-TH-NiwatNeural",
+    "name": "Niwat",
+    "accent": "TH",
+    "gender": "m"
+   },
+   {
+    "id": "th-TH-PremwadeeNeural",
+    "name": "Premwadee",
+    "accent": "TH",
+    "gender": "f"
+   }
+  ],
+  "uk": [
+   {
+    "id": "uk-UA-OstapNeural",
+    "name": "Ostap",
+    "accent": "UA",
+    "gender": "m"
+   },
+   {
+    "id": "uk-UA-PolinaNeural",
+    "name": "Polina",
+    "accent": "UA",
+    "gender": "f"
+   }
+  ],
+  "ur": [
+   {
+    "id": "ur-PK-AsadNeural",
+    "name": "Asad",
+    "accent": "PK",
+    "gender": "m"
+   },
+   {
+    "id": "ur-PK-UzmaNeural",
+    "name": "Uzma",
+    "accent": "PK",
+    "gender": "f"
+   },
+   {
+    "id": "ur-IN-SalmanNeural",
+    "name": "Salman",
+    "accent": "IN",
+    "gender": "m"
+   },
+   {
+    "id": "ur-IN-GulNeural",
+    "name": "Gul",
+    "accent": "IN",
+    "gender": "f"
+   }
+  ],
+  "uz": [
+   {
+    "id": "uz-UZ-SardorNeural",
+    "name": "Sardor",
+    "accent": "UZ",
+    "gender": "m"
+   },
+   {
+    "id": "uz-UZ-MadinaNeural",
+    "name": "Madina",
+    "accent": "UZ",
+    "gender": "f"
+   }
+  ],
+  "vi": [
+   {
+    "id": "vi-VN-NamMinhNeural",
+    "name": "NamMinh",
+    "accent": "VN",
+    "gender": "m"
+   },
+   {
+    "id": "vi-VN-HoaiMyNeural",
+    "name": "HoaiMy",
+    "accent": "VN",
+    "gender": "f"
+   }
+  ],
+  "zh": [
+   {
+    "id": "zh-CN-YunjianNeural",
+    "name": "Yunjian",
+    "accent": "CN",
+    "gender": "m"
+   },
+   {
+    "id": "zh-CN-XiaoxiaoNeural",
+    "name": "Xiaoxiao",
+    "accent": "CN",
+    "gender": "f"
+   },
+   {
+    "id": "zh-TW-HsiaoChenNeural",
+    "name": "HsiaoChen",
+    "accent": "TW",
+    "gender": "f"
+   },
+   {
+    "id": "zh-TW-YunJheNeural",
+    "name": "YunJhe",
+    "accent": "TW",
+    "gender": "m"
+   }
+  ],
+  "zu": [
+   {
+    "id": "zu-ZA-ThembaNeural",
+    "name": "Themba",
+    "accent": "ZA",
+    "gender": "m"
+   },
+   {
+    "id": "zu-ZA-ThandoNeural",
+    "name": "Thando",
+    "accent": "ZA",
+    "gender": "f"
+   }
+  ]
+ },
+ "cps": {
+  "af": 16.0,
+  "am": 11.0,
+  "az": 14.0,
+  "bg": 14.3,
+  "bn": 13.8,
+  "bs": 14.2,
+  "ca": 14.0,
+  "cs": 15.3,
+  "cy": 16.0,
+  "da": 15.4,
+  "de": 16.0,
+  "el": 16.9,
+  "en": 19.5,
+  "es": 15.4,
+  "et": 14.3,
+  "fa": 12.7,
+  "fi": 13.9,
+  "fil": 16.0,
+  "fr": 17.6,
+  "ga": 16.6,
+  "gl": 15.9,
+  "gu": 10.2,
+  "he": 10.4,
+  "hi": 10.5,
+  "hr": 14.2,
+  "hu": 14.9,
+  "id": 16.5,
+  "is": 16.2,
+  "it": 15.7,
+  "ja": 5.8,
+  "jv": 14.8,
+  "ka": 13.6,
+  "kk": 15.4,
+  "km": 15.2,
+  "kn": 13.1,
+  "ko": 6.4,
+  "lo": 12.6,
+  "lt": 14.2,
+  "lv": 14.7,
+  "mk": 14.4,
+  "ml": 14.9,
+  "mn": 16.0,
+  "mr": 11.2,
+  "ms": 14.6,
+  "mt": 16.1,
+  "my": 17.3,
+  "nb": 16.2,
+  "ne": 13.1,
+  "nl": 17.2,
+  "pl": 16.1,
+  "ps": 14.7,
+  "pt": 14.9,
+  "ro": 16.4,
+  "ru": 13.7,
+  "si": 15.5,
+  "sk": 14.8,
+  "sl": 13.2,
+  "so": 15.5,
+  "sq": 15.1,
+  "sr": 14.4,
+  "su": 14.1,
+  "sv": 14.2,
+  "sw": 14.5,
+  "ta": 13.5,
+  "te": 13.1,
+  "th": 14.4,
+  "tr": 13.1,
+  "uk": 13.3,
+  "ur": 13.6,
+  "uz": 15.4,
+  "vi": 16.3,
+  "zh": 4.7,
+  "zu": 14.2
+ }
+}

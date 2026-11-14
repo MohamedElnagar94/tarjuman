@@ -12,9 +12,11 @@ import { SUB_SIZE, usePrefs } from "@/composables/prefs";
 import { applySpeed, loadVideo, session } from "@/composables/session";
 import { toast } from "@/composables/toast";
 import { playTts, useVoices, VOICE_SAMPLES, liveVoiceId } from "@/composables/voices";
-import { TARGET_LANGS } from "@/lib/langs";
+import { langOptions } from "@/lib/langs";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+// Every language, named in the interface's language.
+const tlOptions = computed(() => langOptions(locale.value));
 const prefs = usePrefs();
 const { voices, failed } = useVoices();
 const previewing = ref(false);
@@ -59,7 +61,7 @@ const bgLabel = computed(() => (prefs.bgVol > 0 ? t("dub.bg.level", { pct: Math.
       <div class="opt">
         <label class="opt__label" for="o-tl">{{ t("watch.opts.tl") }}</label>
         <select id="o-tl" class="select" :value="prefs.tl" @change="changeTl">
-          <option v-for="l in TARGET_LANGS" :key="l" :value="l">{{ t("langs." + l) }}</option>
+          <option v-for="l in tlOptions" :key="l.value" :value="l.value">{{ l.label }}</option>
         </select>
       </div>
       <div class="opt">

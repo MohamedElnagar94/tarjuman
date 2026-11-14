@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { t, type UiLang } from "@/shared/i18n";
+import { t, uiLang, type UiLang } from "@/shared/i18n";
 import { FONT_IDS, FONT_STACK, type FontId } from "@/shared/fonts";
 import { send } from "@/shared/messages";
-import { TARGET_LANGS, SIZE_MIN, SIZE_MAX, DEFAULT_SETTINGS } from "@/shared/settings";
+import { targetLangs, SIZE_MIN, SIZE_MAX, DEFAULT_SETTINGS } from "@/shared/settings";
 import { PORTS } from "@/shared/server";
 import { SHORTCUT_KEYS, SHORTCUT_ORDER, type ShortcutAction } from "@/shared/shortcuts";
 import { channelFromInput, mergeAuto, setChannel, type AutoMode, type AutoStart } from "@/shared/autostart";
@@ -13,6 +13,9 @@ import ToggleSwitch from "@/ui/ToggleSwitch.vue";
 import SegmentedControl from "@/ui/SegmentedControl.vue";
 import SubtitlePreview from "@/ui/SubtitlePreview.vue";
 import VoicePicker from "@/ui/VoicePicker.vue";
+
+// Every language the app speaks, named in the interface's language.
+const langs = targetLangs(uiLang());
 
 const { settings, status, loaded, voices, previewing, refresh, update, loadVoices, previewVoice } = useExtension();
 
@@ -242,7 +245,7 @@ onMounted(async () => {
             <div class="field">
               <label for="lang">{{ t("lblLang") }}</label>
               <select id="lang" class="select" :value="settings.lang" @change="changeLang(($event.target as HTMLSelectElement).value)">
-                <option v-for="l in TARGET_LANGS" :key="l.code" :value="l.code">{{ l.name }}</option>
+                <option v-for="l in langs" :key="l.code" :value="l.code">{{ l.name }}</option>
               </select>
             </div>
             <div class="field">

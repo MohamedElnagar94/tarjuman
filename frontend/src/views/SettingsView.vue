@@ -19,10 +19,12 @@ import SubtitleOverlay from "@/components/SubtitleOverlay.vue";
 import type { Quality } from "@/api/types";
 import { SUB_SIZE, T_SIZE, usePrefs, type ThemePref, type UiLang } from "@/composables/prefs";
 import { useVoices } from "@/composables/voices";
-import { TARGET_LANGS } from "@/lib/langs";
+import { langOptions } from "@/lib/langs";
 import { FONTS } from "@/lib/fonts";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+// Every language, named in the interface's language.
+const tlOptions = computed(() => langOptions(locale.value));
 const prefs = usePrefs();
 const { voices } = useVoices();
 
@@ -135,7 +137,7 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
             <div class="opt">
               <label class="opt__label" for="d-tl">{{ t("watch.opts.tl") }}</label>
               <select id="d-tl" v-model="prefs.tl" class="select sel">
-                <option v-for="l in TARGET_LANGS" :key="l" :value="l">{{ t("langs." + l) }}</option>
+                <option v-for="l in tlOptions" :key="l.value" :value="l.value">{{ l.label }}</option>
               </select>
             </div>
             <div class="opt">

@@ -7,6 +7,7 @@ import time
 from typing import TYPE_CHECKING
 
 from .. import config
+from ..core import langs
 from ..core.errors import AppError
 from ..core.text import is_media_link, media_id_of, norm_lang, parse_video_id
 from urllib.parse import quote
@@ -65,7 +66,9 @@ class CaptionService:
         t = norm_lang(tl)
 
         def lang(x: dict) -> str:
-            return norm_lang(x.get("languageCode"))
+            # YouTube's codes: "iw" is Hebrew, "zh-Hans" Chinese, "fil" Filipino.
+            code = x.get("languageCode")
+            return langs.target(code, default=norm_lang(code))
 
         target = next((x for x in tracks if lang(x) == t and not x.get("kind")), None) or next(
             (x for x in tracks if lang(x) == t), None

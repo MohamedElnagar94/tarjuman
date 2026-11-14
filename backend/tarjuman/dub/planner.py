@@ -16,7 +16,8 @@ def jround(x: float) -> int:
     return math.floor(x + 0.5)
 
 
-SENT_END = re.compile(r"[.!?…؟。][\"'”’)\]]*$")
+# Also the full-width ！？ of Chinese and Japanese, and the danda । of Hindi, Bengali, Marathi and Nepali.
+SENT_END = re.compile(r"[.!?…؟。！？।][\"'”’)\]]*$")
 
 # Filler makes the translation longer without adding meaning. Removed from the dub text only, and
 # only where removing it can't change the meaning ("not just a tool" must not become "not a tool").
