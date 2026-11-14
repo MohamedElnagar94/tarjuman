@@ -1,6 +1,7 @@
 // End-to-end check for sites that play the video inside an iframe from another site (most movie and
 // anime sites): the page is served on 127.0.0.1 and its player on localhost, so they are different
 // origins. The player has Japanese captions. Expects the overlay inside the player frame, in Arabic.
+//   Build first with TARJUMAN_OPEN_SHADOW=1 node scripts/build.mjs (the store build closes the overlay to pages).
 //   node scripts/iframe-test.mjs --video=<local mp4>    (a Tarjuman server must run on 127.0.0.1:4318–4327)
 import { chromium } from "playwright-core";
 import { createServer } from "node:http";

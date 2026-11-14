@@ -25,6 +25,8 @@ function script(entry, fileName, format) {
     logLevel: "warn",
     resolve: { alias },
     publicDir: false,
+    // The overlay's shadow root is closed so pages can't read it; the test scripts open it to look inside.
+    define: { __SHADOW_MODE__: JSON.stringify(process.env.TARJUMAN_OPEN_SHADOW ? "open" : "closed") },
     build: {
       outDir: dist,
       emptyOutDir: false,

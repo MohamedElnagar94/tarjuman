@@ -702,5 +702,28 @@
   },
   "pillNotAllowed": {
     "message": "Tarjuman hasn't allowed this extension yet, so lines can't be translated. Open the app → Settings → Extensions, click “Allow”, then start again."
+  },
+  "errDownload": {
+    "message": "The video couldn't be downloaded. Check your connection, or update the app."
+  },
+  "errNoSpeech": {
+    "message": "No speech was heard in this video."
+  },
+  "errBusy": {
+    "message": "The app is busy with another job. Try again in a moment."
+  },
+  "errFfmpeg": {
+    "message": "The app is missing FFmpeg. Reinstall Tarjuman."
+  },
+  "errDiskFull": {
+    "message": "The disk is full. Free some space and try again."
+  },
+  "errGenericCode": {
+    "message": "Something went wrong ($CODE$).",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
   }
 }

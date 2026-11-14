@@ -84,7 +84,7 @@ async function post(pcm: Uint8Array) {
         else if (j.ar) speakFallback(j.ar);
       }
     } else if (j && j.ok === false) {
-      send({ type: "live-status", status: "error", message: j.message || j.code });
+      send({ type: "live-status", status: "error", message: j.message || "", code: j.code || "" });
     }
   } catch {
     send({ type: "live-status", status: "server-down" });
@@ -213,8 +213,9 @@ async function stopCapture() {
 
 /* ---------------- messages ---------------- */
 
-chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
-  if (!msg || msg.target !== "offscreen") return;
+chrome.runtime.onMessage.addListener((msg, sender, respond) => {
+  // Only from the background: a content script in a page must not start or stop the capture.
+  if (!msg || msg.target !== "offscreen" || !(sender.url || "").startsWith(chrome.runtime.getURL(""))) return;
 
   if (msg.type === "start-capture") {
     if (msg.server) server = msg.server;

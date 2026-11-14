@@ -2,6 +2,19 @@
 
 Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__init__.py`.
 
+## Browser extension 3.0.5 (2026-11-14)
+
+- **Course sites (Udemy, Coursera and others):** captions are read again as the site loads more of them, and when the next lesson starts in the same player. Before, the translation could stop after the first part or stay on the previous lesson.
+- **YouTube videos embedded in other sites** are translated from YouTube's own captions, like on YouTube itself. Before, they were treated as a video without captions and transcribed from the sound.
+- **YouTube's miniplayer:** moving to the home page or a search while the video keeps playing in the corner no longer stops the translation. When the miniplayer is closed, the last line goes away.
+- **Full screen:** when a site shows the video element itself full screen (its own fullscreen button, for one), nothing else can be drawn over it. The current line is now shown as the video's own subtitle there.
+- **Dubbing volume:** if you change the video's volume while dubbing (or the player puts its own volume back), the original voice is turned down again from the new level, instead of coming back loud over the dub. Your new volume is kept when dubbing stops.
+- **Error messages follow the extension's language.** People who chose English no longer see the app's Arabic messages; common problems have their own message, and the rest show a short code.
+- **Security:**
+  - Pages can no longer read the subtitles from inside the overlay.
+  - Only the extension's own pages can change its server address, start or stop it, or set auto-start; the code it runs inside web pages can't.
+  - Only the background can control the audio capture.
+
 ## Browser extension 3.0.4 (2026-11-14)
 
 - When the app hasn't allowed this copy of the extension yet (a copy loaded by hand has a different id from the store's), the subtitles no longer wait on "…" forever: the page says how to allow it and shows the original lines meanwhile.

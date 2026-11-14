@@ -10,6 +10,7 @@ export default defineConfig({
   base: "./",
   plugins: [vue()],
   resolve: { alias },
+  define: { __SHADOW_MODE__: JSON.stringify("open") },
   publicDir: "public",
   build: {
     outDir: "dist",

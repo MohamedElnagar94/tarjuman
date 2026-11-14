@@ -42,17 +42,19 @@
 
 ## What it does
 
-Paste a YouTube link, upload a video from your computer, or give it a link from almost any site.
+Paste a YouTube link, upload a video or an audio file from your computer, record your own voice, or give it a link from almost any site.
 
 - **Synced subtitles.** Arabic subtitles appear on the video line by line, with the original language underneath if you want it. Auto-generated captions are rebuilt into whole sentences before they are translated; when they have no punctuation at all, they are cut where the speaker actually pauses, using YouTube's per-word timings.
 - **Live dubbing that sounds like a person.** A neural Arabic voice speaks each sentence in time with the speaker, in Egyptian, Saudi, Emirati, Syrian, Jordanian, Lebanese, Moroccan or Iraqi Arabic. A sentence is never cut off or skipped. With a fast speaker the video slows down slightly while the voice catches up, instead of the voice racing; slow the video yourself and the voice gets that extra time. Words that are spelled the same but read differently are read the way the sentence means (الجُمَل "sentences", not الجَمَل "the camel"), decided by the English original.
 - **Dubbed MP4.** Export the video with the Arabic voice-over. It can remove the original speaker's voice while keeping the music and effects, give each speaker a matching male or female voice, and embed or burn in subtitles.
-- **No captions? No problem.** Whisper transcribes the audio on your computer, then the transcript is translated.
+- **No captions? No problem.** Whisper transcribes the audio on your computer, then the transcript is translated. Settings → Transcription looks at your computer (memory, graphics card, processor), recommends a model and says why, and lets you choose a different model for recordings, for videos and for live listening. For Arabic speech there is a model trained on the dialects (Egyptian, Gulf, Levantine and more), which got far fewer words wrong than the standard models in our test on an Egyptian voice note. You can add a list of words it should get right (names, products, English terms said in Arabic), with what each should be written as, and optionally let your AI provider correct the transcript afterwards. Any Whisper model in CTranslate2 format can be added, from Hugging Face or from a folder on your computer, and downloaded models can be deleted to free space.
+- **Audio files and voice notes.** Upload an MP3, M4A, WAV, OGG, Opus, FLAC or a WhatsApp voice note, or record straight from your microphone. It gets a moving waveform instead of a blank video, with the transcript in sync, and exports as subtitles, a dubbed M4A, or a video with the waveform and burned-in subtitles to share.
 - **Subtitle files.** Download SRT, VTT or plain text, in Arabic or bilingual, or a subtitled MP4 ready to share.
 - **Whole playlists.** Give it a playlist or channel link to make subtitles, subtitled videos or dubbed videos for every video in it.
 - **Ask the video** (optional AI). Get a summary, key points, clickable chapters, and answers that jump to the moment the video covers your question. Works with Claude or any OpenAI-compatible provider (Gemini, Groq, OpenRouter, Ollama).
+- **A watch page you control.** The transcript beside the video lights up each word as it is said, marks a change of speaker and sounds like [music], and can be searched; click any line to jump there. A timeline under the video shows where the lines are, a soft light in the video's own colours glows behind the player, and cinema mode (<kbd>T</kbd>) dims everything else. Every one of these can be turned off or adjusted in Settings → Watching. Keyboard: <kbd>→</kbd> next line, <kbd>←</kbd> previous line, <kbd>R</kbd> repeat, <kbd>K</kbd> play or pause, <kbd>?</kbd> for the full list (they work with an Arabic keyboard layout too).
 - **Learn English.** Tap any word for its meaning, save it with its sentence, review it later, and export to Anki. You can also repeat a sentence, pause after each line, or blur the subtitles to test yourself.
-- **Browser extension.** Use the same subtitles and dubbing on YouTube itself, on sites whose player has captions (Coursera, Udemy and others), on movie and anime sites that embed their player from another site, or on any other site by listening to the tab's audio.
+- **Browser extension.** Use the same subtitles and dubbing on YouTube itself, on YouTube videos embedded in other sites, on sites whose player has captions (Coursera, Udemy and others), on movie and anime sites that embed their player from another site, or on any other site by listening to the tab's audio. On YouTube it adds a transcript beside the video, the meaning of any word you click, line-by-line shortcuts, and a button to continue in the app.
 - **On your phone.** Open the app from any phone on the same Wi-Fi.
 
 Other languages work too: French, Spanish, German, Turkish and English are built in as targets.
@@ -156,7 +158,16 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 1. Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/gcfnomfbpenbhdebopmpdfamlaiodflp) (it also installs in Edge and other Chromium browsers).
    If Chrome says *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, that is because the publisher is new to the Chrome Web Store; Chrome shows it for every new publisher until it has followed the store's policies for a few months, and only to people who turned on Enhanced Safe Browsing. The extension passed the store's review, and its [source code](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) is open. Choose *Continue to install*.
 2. Keep the Tarjuman app running, open a video, and click the Tarjuman icon, or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
-3. Its options page sets the subtitle font and the extension's language (the browser's, Arabic or English).
+3. Its options page sets the subtitle font, the extension's language (the browser's, Arabic or English), the keyboard shortcuts, and whether it starts by itself on YouTube (never, always, or only on channels you choose).
+
+While it translates:
+
+- **Transcript beside the video** on YouTube: every line, the current one highlighted; click a line to jump to it, or search.
+- **Click a word** in the original line for its meaning, and save it to *My words* in the app with its sentence.
+- **Shortcuts:** <kbd>Alt</kbd>+<kbd>→</kbd> next line, <kbd>Alt</kbd>+<kbd>←</kbd> previous line, <kbd>Alt</kbd>+<kbd>↓</kbd> repeat, <kbd>Alt</kbd>+<kbd>S</kbd> subtitles, <kbd>Alt</kbd>+<kbd>V</kbd> dubbing, <kbd>Alt</kbd>+<kbd>T</kbd> transcript.
+- **Timing:** if the lines come before or after the speech, move them with <kbd>Alt</kbd>+<kbd>[</kbd> and <kbd>Alt</kbd>+<kbd>]</kbd> (the dub moves with them).
+- **Open in the app** at the same moment, for exports and the full watch page.
+- It keeps working in YouTube's miniplayer, follows a course site to its next lesson, and still shows the line when a site puts the bare video full screen.
 
 <details>
 <summary>From source instead</summary>
@@ -186,7 +197,8 @@ Tarjuman is local-first. Your videos, subtitles, saved words, settings and API k
 | AI (optional, off by default) | The video's text and your question | The provider you chose | Leave it off, or use a local server such as Ollama |
 | Model downloads | A download request, once | Hugging Face, GitHub | Nothing after the first download |
 | Update checks | A request for the list of newer versions, every few hours | GitHub | Turn off "Check for updates automatically" in Settings → Updates |
-| Speech recognition, music separation, your files | Nothing | – | Always local |
+| Transcript correction (optional, off by default) | The transcript's text | The AI provider you chose | Leave it off; the word list works without it |
+| Speech recognition, music separation, your files and recordings | Nothing | – | Always local |
 
 The same table is in the app, under Settings → Privacy. The API refuses requests from other websites, and the AI settings can only be changed from the computer running the app.
 

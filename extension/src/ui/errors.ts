@@ -1,5 +1,6 @@
 import { t } from "@/shared/i18n";
 import type { Reply } from "@/shared/messages";
+import { replyError } from "@/shared/errors";
 
 /** A start/stop failure from the background, in the user's language. */
 export function startError(r: Reply | null | undefined): string {
@@ -17,7 +18,7 @@ export function startError(r: Reply | null | undefined): string {
     case "NO_TAB":
       return t("errNoTab");
     default:
-      return (r && r.message) || t("errStart");
+      return replyError(r, "errStart");
   }
 }
 

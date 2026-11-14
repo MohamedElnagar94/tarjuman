@@ -351,3 +351,15 @@ test("a part of the plan that never arrives doesn't freeze the video in an endle
   assert.ok(media.t > 40, "the video kept going (t=" + media.t.toFixed(1) + ")");
   assert.ok(lastPlaying > 550, "and was not left paused at the end");
 });
+
+test("a volume the user sets while dubbing is ducked again and restored on stop", () => {
+  const media = fakeMedia();
+  const engine = new DubEngine({ media, loadPlan: async () => ({ blocks: [], end: 0 }), synth: async () => ({}), options: { wait: false, duck: 0.2 }, ...fakes });
+  engine.start();
+  clearInterval(engine.timer);
+  assert.equal(media.vol, 0.2);
+  engine.userVolume(0.5); // the user moved the player's slider
+  assert.equal(media.vol, 0.1, "the original voice stays under the dub");
+  engine.stop();
+  assert.equal(media.vol, 0.5, "the user's volume comes back, not the old one");
+});

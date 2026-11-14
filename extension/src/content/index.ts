@@ -13,6 +13,7 @@ import { mergeSettings, langDir, SIZE_MIN, SIZE_MAX, type Settings } from "@/sha
 import { cueIndexAt, ytVideoId, isYouTube, normalizeTrackCues, stepLine, type Cue, type TrackInfo } from "@/shared/cues";
 import { b64ToObjectUrl } from "@/shared/audio";
 import type { Reply } from "@/shared/messages";
+import { replyError } from "@/shared/errors";
 import { shortcutFor, isTypingTarget, type ShortcutAction } from "@/shared/shortcuts";
 import { captionTime, formatOffset, nudgeOffset, offsetKey, videoTimeFor } from "@/shared/timing";
 import { lineProgress, tokenize, highlight } from "@/shared/cueText";
@@ -97,10 +98,10 @@ declare global {
     const host = document.createElement("div");
     host.id = "__tarjuman_host";
     host.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2147483647;";
-    const shadow = host.attachShadow({ mode: "open" });
+    // Closed: the page's own scripts can't reach into the overlay and read the translation.
+    const shadow = host.attachShadow({ mode: __SHADOW_MODE__ });
     shadow.innerHTML = overlayHtml();
-    // In fullscreen only the fullscreen element is painted, so the overlay must live inside it.
-    (document.fullscreenElement && document.fullscreenElement.tagName !== "VIDEO" ? document.fullscreenElement : document.documentElement).appendChild(host);
+    overlayParent().appendChild(host);
 
     UI.host = host;
     UI.wrap = shadow.querySelector(".wrap");
@@ -145,6 +146,52 @@ declare global {
     applySettings();
     renderOffset();
     updatePosition();
+  }
+
+  /** Where the overlay must live to be painted. In fullscreen only the fullscreen element is drawn, so
+   *  inside it; but nothing can be drawn over a fullscreen <video> (the subtitles then go into a text
+   *  track on it, see mirrorToVideo) nor over a fullscreen <iframe> from outside it. */
+  function overlayParent(): Element {
+    const fe = document.fullscreenElement;
+    return fe && fe.tagName !== "VIDEO" && fe.tagName !== "IFRAME" ? fe : document.documentElement;
+  }
+
+  /* A <video> shown full screen by itself (its own fullscreen button, or a site player that makes the
+     video element fullscreen) paints nothing of the page over it, so the overlay can't be seen. The
+     browser still draws the video's text tracks there: the current line goes into a track of ours. */
+  const fsTracks = new WeakMap<HTMLVideoElement, TextTrack>();
+  let fsCue: VTTCue | null = null;
+  let fsShown = "";
+  let fsVideo: HTMLVideoElement | null = null;
+
+  function mirrorToVideo() {
+    const fe = document.fullscreenElement;
+    const v = S.active && !S.hidden && fe instanceof HTMLVideoElement ? fe : null;
+    const text = v ? [UI.tr?.textContent || "", UI.src?.dataset.text || ""].filter(Boolean).join("\n") : "";
+    if (fsVideo && (fsVideo !== v || !text)) {
+      const old = fsTracks.get(fsVideo);
+      if (old) {
+        if (fsCue) old.removeCue(fsCue);
+        old.mode = "disabled";
+      }
+      fsCue = null;
+      fsShown = "";
+      fsVideo = null;
+    }
+    if (!v || !text || text === fsShown) return;
+    let track = fsTracks.get(v);
+    if (!track) {
+      // A track added by script can't be removed again: one per video, switched off when not needed.
+      track = v.addTextTrack("subtitles", "Tarjuman", S.settings.lang);
+      fsTracks.set(v, track);
+    }
+    track.mode = "showing";
+    if (fsCue) track.removeCue(fsCue);
+    fsCue = new VTTCue(0, 1e7, text);
+    fsCue.line = S.settings.position === "top" ? 1 : -2;
+    track.addCue(fsCue);
+    fsShown = text;
+    fsVideo = v;
   }
 
   function removeOverlay() {
@@ -211,6 +258,7 @@ declare global {
     UI.wrap.style.setProperty("--sub-font", FONT_STACK[S.settings.font]);
     UI.trLine.dir = langDir(S.settings.lang);
     UI.subs.classList.toggle("off", S.hidden);
+    mirrorToVideo();
     const btn = (a: string) => UI.tools.querySelector(`[data-act="${a}"]`);
     const set = (a: string, on: boolean) => {
       btn(a).classList.toggle("on", on);
@@ -332,8 +380,9 @@ declare global {
     UI.tr.textContent = tr || "";
     UI.trLine.classList.toggle("pending", pending);
     const shown = src && S.settings.bilingual ? src : "";
-    if (UI.src.dataset.text === shown) return;
+    if (UI.src.dataset.text === shown) return void mirrorToVideo();
     UI.src.dataset.text = shown;
+    mirrorToVideo();
     UI.src.textContent = "";
     // In synced modes each word of the original can be clicked for its meaning.
     if (!shown || !isSynced()) return void (UI.src.textContent = shown);
@@ -351,14 +400,8 @@ declare global {
     }
   }
 
-  function errorText(res: Reply | null | undefined) {
-    const code = res && res.code;
-    if (code === "NO_SERVER") return t("errNoServerShort");
-    if (code === "UNPLAYABLE") return t("errUnplayable");
-    if (code === "WHISPER_NOT_INSTALLED") return t("errWhisper");
-    if (code === "TIMEOUT") return t("errTimeout");
-    return (res && (res.message || code)) || t("errGeneric");
-  }
+  /** A failure in the user's interface language (the app's own messages are in Arabic). */
+  const errorText = (res: Reply | null | undefined) => replyError(res);
 
   /* ------------------------------------------------------------------ */
   /*  YouTube mode                                                       */
@@ -383,6 +426,8 @@ declare global {
     S.active = true;
     S.mode = "youtube";
     S.videoId = vid;
+    // The server knows watch pages; a player embedded in another site runs at /embed/ID?….
+    if (vid) url = watchUrl(vid);
     // Another video (or a Short) may play in another <video> element: look for it again.
     S.video = null;
     S.whisperUrl = url;
@@ -427,12 +472,28 @@ declare global {
     if (!res.alreadyTranslated) translateLoop(res.srcLang || "auto", gen);
   }
 
+  const watchUrl = (vid: string) => "https://www.youtube.com/watch?v=" + vid;
+
+  /** YouTube's miniplayer: the video keeps playing in a corner while the user browses the home page. */
+  function miniplayerShowing() {
+    if (document.querySelector("ytd-app[miniplayer-is-active], ytd-miniplayer[active]")) return true;
+    const v = document.querySelector<HTMLVideoElement>("ytd-miniplayer video");
+    return !!v && v.offsetWidth > 0;
+  }
+
   const adShowing = () => !!document.querySelector(".html5-video-player.ad-showing");
 
   function startSync() {
     stopSync();
+    let ticks = 0;
     S.timer = setInterval(() => {
       if (!S.active || !isSynced()) return;
+      // About once a second: the site's captions may have grown or changed lesson, and a YouTube video
+      // in the miniplayer may have been closed.
+      if (++ticks % 8 === 0) {
+        if (S.mode === "captions") checkCaptions();
+        else if (S.videoId && !ytVideoId(location.href) && window.top === window && !miniplayerShowing()) return void activateYouTube(location.href);
+      }
       const v = currentVideo();
       if (!v) return;
       const now = captionTime(v.currentTime, S.offset);
@@ -486,6 +547,7 @@ declare global {
         // What is about to be shown first.
         todo.sort((a, b) => Math.abs(S.cues[a].start - now) - Math.abs(S.cues[b].start - now));
         const batch = todo.slice(0, 40);
+        const cuesSent = S.cues;
         const r = await bg("translate", { texts: batch.map((i) => S.cues[i].src), sl, tl: S.settings.lang });
         if (gen !== S.gen) return;
         // The app hasn't allowed this copy of the extension yet (a store copy and a copy loaded by hand
@@ -502,6 +564,20 @@ declare global {
           continue;
         }
         failStreak = 0;
+        if (S.cues !== cuesSent) {
+          // The site's captions were read again meanwhile (more lines loaded): match by text.
+          const got: number[] = [];
+          S.cues.forEach((c, i) => {
+            const tr = r.map![c.src];
+            if (tr && !S.tr.has(i)) {
+              S.tr.set(i, tr);
+              got.push(i);
+            }
+          });
+          transcript?.updateTr(got, S.tr);
+          renderCurrent();
+          continue;
+        }
         for (const i of batch) {
           const tr = r.map && r.map[S.cues[i].src];
           if (tr) S.tr.set(i, tr);
@@ -574,7 +650,7 @@ declare global {
       }
       if (j.status === "error" || j.status === "cancelled") {
         S.whisperJob = "";
-        setPill("Whisper: " + (j.message || t("errGeneric")), { err: true });
+        setPill("Whisper: " + replyError(j), { err: true });
         UI.whisperBtn.disabled = false;
         UI.whisperBtn.textContent = t("btnRetry");
         return;
@@ -637,15 +713,28 @@ declare global {
     getVolume: () => currentVideo()?.volume ?? 1,
     setVolume: (x) => {
       const v = currentVideo();
-      if (v) v.volume = Math.max(0, Math.min(1, x));
+      if (!v) return;
+      v.volume = Math.max(0, Math.min(1, x));
+      ourVolume = v.volume;
     },
   };
+
+  /* While dubbing, the original voice is turned down. If the user (or the player, which re-applies its
+     own volume now and then) changes the volume, that becomes the level to give back on stop, and the
+     original voice is turned down again from it, instead of coming back loud over the dub. */
+  let ourVolume = -1;
+  function onVolumeChange(e: Event) {
+    const v = e.target;
+    if (!dub || !(v instanceof HTMLVideoElement) || v !== currentVideo()) return;
+    if (Math.abs(v.volume - ourVolume) < 0.002) return; // our own change
+    dub.userVolume(v.volume);
+  }
 
   const dubOptions = () => ({ wait: S.settings.dubWait, duck: S.settings.duck });
 
   function startDub() {
     if (dub) return;
-    const url = location.href;
+    const url = S.mode === "youtube" && S.videoId ? watchUrl(S.videoId) : location.href;
     const lang = S.settings.lang;
     const voice = S.settings.voice || "";
     dub = new DubEngine({
@@ -998,7 +1087,7 @@ declare global {
 
   async function openInApp() {
     // The app opens YouTube links only; another site's video would need downloading first.
-    const vid = window.top === window && isYouTube(location.href) ? ytVideoId(location.href) : "";
+    const vid = S.active && S.mode === "youtube" ? S.videoId : window.top === window && isYouTube(location.href) ? ytVideoId(location.href) : "";
     if (!vid) return;
     const v = S.active ? currentVideo() : findVideo();
     const at = Math.floor(v?.currentTime || 0);
@@ -1113,10 +1202,58 @@ declare global {
     hiddenTracks.clear();
   }
 
+  /* Sites like Udemy and Coursera load their captions bit by bit as the video plays, and change lesson
+     in the same player without a new page. The track is looked at again about once a second. */
+  let capTrack: TextTrack | null = null;
+  let capSrc = "";
+  let capCount = 0;
+
+  function checkCaptions() {
+    const v = currentVideo();
+    if (!v || !capTrack || S.loading) return;
+    const src = v.currentSrc || "";
+    if ((src && capSrc && src !== capSrc) || ![...v.textTracks].includes(capTrack)) {
+      // Another lesson: the same language again if the new video has it.
+      const lang = capTrack.language;
+      const next = textTracks().find((x) => x.tr.language === lang) || textTracks()[0];
+      capTrack = null;
+      void activateCaptions(next ? next.i : undefined);
+      return;
+    }
+    // The player switched the track off (or back on screen) when the lesson changed: hidden again.
+    if (capTrack.mode !== "hidden") capTrack.mode = "hidden";
+    const n = capTrack.cues ? capTrack.cues.length : 0;
+    if (n === capCount) return;
+    capCount = n;
+    mergeCues(normalizeTrackCues((capTrack.cues || []) as unknown as ArrayLike<VTTCue>));
+  }
+
+  /** New cues for the same video: keeps the translations already made. */
+  function mergeCues(cues: Cue[]) {
+    if (!cues.length) return;
+    const known = new Map<string, string>();
+    S.cues.forEach((c, i) => {
+      const tr = S.tr.get(i);
+      if (tr) known.set(c.src, tr);
+    });
+    S.cues = cues;
+    S.tr = new Map();
+    S.tries = new Map();
+    cues.forEach((c, i) => {
+      const tr = known.get(c.src);
+      if (tr) S.tr.set(i, tr);
+    });
+    S.idx = -2;
+    transcript?.setCues(S.cues, S.tr, S.srcLang, S.settings.lang);
+    if (S.translatingGen !== S.gen) translateLoop(S.srcLang, S.gen);
+  }
+
   async function activateCaptions(index?: number) {
     const gen = ++S.gen;
     const all = textTracks();
     const entry = all.find((x) => x.i === index) || all[0];
+    capTrack = null;
+    capCount = 0;
     S.active = true;
     S.mode = "captions";
     S.trackIndex = entry ? entry.i : -1;
@@ -1134,8 +1271,13 @@ declare global {
     if (!rafId) rafId = requestAnimationFrame(positionLoop);
     if (!entry) return setPill(t("pillNoSiteCaptions"), { err: true });
     setPill(t("pillReadingSiteCaptions"), { busy: true });
+    S.loading = true;
     const cues = await loadTrackCues(entry.tr);
     if (gen !== S.gen || !S.active) return;
+    S.loading = false;
+    capTrack = entry.tr;
+    capSrc = currentVideo()?.currentSrc || "";
+    capCount = entry.tr.cues ? entry.tr.cues.length : 0;
     if (!cues.length) return setPill(t("pillSiteCaptionsEmpty"), { err: true });
     S.srcLang = (entry.tr.language || "auto").toLowerCase().split("-")[0] || "auto";
     fillCues(cues);
@@ -1227,7 +1369,7 @@ declare global {
       case "live-status":
         if (!S.active || S.mode !== "live") return;
         if (msg.status === "server-down") setPill(t("pillServerDown"), { err: true });
-        else if (msg.status === "error") setPill(msg.message || t("pillLiveError"), { err: true, hideAfter: 4000 });
+        else if (msg.status === "error") setPill(msg.message || msg.code ? replyError(msg, "pillLiveError") : t("pillLiveError"), { err: true, hideAfter: 4000 });
         return;
       default:
         return;
@@ -1249,8 +1391,8 @@ declare global {
     i18nReady.then(() => gen === S.gen && run());
   }
 
-  chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
-    if (!msg || !msg.type || msg.target === "offscreen") return;
+  chrome.runtime.onMessage.addListener((msg, sender, respond) => {
+    if (!msg || !msg.type || msg.target === "offscreen" || sender.id !== chrome.runtime.id) return;
     const res = handle(msg);
     if (res) respond(res);
   });
@@ -1261,8 +1403,11 @@ declare global {
     closeLookup(false);
     restoreTracks();
     cancelWhisper();
+    capTrack = null;
     S.gen++;
     S.active = false;
+    S.loading = false;
+    mirrorToVideo();
     S.video = null;
     S.mode = null;
     S.videoId = "";
@@ -1283,6 +1428,8 @@ declare global {
   // YouTube is a single-page app: reload when the video changes.
   document.addEventListener("yt-navigate-finish", () => {
     S.video = null; // the new page may play in another <video> (Shorts, for one)
+    // Off to the home page or a search with the video still playing in the miniplayer: carry on.
+    if (S.active && S.mode === "youtube" && S.videoId && !ytVideoId(location.href) && miniplayerShowing()) return void transcript?.place();
     if (S.active && S.mode === "youtube") activateYouTube(location.href);
     else if (!S.active) void maybeAutoStart();
     transcript?.place();
@@ -1290,10 +1437,12 @@ declare global {
 
   document.addEventListener("fullscreenchange", () => {
     if (!UI.host) return;
-    const fe = document.fullscreenElement;
-    const target = fe && fe.tagName !== "VIDEO" ? fe : document.documentElement;
+    const target = overlayParent();
     if (UI.host.parentNode !== target) target.appendChild(UI.host);
+    mirrorToVideo();
   });
+  // Media events don't bubble, but a capturing listener on the document still hears them.
+  document.addEventListener("volumechange", onVolumeChange, true);
 
   document.addEventListener("mousemove", onMouseMove, { passive: true });
   // Capture, on window: before the player sees the key (Alt+← would also go back in history).

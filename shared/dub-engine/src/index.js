@@ -138,6 +138,16 @@ export class DubEngine {
     if (o.wait === false && this.holding) this.release();
   }
 
+  /** The user changed the video's volume while the dub runs (the player's slider, a key): that is the
+   *  volume to give back on stop, and the original voice is lowered again under the dub. */
+  userVolume(v) {
+    if (!this.running || !(v >= 0)) return;
+    this.origVolume = v;
+    try {
+      this.media.setVolume(v * this.opts.duck);
+    } catch {}
+  }
+
   emit(state, info) {
     if (state === this.state && !info) return;
     this.state = state;

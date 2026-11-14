@@ -1,6 +1,6 @@
 {
   "name": "tarjuman-extension",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "private": true,
   "description": "Tarjuman browser extension: synced Arabic subtitles and live dubbing on any video, powered by your own local Tarjuman server.",
   "type": "module",

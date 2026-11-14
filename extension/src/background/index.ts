@@ -14,7 +14,7 @@
 import { mergeSettings, type Settings } from "@/shared/settings";
 import { readTable } from "@/shared/i18n";
 import { findServer, probe, normalizeServerUrl, DEFAULT_BASE, type Found } from "@/shared/server";
-import { isYouTube, isProtectedUrl, originPattern, pickTrack, type TrackInfo } from "@/shared/cues";
+import { isYouTube, isProtectedUrl, originPattern, pickTrack, ytVideoId, type TrackInfo } from "@/shared/cues";
 import { bytesToB64 } from "@/shared/audio";
 import { cleanOffset, rememberOffset } from "@/shared/timing";
 import { mergeAuto, shouldAutoStart, type AutoStart } from "@/shared/autostart";
@@ -193,8 +193,9 @@ const frameKey = (url: string) => {
   }
 };
 
-/** The frame that plays the video: the one with the biggest <video>. 0 (the page itself) if none is found. */
-async function findPlayerFrame(tabId: number): Promise<{ frameId: number; url: string }> {
+/** The frame that plays the video: the one with the biggest <video>. 0 (the page itself) if none is found.
+ *  `url` is the frame's key (site and path), `href` its full address. */
+async function findPlayerFrame(tabId: number): Promise<{ frameId: number; url: string; href: string }> {
   try {
     await inject(tabId, true);
   } catch {}
@@ -214,7 +215,7 @@ async function findPlayerFrame(tabId: number): Promise<{ frameId: number; url: s
     const res = r.result;
     if (res && res.area > best.area) best = { frameId: r.frameId, url: res.url, area: res.area };
   }
-  return { frameId: best.frameId, url: best.frameId ? frameKey(best.url) : "" };
+  return { frameId: best.frameId, url: best.frameId ? frameKey(best.url) : "", href: best.frameId ? best.url : "" };
 }
 
 /** Sites of the large iframes on the page (players, not ad pixels), as permission patterns. */
@@ -314,6 +315,22 @@ async function start(tab: chrome.tabs.Tab | undefined): Promise<Reply> {
   // the tab's audio. Either way the overlay runs in the frame that plays the video, so it sees the player
   // and stays visible when that player goes full screen.
   const player = await findPlayerFrame(tabId);
+
+  // A YouTube video embedded in another site (a blog, a course page): it has no text tracks, but YouTube
+  // has its captions, so it is translated like on YouTube itself, inside the player's frame.
+  const embedded = player.frameId && isYouTube(player.href) ? ytVideoId(player.href) : "";
+  if (embedded) {
+    state = { active: true, mode: "youtube", tabId, frameUrl: player.url };
+    saveState();
+    const res = await sendToTab(tabId, activation("https://www.youtube.com/watch?v=" + embedded), player.frameId);
+    if (res && res.ok === false) {
+      state = { ...IDLE };
+      saveState();
+      return { ok: false, code: res.code || "START_FAILED", message: res.message };
+    }
+    return { ok: true, mode: "youtube" };
+  }
+
   const probeRes = await sendToTab(tabId, { type: "probe-captions" }, player.frameId);
   if (probeRes && probeRes.ok === false) return { ok: false, code: "NO_ACCESS", message: probeRes.message };
   const tracks: TrackInfo[] = (probeRes && probeRes.tracks) || [];
@@ -588,7 +605,7 @@ const handlers: Record<string, Handler> = {
     if (!state.active || tabId == null || tabId !== state.tabId) return { ok: true, activate: null };
     const url = String(msg.url || sender.url || "");
     // Only the frame that plays the video carries the overlay (the page itself when there is no player iframe).
-    const wanted = state.mode === "youtube" ? "" : state.frameUrl || "";
+    const wanted = state.frameUrl || "";
     if (wanted ? frameKey(url) !== wanted : (sender.frameId || 0) !== 0) return { ok: true, activate: null };
     if (isYouTube(url) && state.mode !== "youtube" && state.mode !== "live") {
       state = { active: true, mode: "youtube", tabId };
@@ -610,14 +627,44 @@ const handlers: Record<string, Handler> = {
     return { ok: true };
   },
 
-  // From the overlay's stop button.
-  "stop-from-page": () => stop(),
+  // From the overlay's stop button (in the tab that translates).
+  "stop-from-page": (_msg, sender) => (sender.tab?.id === state.tabId ? stop() : { ok: false, code: "NOT_THIS_TAB" }),
 };
+
+/** What a content script (inside a web page) may ask for. The rest (the server address, start and stop,
+ *  auto-start rules, opening browser pages) belongs to the popup, options and welcome pages, so a page
+ *  that somehow drove our content script still couldn't, say, point the extension at another server. */
+const PAGE_ALLOWED = new Set([
+  "i18n",
+  "fetch-cues",
+  "whisper-start",
+  "whisper-poll",
+  "whisper-cancel",
+  "translate",
+  "tts-fetch",
+  "dub-plan",
+  "dub-plan-cues",
+  "set-settings",
+  "open-app-at",
+  "offset-get",
+  "offset-set",
+  "vocab-add",
+  "auto-start",
+  "content-ready",
+  "stop-from-page",
+]);
+
+const fromExtensionPage = (sender: chrome.runtime.MessageSender) => (sender.url || "").startsWith(chrome.runtime.getURL(""));
 
 chrome.runtime.onMessage.addListener((msg, sender, respond) => {
   if (!msg || msg.target === "offscreen") return; // not for us
+  if (sender.id !== chrome.runtime.id) return;
   const h = handlers[msg.type];
   if (!h) return;
+  if (!fromExtensionPage(sender) && !PAGE_ALLOWED.has(msg.type)) {
+    respond({ ok: false, code: "FORBIDDEN" });
+    return;
+  }
   (async () => {
     await ready;
     try {
@@ -649,7 +696,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info) => {
     const pong = await chrome.tabs.sendMessage(tabId, { type: "ping" });
     if (pong && pong.ok) return;
   } catch {}
-  if (state.mode === "youtube") return void stop(); // left YouTube
+  if (state.mode === "youtube" && !state.frameUrl) return void stop(); // left YouTube (an embedded player is injected again)
   try {
     await inject(tabId, !!state.frameUrl); // the new copy sends "content-ready" and is activated from there
   } catch {

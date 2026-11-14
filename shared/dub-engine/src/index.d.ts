@@ -66,6 +66,8 @@ export declare class DubEngine {
   start(): void;
   stop(): void;
   setOptions(o: DubOptions): void;
+  /** The user set the video's volume to v (0–1) while dubbing: ducks from it and restores it on stop. */
+  userVolume(v: number): void;
 }
 
 export declare const SPILL: number;

@@ -1,5 +1,6 @@
 // Loads dist/ into the installed Chrome and screenshots the pages and the overlay.
 //   node scripts/screenshots.mjs [--lang=en|ar] [--out=dir] [--youtube=<video url>] [--video=<local mp4 for the captions test>]
+// Build first with TARJUMAN_OPEN_SHADOW=1 node scripts/build.mjs: the store build closes the overlay to pages.
 // Needs a Tarjuman (or prototype) server running on 127.0.0.1:4318–4327 for the "online" shots.
 import { chromium } from "playwright-core";
 import { createServer } from "node:http";

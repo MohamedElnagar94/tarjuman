@@ -175,7 +175,7 @@ const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matche
 export function createTranscript(opts: TranscriptOptions): Transcript {
   const host = document.createElement("div");
   host.id = "__tarjuman_transcript";
-  const shadow = host.attachShadow({ mode: "open" });
+  const shadow = host.attachShadow({ mode: __SHADOW_MODE__ });
   const dir = uiDir();
   shadow.innerHTML = `<style>${CSS}</style>
     <div class="shell" dir="${dir}">
