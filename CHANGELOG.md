@@ -4,6 +4,18 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 
 ## Unreleased
 
+- **74 languages to translate and dub into**, every language Microsoft's neural voices speak, each with native voices (a man and a woman, and two regions where it matters: Brazilian and European Portuguese, mainland and Taiwan Chinese). Every voice was checked, and the speaking speed of each language was measured to time the dub. Language menus show the names in the interface's language.
+  - If a voice fails, another of the same accent speaks instead (an Egyptian voice for an Egyptian one), and the failing one is tried last for ten minutes.
+  - Burned-in subtitles use a font with the language's letters (Japanese, Korean, Hindi…); sentence ends of Chinese, Japanese and Hindi are recognised.
+  - The voice preview has a sentence in every language.
+- **Whole sentences are translated.** Captions written by people often split one sentence over several lines; translated line by line, the later pieces lost their subject ("still not having written a word" came out as "he hadn't written" instead of "I hadn't"). The lines of a sentence are now joined before translating (up to 150 characters and 9 seconds), in the app and in the extension's course-site captions.
+- **Offline translation** (Settings → Offline translation): the University of Helsinki's OPUS-MT models, downloaded from their official release and prepared on your computer. English to 42 languages and 44 languages to English; other pairs go through English. Used when Google refuses or the internet is down, or always if you choose. In our test they make more meaning errors than Google (about 10 in 50 lines against 3), and the page says so.
+- **Offline voices in 31 languages** (Supertonic 3): ten voices that run on your computer about three times faster than real time, so they can dub live without the internet. They also step in, before Google's voice, when Microsoft's voices fail. The model (about 400 MB) downloads the first time one is used.
+- **Voice packs** (Settings → Voice packs), installed only on request because they need PyTorch:
+  - **The original speaker's voice (experimental):** a dubbed MP4 in the speaker's own voice, cloned from about 12 seconds of the video, in 17 languages. Coqui XTTS-v2, non-commercial licence, accepted before installing. About 3.5 times slower than real time without a modern graphics card.
+  - **Arabic dialect voices (Habibi):** Egyptian, Iraqi, Moroccan, Algerian and Modern Standard Arabic, from the openly licensed models only. Offered on computers with a capable NVIDIA card; elsewhere they are very slow.
+  - The export panel has its own voice for the MP4, so these never slow down live dubbing.
+  - Every voice that can speak faster or slower now gets the dub's pacing pass, not only Microsoft's: with the cloned voice, sentences cut short went from 8 in 11 to 1.
 - **Chapters.** A YouTube video whose owner listed chapters in its description shows them:
   - a heading above the first line of each chapter in the transcript (click it to go there);
   - cuts on the timeline, with the chapter's name when you hover;
@@ -15,6 +27,11 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
   - the "transcribe this recording" screen;
   - choosing a transcription model for each use, and saving the words list;
   - chapters in the transcript.
+
+## Browser extension 3.0.6 (2026-11-14)
+
+- All 74 languages the app translates into can be chosen, named in the extension's language.
+- Course-site captions are joined into whole sentences before translating, so the pieces of a sentence keep their subject.
 
 ## Browser extension 3.0.5 (2026-11-14)
 

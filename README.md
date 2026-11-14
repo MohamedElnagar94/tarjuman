@@ -57,7 +57,11 @@ Paste a YouTube link, upload a video or an audio file from your computer, record
 - **Browser extension.** Use the same subtitles and dubbing on YouTube itself, on YouTube videos embedded in other sites, on sites whose player has captions (Coursera, Udemy and others), on movie and anime sites that embed their player from another site, or on any other site by listening to the tab's audio. On YouTube it adds a transcript beside the video, the meaning of any word you click, line-by-line shortcuts, and a button to continue in the app.
 - **On your phone.** Open the app from any phone on the same Wi-Fi.
 
-Other languages work too: French, Spanish, German, Turkish and English are built in as targets.
+**74 languages** can be translated and dubbed into, each with native voices (Japanese sounds Japanese, Hindi sounds Hindi), and it can all work without the internet:
+
+- **Offline translation:** download a language's model once (Settings → Offline translation) and translation runs on your computer, when Google is unavailable or always.
+- **Offline voices** in 31 languages that dub live on an ordinary laptop.
+- **Voice packs**, installed only if you want them: dub an MP4 in the **original speaker's own voice** (experimental), or in **Arabic dialect voices** (Egyptian, Iraqi, Moroccan…) on a computer with a capable graphics card.
 
 ## Screenshots
 
@@ -191,11 +195,11 @@ Tarjuman is local-first. Your videos, subtitles, saved words, settings and API k
 | Feature | What leaves your computer | Sent to | Without sending anything |
 |---|---|---|---|
 | YouTube captions | The video link | YouTube | Upload a file; it is transcribed locally |
-| Translation | The video's sentences, as text | Google Translate, then MyMemory | None yet; saved sentences still work offline |
-| Dub voice | Each translated sentence and the voice name | Microsoft Edge voices, then Google | Piper, the local Arabic voice |
+| Translation | The video's sentences, as text | Google Translate, then MyMemory | Offline translation models (Settings → Offline translation) |
+| Dub voice | Each translated sentence and the voice name | Microsoft Edge voices, then Google | The offline voices (Supertonic, 31 languages; Piper for Arabic) and the voice packs |
 | Video download | A request for the video | The site that hosts it | A file already on your computer |
 | AI (optional, off by default) | The video's text and your question | The provider you chose | Leave it off, or use a local server such as Ollama |
-| Model downloads | A download request, once | Hugging Face, GitHub | Nothing after the first download |
+| Model downloads | A download request, once | Hugging Face, GitHub, the University of Helsinki (translation models), PyTorch and PyPI (voice packs) | Nothing after the first download |
 | Update checks | A request for the list of newer versions, every few hours | GitHub | Turn off "Check for updates automatically" in Settings → Updates |
 | Transcript correction (optional, off by default) | The transcript's text | The AI provider you chose | Leave it off; the word list works without it |
 | Speech recognition, music separation, your files and recordings | Nothing | – | Always local |
