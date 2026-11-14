@@ -198,6 +198,43 @@ def reconstruct_asr(raw: list[Line]) -> list[Line]:
     return res
 
 
+# A line that ends a thought: sentence punctuation, maybe followed by a closing quote or bracket.
+_ENDS_SENTENCE = re.compile(r"[.!?…؟。！？][\"'”’)\]]*$")
+# Sound tags stay on their own: "(Laughter)", "[Music]".
+_TAG_ONLY = re.compile(r"^\s*[\[(][^\])]{1,40}[\])]\s*$")
+JOIN_MAX_CHARS = 150
+JOIN_MAX_SECONDS = 9.0
+JOIN_MAX_GAP = 1.2
+
+
+def join_fragments(lines: list[Line]) -> list[Line]:
+    """Captions written by people are often one sentence cut over several lines ("And one day I woke up" /
+    "with three days until the deadline," / "still not having written a word,"). Translated line by line,
+    the later pieces lose their subject: "still not having written a word" comes out as "he hadn't written"
+    instead of "I hadn't". Join each sentence back together, within limits that keep it readable on screen."""
+    out: list[Line] = []
+    for ln in lines:
+        text = ln.text.strip()
+        if not text:
+            continue
+        prev = out[-1] if out else None
+        joinable = (
+            prev is not None
+            and not _ENDS_SENTENCE.search(prev.text)
+            and not _TAG_ONLY.match(prev.text)
+            and not _TAG_ONLY.match(text)
+            and ln.start - prev.end <= JOIN_MAX_GAP
+            and len(prev.text) + 1 + len(text) <= JOIN_MAX_CHARS
+            and ln.end - prev.start <= JOIN_MAX_SECONDS
+        )
+        if joinable:
+            # "--" marks a sentence the speaker broke off; it reads as a dash inside the joined line.
+            out[-1] = Line(prev.start, max(prev.end, ln.end), f"{prev.text} {text}")
+        else:
+            out.append(Line(ln.start, ln.end, text))
+    return out
+
+
 def align_source(targets: list[Line], sources: list[Line]) -> list[str]:
     """Attach source-language lines to translated lines. The two tracks split speech in different
     places; attaching every overlapping source line would show a middle line under two targets and

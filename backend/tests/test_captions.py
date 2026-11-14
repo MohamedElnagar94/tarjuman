@@ -225,3 +225,34 @@ def test_chapters_past_the_end_of_the_video_are_dropped():
 def test_emoji_and_brackets_around_the_time_are_not_part_of_the_title():
     desc = "Try it: https://example.com\n⌨️ (0:00) Introduction\n⌨️ (1:45) Installing Python & PyCharm\n⌨️ (0:06:40) Setup [new]"
     assert [c["title"] for c in parse_chapters(desc)] == ["Introduction", "Installing Python & PyCharm", "Setup [new]"]
+
+
+# ---------------- sentences cut over several caption lines ----------------
+
+from tarjuman.captions.models import Line as _L  # noqa: E402
+from tarjuman.captions.repair import JOIN_MAX_CHARS, join_fragments  # noqa: E402
+
+
+def test_a_sentence_cut_over_lines_is_joined_so_it_keeps_its_subject():
+    got = join_fragments([
+        _L(107.7, 109.0, "And one day I woke up"),
+        _L(109.1, 112.0, "with three days until the deadline,"),
+        _L(112.1, 115.4, "still not having written a word,"),
+        _L(116.0, 118.0, "I thought that was the end."),
+        _L(118.1, 120.0, "Then it began."),
+    ])
+    # The fourth line would make it 10.3 s long, past the 9 s limit, so it starts the next subtitle.
+    assert [x.text for x in got] == [
+        "And one day I woke up with three days until the deadline, still not having written a word,",
+        "I thought that was the end.",
+        "Then it began.",
+    ]
+    assert (got[0].start, got[0].end) == (107.7, 115.4)
+
+
+def test_joining_stops_at_tags_pauses_and_length():
+    assert len(join_fragments([_L(0, 1, "So he said"), _L(1.1, 2, "(Laughter)"), _L(2.1, 3, "and left.")])) == 3
+    assert len(join_fragments([_L(0, 1, "So he said"), _L(4, 5, "and left.")])) == 2  # a long pause
+    long = "word " * 25
+    parts = join_fragments([_L(0, 1, long.strip()), _L(1.1, 2, long.strip()), _L(2.1, 3, "end.")])
+    assert all(len(p.text) <= JOIN_MAX_CHARS for p in parts)

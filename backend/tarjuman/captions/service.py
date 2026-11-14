@@ -13,7 +13,7 @@ from urllib.parse import quote
 
 from .chapters import parse_chapters
 from .models import Cue, Line, VideoCues
-from .repair import align_source, reconstruct_asr
+from .repair import align_source, join_fragments, reconstruct_asr
 from .youtube import fetch_track_lines, player_response
 
 if TYPE_CHECKING:
@@ -105,7 +105,8 @@ class CaptionService:
         self._src_urls[video_id] = source["baseUrl"]
         raw = await fetch_track_lines(source["baseUrl"])
         is_asr = source.get("kind") == "asr" or "kind=asr" in source.get("baseUrl", "")
-        lines = reconstruct_asr(raw) if is_asr else raw
+        # Translated by us: whole sentences, so each piece keeps its subject and context.
+        lines = reconstruct_asr(raw) if is_asr else join_fragments(raw)
         return VideoCues(
             videoId=video_id, title=title, author=author, lengthSeconds=length, tl=t,
             alreadyTranslated=False, asr=is_asr, srcLang=lang(source) or "en",
