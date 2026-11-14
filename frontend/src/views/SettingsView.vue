@@ -19,7 +19,7 @@ import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import SubtitleOverlay from "@/components/SubtitleOverlay.vue";
 import type { Quality } from "@/api/types";
 import { SUB_SIZE, T_SIZE, usePrefs, type ThemePref, type UiLang } from "@/composables/prefs";
-import { useVoices } from "@/composables/voices";
+import { useVoices, voiceLabel } from "@/composables/voices";
 import { langOptions as targetLangOptions } from "@/lib/langs";
 import { FONTS } from "@/lib/fonts";
 
@@ -151,7 +151,7 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
               <label class="opt__label" for="d-voice">{{ t("dub.voice") }}<small>{{ t("settings.voiceHint") }}</small></label>
               <select id="d-voice" v-model="prefs.voice" class="select sel">
                 <option value="auto">{{ t("dub.voiceAuto") }}</option>
-                <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.name }} · {{ v.accent }}</option>
+                <option v-for="v in voices" :key="v.id" :value="v.id">{{ voiceLabel(v, t) }}</option>
               </select>
             </div>
             <div class="opt">

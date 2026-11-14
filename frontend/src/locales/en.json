@@ -1061,5 +1061,9 @@
     "size": "About 0.3–0.9 GB to download per language, 80–250 MB once prepared.",
     "none": "The other target languages work online only: there is no official model from English for them yet.",
     "search": "Find a language"
+  },
+  "voice": {
+    "offline": "offline",
+    "firstDownload": "downloads {size} the first time"
   }
 }

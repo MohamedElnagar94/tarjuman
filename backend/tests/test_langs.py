@@ -35,3 +35,14 @@ def test_a_failing_voice_has_a_fallback_of_the_same_accent():
 
 def test_burned_subtitles_use_a_font_with_the_letters():
     assert "Yu Gothic" in burn_style("ja") and "Arial" in burn_style("fr")
+
+
+def test_offline_supertonic_voices_are_offered_for_its_languages():
+    from tarjuman.voice.catalog import voices_for
+
+    ja = voices_for("ja", piper_available=False, supertonic=True, supertonic_ready=False)
+    st = [v for v in ja if v["engine"] == "supertonic"]
+    assert [v["id"] for v in st] == ["st-M1", "st-M2", "st-F1", "st-F2"]
+    assert all(v.get("download") for v in st), "the menu says the first use downloads the model"
+    assert not any(v["engine"] == "supertonic" for v in voices_for("sw", False, True, True)), "not a Supertonic language"
+    assert resolve_voice("st-F1", "ja").engine == "supertonic" and resolve_voice("st-F1", "ja").voice == "F1"

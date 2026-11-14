@@ -29,7 +29,9 @@ export interface Voice {
   name: string;
   accent: string;
   gender: "m" | "f";
-  engine: "edge" | "piper";
+  engine: "edge" | "piper" | "supertonic";
+  /** Supertonic before its model is here: the first sentence downloads it (this size). */
+  download?: string;
 }
 
 export interface DubBlock {

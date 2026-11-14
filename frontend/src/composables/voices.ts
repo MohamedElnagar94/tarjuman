@@ -36,14 +36,7 @@ export function useVoices() {
 /** The voice id sent to the live endpoints: "" lets the server use its default. */
 export const liveVoiceId = (v: string) => (v === "auto" ? "" : v);
 
-export const VOICE_SAMPLES: Record<string, string> = {
-  ar: "أهلًا بك! أنا الصوت الذي سيدبلج هذا الفيديو.",
-  en: "Hi! I'm the voice that will dub this video.",
-  fr: "Bonjour ! Je suis la voix de ce doublage.",
-  es: "¡Hola! Soy la voz de este doblaje.",
-  de: "Hallo! Ich bin die Stimme dieser Synchronisation.",
-  tr: "Merhaba! Bu videoyu ben seslendireceğim.",
-};
+export { VOICE_SAMPLES } from "@/lib/voiceSamples";
 
 let previewEl: HTMLAudioElement | null = null;
 
@@ -55,4 +48,10 @@ export async function playTts(text: string, lang: string, voice = ""): Promise<v
   previewEl = el;
   el.onended = el.onerror = () => URL.revokeObjectURL(a.url);
   await el.play();
+}
+
+/** A voice as a menu shows it: its name and accent, or that it works offline (and downloads once). */
+export function voiceLabel(v: Voice, t: (k: string, p?: Record<string, unknown>) => string): string {
+  if (v.engine === "supertonic") return `${v.name} · ${t("voice.offline")}${v.download ? ` (${t("voice.firstDownload", { size: v.download })})` : ""}`;
+  return `${v.name} · ${v.accent}`;
 }

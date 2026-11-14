@@ -11,7 +11,7 @@ import { liveDub, restartLiveDub, setDubOptions, toggleLiveDub } from "@/composa
 import { SUB_SIZE, usePrefs } from "@/composables/prefs";
 import { applySpeed, loadVideo, session } from "@/composables/session";
 import { toast } from "@/composables/toast";
-import { playTts, useVoices, VOICE_SAMPLES, liveVoiceId } from "@/composables/voices";
+import { playTts, useVoices, VOICE_SAMPLES, liveVoiceId, voiceLabel } from "@/composables/voices";
 import { langOptions } from "@/lib/langs";
 
 const { t, locale } = useI18n();
@@ -102,7 +102,7 @@ const bgLabel = computed(() => (prefs.bgVol > 0 ? t("dub.bg.level", { pct: Math.
         <div class="opt__control">
           <select id="o-voice" class="select voice" :value="prefs.voice" @change="changeVoice">
             <option value="auto">{{ t("dub.voiceAuto") }}</option>
-            <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.name }} · {{ v.accent }}</option>
+            <option v-for="v in voices" :key="v.id" :value="v.id">{{ voiceLabel(v, t) }}</option>
           </select>
           <button type="button" class="btn btn--outline btn--icon btn--sm" :disabled="previewing" :aria-label="t('dub.listen')" :title="t('dub.listen')" @click="preview"><PhSpeakerHigh :size="16" /></button>
         </div>

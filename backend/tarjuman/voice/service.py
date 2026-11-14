@@ -16,7 +16,7 @@ from ..core.store import Debounced, read_json, write_json
 from ..core.text import chars_of
 from .audio import decode_to_pcm, duration_of, trim_silence, write_wav
 from .catalog import CHARS_PER_SEC, Voice, alternatives, resolve_voice, voices_for
-from .engines import Piper, edge_available, edge_synth, google_tts
+from .engines import SUPERTONIC_LANGS, Piper, Supertonic, edge_available, edge_synth, google_tts
 from .gate import PLAY, PriorityGate
 from .pronounce import PronunciationDict
 
@@ -51,12 +51,13 @@ class TtsService:
     def __init__(self, cache_dir: Path, piper_model: Path, pronounce: PronunciationDict):
         self.dir = cache_dir
         self.piper = Piper(piper_model)
+        self.supertonic = Supertonic(piper_model.parent.parent / "supertonic-3")
         self.pronounce = pronounce
         # Measured: 8 parallel requests give the most throughput; more only queue up on Microsoft's side.
         self.gate = PriorityGate(8)
         self.meta: dict[str, float] = {}  # clip key -> duration
         self.cps: dict[str, dict] = {}  # voice key -> {"cps": float, "n": int}
-        self.stats = {"edge": 0, "piper": 0, "fallback": 0, "google": 0}
+        self.stats = {"edge": 0, "piper": 0, "supertonic": 0, "fallback": 0, "google": 0}
         # Microsoft voices that failed lately (voice id -> when): the next sentences start with another voice.
         self._failed: dict[str, float] = {}
         self._inflight: dict[str, asyncio.Future] = {}
@@ -96,11 +97,12 @@ class TtsService:
             "ready": self.ready,
             "edge": edge_available(),
             "piper": self.piper.available,
+            "supertonic": {"installed": self.supertonic.installed, "downloaded": self.supertonic.downloaded},
             "stats": self.stats,
         }
 
     def voices(self, lang: str) -> list[dict]:
-        return voices_for(lang, self.piper.available)
+        return voices_for(lang, self.piper.available, self.supertonic.installed, self.supertonic.downloaded)
 
     # ---------------- speaking speed ----------------
 
@@ -113,11 +115,11 @@ class TtsService:
 
     def learn_cps(self, v: Voice, text: str, rate: float, duration: float) -> None:
         n = chars_of(text)
-        if v.engine != "edge" or not duration or duration <= 1 or n < 8:
+        if v.engine not in ("edge", "supertonic") or not duration or duration <= 1 or n < 8:
             return
         obs = n / (duration * (1 + rate / 100))
         # Plausible for this language: Chinese says ~5 characters a second, English ~19.
-        base = CHARS_PER_SEC["edge"].get(v.lang, CHARS_PER_SEC["edge"]["default"])
+        base = CHARS_PER_SEC[v.engine].get(v.lang, CHARS_PER_SEC[v.engine]["default"])
         if obs < base * 0.4 or obs > base * 2.5:
             return
         prev = self.cps.get(v.key)
@@ -175,6 +177,9 @@ class TtsService:
         attempts.sort(key=lambda a: now - self._failed.get(a.voice, -1e9) < 600)
         if v.engine == "edge" and v.lang == "ar" and self.piper.available:
             attempts.append(Voice("piper", "piper", "ar", 1.0))
+        if v.engine == "edge" and self._supertonic_ok(v.lang):
+            # Offline, before Google's voice: only once its model is here (no 400 MB download mid-sentence).
+            attempts.append(Voice("supertonic", "F1" if self._gender(v) == "f" else "M1", v.lang))
         for a in attempts:
             try:
                 res = await self.gate.run(priority, lambda a=a: self._synth_bytes(text, a, rate if a.engine == "edge" else 0), key if a is v else None)
@@ -212,11 +217,33 @@ class TtsService:
                 pass
         return TtsResult(buf, "audio/mpeg", 0.0, "google", fallback=True)
 
+    def _supertonic_ok(self, lang: str) -> bool:
+        return self.supertonic.installed and self.supertonic.downloaded and lang in SUPERTONIC_LANGS
+
+    @staticmethod
+    def _gender(v: Voice) -> str:
+        from .catalog import VOICES
+
+        return next((x["gender"] for x in VOICES.get(v.lang, []) if x["id"] == v.voice), "m")
+
     async def _synth_bytes(self, text: str, v: Voice, rate: int) -> TtsResult:
         if v.engine == "edge":
             data = await edge_synth(text, v.voice, rate)
             sr, pcm = await asyncio.to_thread(decode_to_pcm, data)
             return TtsResult(data, "audio/mpeg", round(len(pcm) / float(sr), 3), "edge")
+        if v.engine == "supertonic":
+            if not self.supertonic.installed:
+                raise RuntimeError("SUPERTONIC_NOT_AVAILABLE")
+            fd, tmp = tempfile.mkstemp(suffix=".wav")
+            os.close(fd)
+            try:
+                duration = await asyncio.to_thread(self.supertonic.synth_file, text, Path(tmp), v.lang, v.voice, rate)
+                return TtsResult(Path(tmp).read_bytes(), "audio/wav", duration, "supertonic")
+            finally:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
         if not self.piper.available:
             raise RuntimeError("PIPER_NOT_AVAILABLE")
         fd, tmp = tempfile.mkstemp(suffix=".wav")
@@ -235,11 +262,20 @@ class TtsService:
     async def synth_wav(self, text: str, v: Voice, rate: int, out: Path) -> tuple[float, bool]:
         """Write the sentence as mono 16-bit WAV (silence trimmed). Returns (duration, used_fallback)."""
         text = self.pronounce.apply(text)
+        if v.engine == "supertonic" and self.supertonic.installed:
+            try:
+                return await asyncio.to_thread(self.supertonic.synth_file, text, out, v.lang, v.voice, rate), False
+            except Exception:  # noqa: BLE001 — Google's voice instead, flagged as a fallback
+                data = await google_tts(text, v.lang)
+                return await asyncio.to_thread(self._mp3_to_wav, data, out, False), True
         if v.engine == "edge":
             try:
                 data = await self.gate.run(PLAY, lambda: edge_synth(text, v.voice, rate))
                 return await asyncio.to_thread(self._mp3_to_wav, data, out, True), False
             except Exception:  # noqa: BLE001
+                if self._supertonic_ok(v.lang) and not (v.lang == "ar" and self.piper.available):
+                    st = "F1" if self._gender(v) == "f" else "M1"
+                    return await asyncio.to_thread(self.supertonic.synth_file, text, out, v.lang, st, rate), True
                 if not (v.lang == "ar" and self.piper.available):
                     data = await google_tts(text, v.lang)
                     return await asyncio.to_thread(self._mp3_to_wav, data, out, False), True

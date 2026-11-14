@@ -91,6 +91,58 @@ class Piper:
         return wav_duration(out)
 
 
+# Supertonic 3 (Supertone, OpenRAIL-M; the library is MIT): ten voices in 31 languages, on this computer.
+# About three times faster than real time on a 2016 laptop CPU, so it can dub live without the internet.
+SUPERTONIC_LANGS = frozenset({
+    "en", "ko", "ja", "ar", "bg", "cs", "da", "de", "el", "es", "et", "fi", "fr", "hi", "hr", "hu", "id", "it",
+    "lt", "lv", "nl", "pl", "pt", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi",
+})
+SUPERTONIC_MIN_SPEED, SUPERTONIC_MAX_SPEED, SUPERTONIC_SPEED = 0.7, 2.0, 1.05
+
+
+class Supertonic:
+    """Loaded on first use; the model (about 400 MB) is downloaded then, into data/models/supertonic-3."""
+
+    def __init__(self, folder: Path):
+        self.dir = folder
+        self._tts = None
+        self._styles: dict = {}
+        self._lock = threading.Lock()
+
+    @property
+    def downloaded(self) -> bool:
+        return (self.dir / "onnx").is_dir() and any((self.dir / "onnx").glob("*.onnx"))
+
+    @property
+    def installed(self) -> bool:
+        return has("supertonic")
+
+    def _load(self):
+        if self._tts is None:
+            from supertonic import TTS
+
+            self.dir.mkdir(parents=True, exist_ok=True)
+            self._tts = TTS(model="supertonic-3", model_dir=self.dir, auto_download=True, intra_op_num_threads=4)
+        return self._tts
+
+    def synth_file(self, text: str, out: Path, lang: str, style: str, rate: int = 0) -> float:
+        import numpy as np
+
+        from .audio import trim_silence, write_wav
+
+        speed = min(SUPERTONIC_MAX_SPEED, max(SUPERTONIC_MIN_SPEED, SUPERTONIC_SPEED * (1 + rate / 100)))
+        with self._lock:
+            tts = self._load()
+            if style not in self._styles:
+                self._styles[style] = tts.get_voice_style(voice_name=style)
+            wav, _dur = tts.synthesize(text, voice_style=self._styles[style], lang=lang if lang in SUPERTONIC_LANGS else "na", speed=speed)
+            sr = int(tts.sample_rate)
+        pcm = np.clip(np.asarray(wav, dtype=np.float32).reshape(-1) * 32767, -32768, 32767).astype(np.int16)
+        pcm = trim_silence(sr, pcm)
+        write_wav(out, sr, pcm)
+        return round(len(pcm) / float(sr), 3)
+
+
 def split_for_google(text: str, limit: int = 170) -> list[str]:
     out: list[str] = []
     cur = ""

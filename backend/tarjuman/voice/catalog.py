@@ -63,6 +63,11 @@ PIPER_VOICES = {"piper": 1.0, "natural": 1.0, "deep": 0.9, "female": 1.17}
 # Measured per language with its default voice (edge_voices.json); Arabic keeps the value tuned by use.
 # Languages written without spaces say far fewer characters per second (one character is a word).
 CHARS_PER_SEC = {"edge": {**_GENERATED["cps"], "ar": 13, "default": 15}, "piper": {"ar": 11, "default": 11}}
+# Supertonic starts from the language's Microsoft speed; the app learns the real one as it speaks.
+CHARS_PER_SEC["supertonic"] = CHARS_PER_SEC["edge"]
+
+# Supertonic's voices offered in the menus (it has five of each; two of each keep the list short).
+SUPERTONIC_VOICES = [("M1", "m"), ("M2", "m"), ("F1", "f"), ("F2", "f")]
 
 LANG_LABEL = NAMES
 
@@ -81,11 +86,18 @@ class Voice:
         return f"{self.engine}|{self.voice}"
 
 
-def voices_for(lang: str, piper_available: bool) -> list[dict[str, str]]:
+def voices_for(lang: str, piper_available: bool, supertonic: bool = False, supertonic_ready: bool = False) -> list[dict[str, str]]:
+    from .engines import SUPERTONIC_LANGS
+
     lang = target(lang)
     out = [{**v, "engine": "edge"} for v in VOICES.get(lang, VOICES["en"])]
     if lang == "ar" and piper_available:
         out.append({"id": "piper", "name": "كريم", "accent": "أوفلاين", "gender": "m", "engine": "piper"})
+    if supertonic and lang in SUPERTONIC_LANGS:
+        for style, gender in SUPERTONIC_VOICES:
+            # "download": the first sentence downloads the model (about 400 MB).
+            out.append({"id": f"st-{style}", "name": f"Supertonic {style}", "accent": "offline", "gender": gender,
+                        "engine": "supertonic", **({} if supertonic_ready else {"download": "400MB"})})
     return out
 
 
@@ -95,6 +107,8 @@ def resolve_voice(voice: str | None, lang: str | None) -> Voice:
     v = str(voice or "")
     if v in PIPER_VOICES and lang == "ar":
         return Voice("piper", "piper", lang, PIPER_VOICES[v])
+    if v.startswith("st-") and v[3:] in {s for s, _ in SUPERTONIC_VOICES} | {"M3", "M4", "M5", "F3", "F4", "F5"}:
+        return Voice("supertonic", v[3:], lang)
     voices = VOICES.get(lang, VOICES["en"])
     if _EDGE_ID.match(v) and v.startswith(lang + "-"):
         return Voice("edge", v, lang)
