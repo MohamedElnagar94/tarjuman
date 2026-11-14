@@ -49,6 +49,8 @@ export interface Prefs {
   dlFmt: SubFormat;
   // dubbing
   voice: string;
+  /** The dubbed MP4's voice: "" = the live voice, "clone" = the speaker's own (XTTS pack), "habibi-EGY"… */
+  mp4Voice: string;
   bgVol: number;
   dubWait: boolean;
   embedSubs: boolean;
@@ -88,6 +90,7 @@ export const DEFAULT_PREFS: Prefs = {
   dlMode: "ar",
   dlFmt: "srt",
   voice: "auto",
+  mp4Voice: "",
   bgVol: 0.15,
   dubWait: true,
   embedSubs: true,

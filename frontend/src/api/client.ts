@@ -29,6 +29,7 @@ import type {
   Voice,
   WhisperJob,
   MtState,
+  PacksState,
 } from "./types";
 import type { Chapter } from "@/lib/chapters";
 
@@ -262,6 +263,9 @@ export const api = {
   retranscribe: (id: string) => post<{ ok: true }>("/api/media/retranscribe", { id }),
 
   /** With the length of a recording, "effective" is what that recording would use. */
+  packs: () => get<PacksState>("/api/packs"),
+  installPack: (name: string, accept = false) => post<PacksState>("/api/packs/install", { name, accept }),
+  deletePack: (name: string) => post<PacksState>("/api/packs/delete", { name }),
   mt: () => get<MtState>("/api/mt"),
   setMt: (prefer: "online" | "offline") => post<MtState>("/api/mt", { prefer }),
   installMt: (pair: string) => post<MtState>("/api/mt/install", { pair }),

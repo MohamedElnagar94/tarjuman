@@ -2,7 +2,7 @@
 import { computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform, PhMonitorPlay, PhTranslate } from "@phosphor-icons/vue";
+import { PhArrowsClockwise, PhDesktop, PhDeviceMobile, PhHardDrives, PhKeyboard, PhShieldCheck, PhPuzzlePiece, PhPaintBrush, PhSlidersHorizontal, PhSparkle, PhSpeakerHigh, PhWaveform, PhMonitorPlay, PhTranslate, PhUserSound } from "@phosphor-icons/vue";
 import ShortcutList from "@/components/ShortcutList.vue";
 import AiSettings from "@/components/settings/AiSettings.vue";
 import PhonePairing from "@/components/settings/PhonePairing.vue";
@@ -14,6 +14,7 @@ import UpdatesPanel from "@/components/settings/UpdatesPanel.vue";
 import PronounceEditor from "@/components/settings/PronounceEditor.vue";
 import TranscriptionSettings from "@/components/settings/TranscriptionSettings.vue";
 import OfflineTranslation from "@/components/settings/OfflineTranslation.vue";
+import VoicePacks from "@/components/settings/VoicePacks.vue";
 import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import SubtitleOverlay from "@/components/SubtitleOverlay.vue";
@@ -36,6 +37,7 @@ const SECTIONS = [
   { id: "ai", icon: PhSparkle },
   { id: "transcription", icon: PhWaveform },
   { id: "offline", icon: PhTranslate },
+  { id: "packs", icon: PhUserSound },
   { id: "phone", icon: PhDeviceMobile },
   { id: "extensions", icon: PhPuzzlePiece },
   { id: "pronounce", icon: PhSpeakerHigh },
@@ -120,6 +122,11 @@ const qualityOptions = [480, 720, 1080].map((q) => ({ value: q as Quality, label
         <section id="offline" v-show="active === 'offline'" class="panel sec" aria-labelledby="h-off">
           <h2 id="h-off" class="panel__title">{{ t("settings.s.offline") }}</h2>
           <OfflineTranslation />
+        </section>
+
+        <section id="packs" v-show="active === 'packs'" class="panel sec" aria-labelledby="h-packs">
+          <h2 id="h-packs" class="panel__title">{{ t("settings.s.packs") }}</h2>
+          <VoicePacks />
         </section>
 
         <section id="phone" v-show="active === 'phone'" class="panel sec" aria-labelledby="h-phone">

@@ -13,7 +13,7 @@ _EXT_ORIGIN = re.compile(r"^(chrome|moz|edge)-extension://")
 LOCAL_ONLY = frozenset(
     {"/api/settings", "/api/ai/test", "/api/pairing", "/api/pairing/reset", "/api/extensions", "/api/extensions/set",
      "/api/storage/clear", "/api/desktop", "/api/desktop/show", "/api/desktop/quit", "/api/desktop/microphone", "/api/desktop/open", "/api/update", "/api/update/install",
-     "/api/mt/install", "/api/mt/delete"}
+     "/api/mt/install", "/api/mt/delete", "/api/packs/install", "/api/packs/delete"}
 )
 # Answered for unpaired devices too, so a phone can show "pair this device" instead of an error.
 OPEN_TO_ALL = frozenset({"/api/health"})

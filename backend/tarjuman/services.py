@@ -14,6 +14,7 @@ from .dub.live import LivePlanner
 from .jobs.manager import JobManager
 from .learn.vocab import Vocab
 from .media.library import MediaLibrary
+from .engines.packs import Packs
 from .translate.local import LocalMT
 from .translate.service import Translator
 from .voice.pronounce import PronunciationDict
@@ -31,6 +32,8 @@ class Services:
         self.pronounce = PronunciationDict(config.DATA / "pronounce.json")
         self.tts = TtsService(config.TTS_DIR, config.PIPER_MODEL, self.pronounce)
         self.tts.cache_limit = config.VOICE_CACHE_BYTES
+        self.packs = Packs(config.DATA / "engines")
+        self.tts.packs = self.packs
         self.ai = AiSettings(config.DATA / "settings.json")
         self.ai_client = AiClient(self.ai)
         self.writer = ScriptWriter(self.ai, self.ai_client, c / "ai-script.json")

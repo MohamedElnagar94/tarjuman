@@ -506,3 +506,11 @@ def test_offline_translation_api_lists_models_and_refuses_unknown_pairs(client):
     assert client.post("/api/mt/install", json={"pair": "xx-yy"}).status_code == 404
     assert client.post("/api/mt", json={"prefer": "offline"}).json()["prefer"] == "offline"
     client.post("/api/mt", json={"prefer": "online"})
+
+
+def test_voice_packs_api_refuses_xtts_without_the_licence(client):
+    st = client.get("/api/packs").json()
+    assert st["ok"] and {p["name"] for p in st["packs"]} == {"xtts", "habibi"}
+    r = client.post("/api/packs/install", json={"name": "xtts"})
+    assert r.status_code == 400 and r.json()["code"] == "LICENCE_NOT_ACCEPTED"
+    assert client.post("/api/packs/install", json={"name": "nope"}).status_code == 404

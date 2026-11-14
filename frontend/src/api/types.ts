@@ -329,3 +329,23 @@ export interface MtState {
   available: string[];
   installs: Record<string, { status: "working" | "error" | "done"; progress: number; phase: string; error: string }>;
 }
+
+/** Optional voice packs (backend engines/packs.py). */
+export interface VoicePack {
+  name: "xtts" | "habibi";
+  installed: boolean;
+  licence: string;
+  sizeGb: number;
+  langs: string[];
+  needsGpu: boolean;
+  accepted: boolean;
+  status: "idle" | "working" | "done" | "error";
+  phase: string;
+  error: string;
+  log: string;
+}
+export interface PacksState {
+  ok: true;
+  strongGpu: boolean;
+  packs: VoicePack[];
+}

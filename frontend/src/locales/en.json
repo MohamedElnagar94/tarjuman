@@ -574,7 +574,8 @@
       "updates": "Updates",
       "transcription": "Transcription",
       "watching": "Watching",
-      "offline": "Offline translation"
+      "offline": "Offline translation",
+      "packs": "Voice packs"
     },
     "defaultsLead": "Used when you open a new video and when making files.",
     "voiceHint": "Automatic picks a voice that matches the speaker in MP4s",
@@ -1065,5 +1066,46 @@
   "voice": {
     "offline": "offline",
     "firstDownload": "downloads {size} the first time"
+  },
+  "packs": {
+    "lead": "Extra voices that need PyTorch and a few GB, so they are installed only on request, in a folder of their own, without touching the app. Used for dubbed MP4s.",
+    "xtts": {
+      "title": "The original speaker's voice (experimental)",
+      "body": "Takes about 12 seconds of the speaker from the video and dubs in their own voice, in 17 languages including Arabic, Japanese and Chinese. The voice is copied well and Modern Standard Arabic is clear; colloquial dialects are weak.",
+      "speed": "On a computer without a modern graphics card: about 3.5 times slower than real time (a 10-minute video ≈ 40 minutes).",
+      "licence": "I accept Coqui's licence, for non-commercial use only:"
+    },
+    "habibi": {
+      "title": "Arabic dialect voices (Habibi)",
+      "body": "Egyptian, Iraqi, Moroccan, Algerian and Modern Standard Arabic voices, from openly licensed models. The clearest Egyptian voice in our tests.",
+      "speed": "Very heavy: reasonably fast with a modern graphics card; without one, 40–110 times slower than real time (hours for a short video)."
+    },
+    "noGpu": "This computer has no graphics card suited to this pack; it will work, but very slowly.",
+    "showHeavy": "Show the heavy packs anyway",
+    "size": "About {gb} GB",
+    "install": "Install",
+    "remove": "Delete",
+    "installed": "Installed",
+    "failed": "Installation failed. Try again, and check the log if it happens again.",
+    "retry": "Try again",
+    "phase": {
+      "venv": "Preparing a separate environment…",
+      "packages": "Downloading libraries (this can take minutes)…",
+      "voices": "Preparing the dialect voices…",
+      "model": "Downloading the model…"
+    },
+    "where": "Kept in the data folder → engines; deleting a pack frees all its space.",
+    "mp4Voice": "Voice of the file",
+    "sameVoice": "Same as the watching voice",
+    "cloneVoice": "The original speaker's voice (experimental)",
+    "cloneHint": "Slow: about 3.5 times the video's length on this computer.",
+    "habibiVoice": "Habibi: {dialect}",
+    "dialect": {
+      "EGY": "Egyptian",
+      "IRQ": "Iraqi",
+      "MAR": "Moroccan",
+      "ALG": "Algerian",
+      "MSA": "Standard Arabic"
+    }
   }
 }

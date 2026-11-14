@@ -240,6 +240,24 @@ async def _sentence_pitches(job: Job, video: Path, work: Path, blocks) -> list[f
         return [0.0] * len(blocks)
 
 
+RATE_ENGINES = frozenset({"edge", "supertonic", "xtts", "habibi"})
+
+
+async def _speaker_sample(job: Job, video: Path, work: Path, blocks) -> Path:
+    """About 12 seconds of the speaker for cloning their voice: the stretch of the video where the most
+    sentences are spoken, as 24 kHz mono WAV."""
+    spans = [(b.start, b.end) for b in blocks if b.end > b.start]
+    best, best_speech = spans[0][0] if spans else 0.0, -1.0
+    for start, _ in spans:
+        speech = sum(max(0.0, min(e, start + 12) - max(s_, start)) for s_, e in spans)
+        if speech > best_speech:
+            best, best_speech = start, speech
+    out = work / "speaker.wav"
+    await run_proc(job, [ffmpeg_exe(), "-loglevel", "error", "-y", "-ss", f"{max(0.0, best - 0.2):.2f}", "-t", "12",
+                         "-i", str(video), "-vn", "-ac", "1", "-ar", "24000", str(out)])
+    return out
+
+
 async def run_dub(s: "Services", job: Job, link: str) -> None:
     o = job.opts
     work = _fresh_dir(config.TMP / "dub" / work_id(job.videoId))
@@ -298,7 +316,21 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
             if split.per_sentence:
                 per_sentence = {i: resolve_voice(g, o["lang"]) for i, g in split.per_sentence.items()}
                 job.extra["multiSpeaker"] = True
-        v = resolve_voice(voice, o["lang"])
+        if voice == "clone" or voice.startswith("habibi-"):
+            # A voice pack (Settings -> Voice packs): the original speaker's own voice, or an Arabic dialect.
+            name = "xtts" if voice == "clone" else "habibi"
+            pack = s.packs.get(name)
+            if not pack.installed:
+                raise AppError("PACK_NOT_INSTALLED", "ثبّت حزمة الصوت من الإعدادات ← حزم الأصوات أولًا")
+            if name == "xtts":
+                job.phase = "أخذ عيّنة من صوت المتحدث"
+                ref = await _speaker_sample(job, video, work, plan.blocks)
+                v = Voice("xtts", str(ref), o["lang"])
+            else:
+                v = Voice("habibi", voice.split("-", 1)[1], "ar")
+            voice = "auto"  # the translation's pacing doesn't depend on which voice speaks
+        else:
+            v = resolve_voice(voice, o["lang"])
 
         def voice_of(i: int) -> Voice:
             return per_sentence.get(i) or v
@@ -315,7 +347,9 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
         job.phase = "توليد الصوت المدبلج"
         natural: dict[int, dict] = {}
         concurrency = 4 if v.engine == "edge" else 1
-        total = len(blocks) * (2 if v.engine == "edge" else 1)
+        # Voices that can speak faster or slower get a second pass at the paragraph's pace (Piper can't).
+        paced_engine = v.engine in RATE_ENGINES
+        total = len(blocks) * (2 if paced_engine else 1)
         done = 0
         fallbacks = 0
 
@@ -360,7 +394,7 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
             nat = natural[p["i"]]
             seg = {"i": p["i"], "text": p["text"], "start": p["at"], "slot": p["slot"], "audio": str(nat["path"]),
                    "duration": nat["duration"], "rate": 0}
-            if v.engine == "edge" and abs(p["rate"]) >= 3:
+            if paced_engine and abs(p["rate"]) >= 3:
                 out = work / f"seg_{p['i']:05d}.wav"
                 try:
                     seg.update(audio=str(out), duration=await synth(p["text"], voice_of(p["i"]), p["rate"], out), rate=p["rate"])
@@ -384,7 +418,7 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
             job.check()
             at = max(sg["start"], prev_end + PACE.breath)
             room = max(0.6, sg["start"] + sg["slot"] + DUB_SPILL - at)
-            if v.engine == "edge" and sg["duration"] > room * 1.15 and sg["rate"] < 80:
+            if paced_engine and sg["duration"] > room * 1.15 and sg["rate"] < 80:
                 try:
                     sg["rate"] = fit_rate(sg["rate"], sg["duration"], room)
                     out = work / f"seg_{sg['i']:05d}_fit.wav"
@@ -450,7 +484,8 @@ async def run_dub(s: "Services", job: Job, link: str) -> None:
             **info,
             "sentences": len(blocks),
             "refit": refit,
-            "voice": v.voice,
+            # A cloned voice's "id" is the path of its reference clip: the user sees what it is instead.
+            "voice": "clone" if v.engine == "xtts" else f"habibi-{v.voice}" if v.engine == "habibi" else v.voice,
             "speakerF0": job.extra.get("speakerF0", 0),
             "multiSpeaker": bool(job.extra.get("multiSpeaker")),
             "voiceRemoved": bool(clean_bg),

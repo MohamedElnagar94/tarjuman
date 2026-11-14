@@ -68,7 +68,7 @@ export async function startDubJob(): Promise<void> {
     const { id } = await api.startDub({
       url: session.link,
       lang: session.tl,
-      voice: p.voice,
+      voice: p.mp4Voice || p.voice,
       bgVolume: p.bgVol,
       embedSubs: p.embedSubs,
       burnSubs: p.burnSubs,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { PhCopy, PhDownloadSimple, PhFilmSlate, PhMicrophoneStage, PhWarningCircle, PhX } from "@phosphor-icons/vue";
 import ProgressMeter from "@/components/ui/ProgressMeter.vue";
@@ -12,13 +12,28 @@ import { usePrefs } from "@/composables/prefs";
 import { cues, session, tr } from "@/composables/session";
 import { toast } from "@/composables/toast";
 import { cancelVideoJob, startDubJob, startSubVideoJob, videoJobs } from "@/composables/videoJobs";
-import { useVoices } from "@/composables/voices";
+import { useVoices, voiceLabel } from "@/composables/voices";
+import { HABIBI_DIALECTS, usePacks } from "@/composables/packs";
 import { transcriptText } from "@/lib/cues";
 import { formatSize, formatTime } from "@/lib/time";
 
 const { t } = useI18n();
 const prefs = usePrefs();
 const { voices } = useVoices();
+const { packs } = usePacks();
+const packOk = (name: string) => packs.value?.packs.find((p) => p.name === name && p.installed && p.langs.includes(session.tl));
+/** Voices only an MP4 can have: the speaker's own (XTTS) and the Arabic dialects (Habibi), when installed. */
+watch(
+  () => [session.tl, packs.value] as const,
+  () => {
+    const v = prefs.mp4Voice;
+    if ((v === "clone" || v.startsWith("habibi-")) && packs.value && !mp4Extra.value.some((x) => x.value === v)) prefs.mp4Voice = "";
+  },
+);
+const mp4Extra = computed(() => [
+  ...(packOk("xtts") ? [{ value: "clone", label: t("packs.cloneVoice") }] : []),
+  ...(packOk("habibi") ? HABIBI_DIALECTS.map((d) => ({ value: "habibi-" + d, label: t("packs.habibiVoice", { dialect: t("packs.dialect." + d) }) })) : []),
+]);
 const downloading = ref(false);
 
 const modeOptions = computed(() => [
@@ -142,6 +157,14 @@ const dlUrl = (kind: "dub" | "subvideo") => api.dubFileUrl(videoJobs[kind].id, t
             <h4>{{ session.audioOnly ? t("export.audio.dubTitle") : t("export.dub.title") }}</h4>
             <p>{{ session.audioOnly ? t("export.audio.dubLead") : t("export.dub.lead") }}</p>
           </div>
+        </div>
+        <div class="opt">
+          <label class="opt__label" for="x-voice">{{ t("packs.mp4Voice") }}<small v-if="prefs.mp4Voice === 'clone'">{{ t("packs.cloneHint") }}</small></label>
+          <select id="x-voice" v-model="prefs.mp4Voice" class="select">
+            <option value="">{{ t("packs.sameVoice") }}</option>
+            <option v-for="v in voices" :key="v.id" :value="v.id">{{ voiceLabel(v, t) }}</option>
+            <option v-for="x in mp4Extra" :key="x.value" :value="x.value">{{ x.label }}</option>
+          </select>
         </div>
         <div v-if="!session.audioOnly" class="opt">
           <label class="opt__label" for="x-embed">{{ t("export.dub.embed") }}<small>{{ t("export.dub.embedHint") }}</small></label>

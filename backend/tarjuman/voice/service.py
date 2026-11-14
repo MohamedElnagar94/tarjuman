@@ -52,6 +52,8 @@ class TtsService:
         self.dir = cache_dir
         self.piper = Piper(piper_model)
         self.supertonic = Supertonic(piper_model.parent.parent / "supertonic-3")
+        # Optional voice packs (engines/packs.py), set by Services: the speaker's own voice, Arabic dialects.
+        self.packs = None
         self.pronounce = pronounce
         # Measured: 8 parallel requests give the most throughput; more only queue up on Microsoft's side.
         self.gate = PriorityGate(8)
@@ -262,6 +264,18 @@ class TtsService:
     async def synth_wav(self, text: str, v: Voice, rate: int, out: Path) -> tuple[float, bool]:
         """Write the sentence as mono 16-bit WAV (silence trimmed). Returns (duration, used_fallback)."""
         text = self.pronounce.apply(text)
+        if v.engine in ("xtts", "habibi"):
+            # MP4 export only: the speaker's voice (v.voice is the reference clip) or a dialect voice.
+            pack = self.packs.get(v.engine) if self.packs else None
+            if not pack or not pack.installed:
+                raise AppError("PACK_NOT_INSTALLED")
+            speed = min(2.0, max(0.5, 1 + rate / 100))
+            if v.engine == "xtts":
+                req = {"text": text, "lang": v.lang, "ref": v.voice, "out": str(out), "speed": speed}
+            else:
+                req = {"text": text, "dialect": v.voice, "ref": str(pack.dir / "refs" / f"{v.voice}.wav"),
+                       "ref_text": pack.refs().get(v.voice, ""), "out": str(out), "speed": speed}
+            return await pack.synth(req), False
         if v.engine == "supertonic" and self.supertonic.installed:
             try:
                 return await asyncio.to_thread(self.supertonic.synth_file, text, out, v.lang, v.voice, rate), False
