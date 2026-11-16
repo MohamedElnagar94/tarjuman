@@ -813,12 +813,12 @@
     "translate": {
       "name": "Translation",
       "what": "The video's sentences are sent as text to Google Translate, and to MyMemory when Google is unavailable. The result is saved here, so a sentence is not sent twice.",
-      "local": "There is no local alternative for translation yet. Without internet only saved sentences work."
+      "local": "Alternative: translation models that run on your computer (Settings → Offline translation), for 42 languages from English and 44 into it. Used by themselves when Google is unavailable, or always if you choose. Saved sentences work offline too."
     },
     "voice": {
       "name": "Dub voice",
       "what": "The text of each translated sentence and the chosen voice name are sent to Microsoft's Edge voice service, and to Google when nothing else works. The clip is saved here.",
-      "local": "Alternative: the local Arabic voice, Piper, works without internet and is used by itself when the service fails."
+      "local": "Alternative: voices that run on your computer without internet: Supertonic in 31 languages, and Piper for Arabic. Used by themselves when the service fails, and can be chosen directly."
     },
     "fetch": {
       "name": "Video download",
@@ -832,7 +832,7 @@
     },
     "models": {
       "name": "Model downloads",
-      "what": "The Whisper, local voice and music separation models are downloaded once from Hugging Face and GitHub. None of your data goes with the request.",
+      "what": "Models are downloaded once, when first needed: Whisper, the local voices and music separation from Hugging Face and GitHub, offline translation models from the University of Helsinki, and voice packs from PyTorch and PyPI. None of your data goes with the requests.",
       "local": "After the first download they work without internet."
     },
     "whisper": {
@@ -851,6 +851,10 @@
       "name": "Update checks",
       "what": "Every few hours Tarjuman asks GitHub for the list of newer versions, and downloads the installer when you choose to update. Nothing about you or your videos is sent.",
       "local": "Alternative: turn off \"Check for updates automatically\" in Settings → Updates."
+    },
+    "packs": {
+      "name": "Voice packs: the speaker's voice and Arabic dialects",
+      "what": "Installed only if you ask for them. The sample of the speaker taken from the video, and the sentences spoken, stay on your computer and are sent to no service."
     }
   },
   "desktop": {

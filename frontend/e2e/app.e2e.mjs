@@ -131,7 +131,7 @@ test("settings: language switch, phone pairing code, storage and privacy", async
   await page.locator("#storage table tr").first().waitFor();
   assert.equal(await page.locator("#phone").isVisible(), false);
   await page.locator('.toc a[href="#privacy"]').click();
-  assert.equal(await page.locator("#privacy .row").count(), 10);
+  assert.equal(await page.locator("#privacy .row").count(), 11);
 
   await page.locator('.toc a[href="#appearance"]').click();
   await page.locator("#appearance button", { hasText: "English" }).click();

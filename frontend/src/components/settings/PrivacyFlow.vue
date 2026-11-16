@@ -15,6 +15,7 @@ const ROWS = [
   { id: "updates", online: true },
   { id: "whisper", online: false },
   { id: "separate", online: false },
+  { id: "packs", online: false },
   { id: "files", online: false },
 ] as const;
 </script>

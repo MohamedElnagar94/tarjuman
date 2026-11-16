@@ -84,13 +84,23 @@ class Pack:
         self._lock = asyncio.Lock()
 
     @property
-    def python(self) -> Path:
+    def venv_python(self) -> Path:
         v = self.dir / "venv"
         return v / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
     @property
+    def site(self) -> Path:
+        """Where the pack's packages go when Tarjuman's Python can't make an environment (the Windows
+        installer's embeddable Python has no venv): the worker puts this first on its path."""
+        return self.dir / "site"
+
+    @property
+    def python(self) -> Path:
+        return self.venv_python if self.venv_python.exists() else Path(base_python())
+
+    @property
     def installed(self) -> bool:
-        return (self.dir / "ready.json").exists() and self.python.exists()
+        return (self.dir / "ready.json").exists() and (self.venv_python.exists() or self.site.is_dir())
 
     def info(self) -> dict:
         return {
@@ -122,12 +132,10 @@ class Pack:
         self.state = {"status": "working", "phase": "venv", "error": "", "log": ""}
         try:
             self.dir.mkdir(parents=True, exist_ok=True)
-            if not self.python.exists():
-                await self._run([base_python(), "-m", "venv", str(self.dir / "venv")])
+            await self._make_env()
             self.state["phase"] = "packages"
-            await self._run([str(self.python), "-m", "pip", "install", "--upgrade", "pip"])
-            await self._run([str(self.python), "-m", "pip", "install", *self.spec["torch"], "--index-url", CUDA_INDEX if gpu else CPU_INDEX])
-            await self._run([str(self.python), "-m", "pip", "install", *self.spec["packages"]])
+            await self._pip(*self.spec["torch"], "--index-url", CUDA_INDEX if gpu else CPU_INDEX)
+            await self._pip(*self.spec["packages"])
             if self.name == "habibi":
                 self.state["phase"] = "voices"
                 await asyncio.to_thread(self._prepare_habibi_refs)
@@ -138,6 +146,21 @@ class Pack:
         except Exception as e:  # noqa: BLE001 — shown in Settings; the pack folder stays for a retry
             log.warning("voice pack %s failed: %r", self.name, e)
             self.state.update(status="error", error=str(getattr(e, "code", "") or "INSTALL_FAILED"))
+
+    async def _make_env(self) -> None:
+        if self.venv_python.exists() or self.site.is_dir():
+            return
+        try:
+            await self._run([base_python(), "-m", "venv", str(self.dir / "venv")])
+            await self._run([str(self.venv_python), "-m", "pip", "install", "--upgrade", "pip"])
+        except AppError:
+            # No venv module (embeddable Python): the packages go into a folder of their own instead.
+            shutil.rmtree(self.dir / "venv", ignore_errors=True)
+            self.site.mkdir(parents=True, exist_ok=True)
+
+    async def _pip(self, *args: str) -> None:
+        target = [] if self.venv_python.exists() else ["--target", str(self.site), "--upgrade"]
+        await self._run([str(self.python), "-m", "pip", "install", "--disable-pip-version-check", *target, *args])
 
     async def _run(self, cmd: list[str]) -> None:
         env = {**os.environ, **self._env()}
@@ -155,6 +178,8 @@ class Pack:
 
     def _env(self) -> dict:
         env = {"HF_HOME": str(self.dir / "hf"), "TTS_HOME": str(self.dir / "models"), "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+        if not self.venv_python.exists():
+            env["TARJUMAN_PACK_SITE"] = str(self.site)  # the worker puts the pack's packages first
         if self.spec["licence"] == "CPML" and self.accepted:
             env["COQUI_TOS_AGREED"] = "1"  # the user accepted Coqui's non-commercial licence in Settings
         return env
@@ -163,8 +188,10 @@ class Pack:
         """The dialect clips as 24 kHz WAV (the pack has no FFmpeg of its own), with their transcripts."""
         from ..media.ffmpeg import ffmpeg_exe
 
-        site = subprocess.run([str(self.python), "-c", "import habibi_tts, os; print(os.path.dirname(habibi_tts.__path__[0] if hasattr(habibi_tts, '__path__') else habibi_tts.__file__))"],
-                              capture_output=True, text=True, check=True).stdout.strip()
+        code = ("import os, sys; s = os.environ.get('TARJUMAN_PACK_SITE'); s and sys.path.insert(0, s); import habibi_tts; "
+                "print(os.path.dirname(list(habibi_tts.__path__)[0]))")
+        site = subprocess.run([str(self.python), "-c", code], capture_output=True, text=True, check=True,
+                              env={**os.environ, **self._env()}).stdout.strip()
         assets = Path(site) / "habibi_tts" / "assets"
         refs = self.dir / "refs"
         refs.mkdir(parents=True, exist_ok=True)
@@ -265,3 +292,21 @@ class Packs:
     def stop_all(self) -> None:
         for p in self.items.values():
             p.stop()
+
+
+def selftest(root: Path) -> str:
+    """Checks, on the built app, that a pack can be installed and its packages loaded by a worker the way
+    a real pack is (venv, or the embeddable Python's --target folder), with a tiny package. For CI."""
+    pack = Pack("habibi", root)
+    pack.spec = {**pack.spec, "torch": [], "packages": ["six==1.17.0"]}
+
+    async def go() -> None:
+        await pack._make_env()
+        await pack._pip(*pack.spec["packages"])
+
+    asyncio.run(go())
+    code = "import os, sys; s = os.environ.get('TARJUMAN_PACK_SITE'); s and sys.path.insert(0, s); import six; print(six.__file__)"
+    out = subprocess.run([str(pack.python), "-c", code], capture_output=True, text=True, check=True, env={**os.environ, **pack._env()}).stdout.strip()
+    if not Path(out).resolve().is_relative_to(root.resolve()):
+        raise SystemExit(f"the pack's package was loaded from {out}, not from the pack")
+    return ("venv" if pack.venv_python.exists() else "target") + ": " + out

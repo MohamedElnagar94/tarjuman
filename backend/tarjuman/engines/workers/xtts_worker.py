@@ -9,6 +9,10 @@ import json
 import os
 import sys
 
+# Installed with --target when Tarjuman's Python has no venv (the Windows installer): load from there first.
+if os.environ.get("TARJUMAN_PACK_SITE"):
+    sys.path.insert(0, os.environ["TARJUMAN_PACK_SITE"])
+
 # COQUI_TOS_AGREED comes from Tarjuman, which sets it only after the user accepted the CPML licence.
 
 # Coqui maps XTTS's language codes like this; everything else is passed as it is.

@@ -12,6 +12,10 @@ import json
 import os
 import sys
 
+# Installed with --target when Tarjuman's Python has no venv (the Windows installer): load from there first.
+if os.environ.get("TARJUMAN_PACK_SITE"):
+    sys.path.insert(0, os.environ["TARJUMAN_PACK_SITE"])
+
 DIALECTS = {"EGY": 100000, "IRQ": 100000, "MAR": 100000, "ALG": 100000, "MSA": 200000}
 _models: dict = {}
 _vocoder = None
