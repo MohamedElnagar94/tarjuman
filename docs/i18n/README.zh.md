@@ -41,20 +41,26 @@
 
 ## 功能
 
-粘贴一个 YouTube 链接、从电脑上传视频，或者提供几乎任何网站的链接。
+粘贴一个 YouTube 链接、从电脑上传视频或音频文件、录下你自己的声音，或者提供几乎任何网站的链接。
 
 - **同步字幕。** 阿拉伯语字幕逐行显示在视频上，如有需要，原语言可显示在下方。自动生成的字幕会先重组为完整的句子，再进行翻译。如果完全没有标点，就利用 YouTube 的逐词时间信息，在讲话者真正停顿的地方断句。
 - **听起来像真人的实时配音。** 神经网络阿拉伯语语音与讲话者同步朗读每一句，支持埃及、沙特、阿联酋、叙利亚、约旦、黎巴嫩、摩洛哥和伊拉克阿拉伯语。句子不会被截断或跳过。遇到语速快的讲话者，视频会稍稍放慢，等语音跟上，而不是让语音抢着念；如果你自己放慢视频，语音也会得到这段额外的时间。拼写相同但读音不同的词，会依据英文原文按句意来读（读作 الجُمَل“句子”，而不是 الجَمَل“骆驼”）。
 - **配音版 MP4。** 导出带阿拉伯语配音的视频。可以去除原讲话者的人声并保留音乐和音效，为每位讲话者匹配合适的男声或女声，并嵌入字幕或将字幕烧录进画面。
-- **没有字幕？没关系。** Whisper 会在你的电脑上转写音频，然后翻译转写文本。
+- **没有字幕？没关系。** Whisper 会在你的电脑上转写音频，然后翻译转写文本。“设置 → 转写”会检测你的电脑（内存、显卡、处理器），推荐一个模型并说明理由，还允许你为录音、视频和实时收听分别选择不同的模型。针对阿拉伯语语音，有一个用各地方言（埃及、海湾、黎凡特等）训练的模型；在我们用一段埃及方言语音消息做的测试中，它出错的词远少于标准模型。你可以添加一份必须识别正确的词语清单（人名、产品名、用阿拉伯语说出的英文术语），并注明每个词应写成什么样；还可以选择让你的 AI 服务商事后校正转写文本。任何 CTranslate2 格式的 Whisper 模型都可以添加，来源可以是 Hugging Face，也可以是你电脑上的文件夹；已下载的模型可以删除以释放空间。
+- **音频文件和语音消息。** 上传 MP3、M4A、WAV、OGG、Opus、FLAC 或 WhatsApp 语音消息，或直接用麦克风录音。它会显示动态波形而不是空白画面，转写文本同步显示，并可导出为字幕、配音版 M4A，或带波形和烧录字幕、便于分享的视频。
 - **字幕文件。** 下载 SRT、VTT 或纯文本，可选阿拉伯语或双语，也可以下载可直接分享的带字幕 MP4。
 - **整个播放列表。** 提供播放列表或频道链接，即可为其中每个视频生成字幕、带字幕的视频或配音视频。
 - **向视频提问**（可选 AI）。获取摘要、要点、可点击的章节，以及能直接跳转到视频中讨论你问题的那一刻的回答。支持 Claude 或任何兼容 OpenAI 的服务商（Gemini、Groq、OpenRouter、Ollama）。
+- **由你掌控的观看页面。** 视频旁的文字稿会随着讲话逐词高亮，标出讲话者的切换以及 [music] 之类的声音，并且可以搜索；点击任意一行即可跳转到那里。视频作者设置的章节（或 AI 摘要生成的章节）会作为文字稿中对应部分的标题，并在时间轴上标出。视频下方的时间轴显示各行字幕的位置，播放器后方会透出取自视频自身色彩的柔和光晕，影院模式（<kbd>T</kbd>）则会调暗其他一切。以上每一项都可以在“设置 → 观看”中关闭或调整。键盘：<kbd>→</kbd> 下一行，<kbd>←</kbd> 上一行，<kbd>R</kbd> 重复，<kbd>K</kbd> 播放或暂停，<kbd>?</kbd> 查看完整列表（在阿拉伯语键盘布局下同样有效）。
 - **学英语。** 点按任意单词查看释义，连同所在句子一起保存，稍后复习，并导出到 Anki。你还可以重复某一句、每行结束后暂停，或模糊字幕来自我检测。
-- **浏览器扩展。** 在 YouTube 本站、播放器自带字幕的网站（Coursera、Udemy 等）、从其他网站嵌入播放器的影视和动漫网站，或者通过收听标签页音频在任何其他网站上，使用同样的字幕和配音。
+- **浏览器扩展。** 在 YouTube 本站、嵌入在其他网站中的 YouTube 视频、播放器自带字幕的网站（Coursera、Udemy 等）、从其他网站嵌入播放器的影视和动漫网站，或者通过收听标签页音频在任何其他网站上，使用同样的字幕和配音。在 YouTube 上，它还会在视频旁添加文字稿，提供所点单词的释义、逐行切换的快捷键，以及一个在应用中继续观看的按钮。
 - **在手机上使用。** 用连接同一 Wi-Fi 的任何手机都能打开应用。
 
-其他语言同样可用：法语、西班牙语、德语、土耳其语和英语已内置为目标语言。
+可翻译并配音为 **74 种语言**，每种语言都有母语语音（日语听起来就是日语，印地语听起来就是印地语），而且这一切都可以在没有互联网的情况下运行：
+
+- **离线翻译：** 只需下载一次某种语言的模型（设置 → 离线翻译），翻译就会在你的电脑上运行，可以只在 Google 不可用时使用，也可以一直使用。
+- **离线语音**支持 31 种语言，在普通笔记本电脑上就能实时配音。
+- **语音包**，仅在你需要时安装：用**原讲话者本人的声音**为 MP4 配音（实验性），或者在配备性能足够的显卡的电脑上，用**阿拉伯语方言语音**（埃及、伊拉克、摩洛哥……）配音。
 
 ## 截图
 
@@ -82,15 +88,30 @@
 
 ### Windows 安装程序
 
-从 [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) 页面下载 `Tarjuman-Setup-<version>.exe` 并运行。它自带 Python、所有软件包、Web 应用和浏览器扩展，因此你既不需要 Python，也不需要 Node.js。它只会请求一次管理员权限，安装到 Program Files，并且不会改动防火墙。之后 Tarjuman 会像普通桌面应用一样在自己的窗口中打开，没有控制台窗口，也没有浏览器标签页；关闭窗口即停止运行。（这个窗口是应用模式下的 Microsoft Edge，每台 Windows 10 和 11 都自带，不会额外安装任何东西。）
+从 [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) 页面下载 `Tarjuman-Setup-<version>.exe` 并运行。它自带 Python、所有软件包、Web 应用和浏览器扩展，因此你既不需要 Python，也不需要 Node.js。它只会请求一次管理员权限，安装到 Program Files，并且不会改动防火墙。之后 Tarjuman 会像普通桌面应用一样在自己的窗口中打开，没有控制台窗口，也没有浏览器标签页。默认情况下关闭窗口即停止运行；在“设置 → 桌面”中，可以改为让它留在通知区域、为浏览器扩展保持引擎运行，以及随 Windows 启动。（这个窗口是应用模式下的 Microsoft Edge，每台 Windows 10 和 11 都自带，不会额外安装任何东西。）
 
 - 如果 Setup 一启动就停止并提示 "unable to create the directory ...\Temp\is-*.tmp, access is denied"，说明安装程序文件位于被标记为低完整性的文件夹中（有些沙盒工具会这样标记自己的工作文件夹；此时 `icacls <file>` 会显示 `Low Mandatory Level`）。Windows 会以较低的权限运行这样的文件。请把它复制到其他文件夹（例如 Downloads），然后运行副本。
 - 安装程序尚未进行代码签名，因此 Windows SmartScreen 可能会提示“未知发布者”：请选择*更多信息 → 仍要运行*。
 - 首次启动时会在后台下载离线阿拉伯语语音（约 60 MB）。Whisper 模型会在第一次有视频需要它时自动下载。
+- 更新：“设置 → 更新”会显示新版本新增和修复的内容，一键即可安装（如果开启相应选项，也可以自动安装）。
 - 你的视频、字幕、设置和 `.env` 保存在 `%LOCALAPPDATA%\Tarjuman` 中，与程序分开存放。更新时会保留它们；卸载时会询问是否删除。
 - 开始菜单中有一个指向扩展文件夹的快捷方式，用于在 `chrome://extensions` 中*加载已解压的扩展程序*。
 
 遇到问题？请参阅[故障排除](../troubleshooting.md)。每个版本的变更见[更新日志](../../CHANGELOG.md)。
+
+### Linux (AppImage)
+
+从 [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) 页面下载 `Tarjuman-<version>-x86_64.AppImage`，赋予可执行权限后运行。与 Windows 安装程序一样，它自带 Python、所有软件包、Web 应用和扩展。
+
+```sh
+chmod +x Tarjuman-*-x86_64.AppImage
+./Tarjuman-*-x86_64.AppImage
+```
+
+- 如果装有 Chrome、Chromium 或 Edge，它会在自己的窗口中打开，否则会在你的默认浏览器中打开（此时它会一直运行，直到你注销，或执行 `pkill -f "tarjuman app"`）。
+- 你的数据保存在 `~/.local/share/Tarjuman` 中。“设置 → 更新”会在验证新的 AppImage 后用它替换旧的；重启 Tarjuman 即可使用新版本。
+- 如果提示缺少 FUSE（某些发行版以及 WSL 上会出现），请加上 `--appimage-extract-and-run` 参数运行，或安装 `libfuse2`。
+- 通知区域图标和“桌面”设置目前仅适用于 Windows。
 
 ### 从源码运行
 
@@ -125,7 +146,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | 命令 | 作用 |
 |---|---|
 | `python -m tarjuman` | 启动应用（`--port`、`--host 127.0.0.1` 仅限本机访问、`--no-open`） |
-| `python -m tarjuman app` | 在独立窗口中启动应用（应用模式下的 Edge 或 Chrome），而不是浏览器标签页；关闭窗口即停止运行 |
+| `python -m tarjuman app` | 在独立窗口中启动应用（应用模式下的 Edge 或 Chrome），而不是浏览器标签页；在 Windows 上带有通知区域图标（`--background` 可在不打开窗口的情况下直接在通知区域启动） |
 | `python -m tarjuman subs <link>` | 将字幕文件写入 `data/output`（`--lang`、`--format srt,vtt,txt`） |
 | `python -m tarjuman setup` | 安装或修复所有组件 |
 | `python -m tarjuman update` | 当下载或语音失效时，更新 yt-dlp 和语音客户端 |
@@ -142,8 +163,18 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 1. 构建一次：`npm --prefix extension install && npm --prefix extension run build`。
 2. 打开 `chrome://extensions`（或 `edge://extensions`），开启**开发者模式**，点击**加载已解压的扩展程序**，然后选择 `extension/dist`。
 3. 保持应用运行，打开一个视频，点击 Tarjuman 图标，或按 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>。
+4. 在它的选项页中可以设置字幕字体、扩展的界面语言（跟随浏览器、阿拉伯语或英语）、键盘快捷键，以及是否在 YouTube 上自动启动（从不、总是，或仅限你选择的频道）。
 
 如果 Chrome 显示 *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*，这是因为发布者刚加入 Chrome 应用商店：Chrome 会对每个新发布者显示此提示，直到其遵守商店政策几个月为止，而且只对开启了增强型保护的用户显示。该扩展已通过商店审核，其[源代码](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension)是公开的。请选择 *Continue to install*。
+
+翻译过程中：
+
+- YouTube 上的**视频旁文字稿**：显示每一行，当前行高亮；点击某行即可跳转，也可以搜索。
+- 在原文行中**点击单词**查看释义，并可连同所在句子保存到应用的*我的单词*中。
+- **快捷键：** <kbd>Alt</kbd>+<kbd>→</kbd> 下一行，<kbd>Alt</kbd>+<kbd>←</kbd> 上一行，<kbd>Alt</kbd>+<kbd>↓</kbd> 重复，<kbd>Alt</kbd>+<kbd>S</kbd> 字幕，<kbd>Alt</kbd>+<kbd>V</kbd> 配音，<kbd>Alt</kbd>+<kbd>T</kbd> 文字稿。
+- **时间校准：** 如果字幕比讲话早或晚出现，可用 <kbd>Alt</kbd>+<kbd>[</kbd> 和 <kbd>Alt</kbd>+<kbd>]</kbd> 移动字幕（配音会随之移动）。
+- **在应用中打开**，从同一时刻继续，以便导出和使用完整的观看页面。
+- 它在 YouTube 的迷你播放器中也能继续工作，会跟随课程网站进入下一课，即使网站把视频本身单独全屏显示，也仍会显示字幕行。
 
 扩展只与你电脑上的应用通信。它的 Chrome Web Store 上架材料（商品描述、权限说明、隐私政策、宣传图片）位于 [`extension/store`](../../extension/store)。
 
@@ -160,12 +191,14 @@ Tarjuman 以本地为先。你的视频、字幕、保存的单词、设置和 A
 | 功能 | 离开你电脑的内容 | 发送到 | 不发送任何内容的做法 |
 |---|---|---|---|
 | YouTube 字幕 | 视频链接 | YouTube | 上传文件；它会在本地转写 |
-| 翻译 | 视频中的句子（文本形式） | Google Translate，其次是 MyMemory | 暂无；已保存的句子仍可离线使用 |
-| 配音语音 | 每个译好的句子和语音名称 | Microsoft Edge 语音，其次是 Google | Piper，本地阿拉伯语语音 |
+| 翻译 | 视频中的句子（文本形式） | Google Translate，其次是 MyMemory | 离线翻译模型（设置 → 离线翻译） |
+| 配音语音 | 每个译好的句子和语音名称 | Microsoft Edge 语音，其次是 Google | 离线语音（Supertonic，31 种语言；阿拉伯语用 Piper）和语音包 |
 | 视频下载 | 对该视频的请求 | 托管该视频的网站 | 使用电脑上已有的文件 |
 | AI（可选，默认关闭） | 视频的文本和你的问题 | 你选择的服务商 | 保持关闭，或使用 Ollama 等本地服务器 |
-| 模型下载 | 一次下载请求，仅一次 | Hugging Face、GitHub | 首次下载之后不再发送任何内容 |
-| 语音识别、音乐分离、你的文件 | 无 | – | 始终在本地 |
+| 模型下载 | 一次下载请求，仅一次 | Hugging Face、GitHub、赫尔辛基大学（翻译模型）、PyTorch 和 PyPI（语音包） | 首次下载之后不再发送任何内容 |
+| 检查更新 | 获取新版本列表的请求，每隔几小时一次 | GitHub | 在“设置 → 更新”中关闭“自动检查更新” |
+| 转写校正（可选，默认关闭） | 转写文本 | 你选择的 AI 服务商 | 保持关闭；词语清单无需它也能生效 |
+| 语音识别、音乐分离、你的文件和录音 | 无 | – | 始终在本地 |
 
 应用内的“设置 → 隐私”中也有同一张表。API 会拒绝来自其他网站的请求，AI 设置也只能在运行应用的那台电脑上修改。
 
@@ -178,7 +211,7 @@ Tarjuman 以本地为先。你的视频、字幕、保存的单词、设置和 A
 | `TARJUMAN_HOME` | 项目文件夹 | `data/` 的存放位置 |
 | `TARJUMAN_PORT` | `4318` | 首先尝试的端口（若被占用则依次递增；扩展会自动跟随） |
 | `TARJUMAN_HOST` | `0.0.0.0` | 设为 `127.0.0.1` 可让应用不对 Wi-Fi 开放 |
-| `TARJUMAN_WHISPER_MODEL` | `base` | 使用 `small` 或 `medium` 可获得更准确（但更慢）的转写 |
+| `TARJUMAN_WHISPER_MODEL` | （空） | 在“设置 → 转写”中选择，那里会为你的电脑推荐模型；当该设置为“自动”时，使用此处的值 |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | 已保存配音语音的大小上限；最久未使用的先删除 |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | 可上传视频的最大大小 |
 | `TARJUMAN_PAIR_MINUTES` | `15` | 手机配对码（二维码）的有效时长（分钟）；`0` = 一直有效，直到你生成新的 |
@@ -225,6 +258,14 @@ iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Ta
 ```
 
 *Windows installer* 工作流会在 GitHub 上完成同样的事情：从 Actions 标签页运行它，或者推送形如 `v3.0.0` 的标签，把安装程序附加到发布版本中。编译之前，它会启动打包好的应用并检查其是否有响应。
+
+### 构建 Linux AppImage
+
+```sh
+installer/linux/build.sh   # build/linux/Tarjuman-<version>-x86_64.AppImage (needs curl, python3, Node.js 20+)
+```
+
+它会打包一个来自 python-build-standalone 的可重定位 Python。同一个工作流会与 Windows 安装程序一起构建它，并在推送 `v*` 标签时同时发布两者。
 
 ## 使用的技术
 

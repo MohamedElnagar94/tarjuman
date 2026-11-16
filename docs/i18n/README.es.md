@@ -41,20 +41,26 @@
 
 ## Qué hace
 
-Pega un enlace de YouTube, sube un vídeo desde tu ordenador o dale un enlace de casi cualquier sitio.
+Pega un enlace de YouTube, sube un vídeo o un archivo de audio desde tu ordenador, graba tu propia voz o dale un enlace de casi cualquier sitio.
 
 - **Subtítulos sincronizados.** Los subtítulos en árabe aparecen sobre el vídeo línea a línea, con el idioma original debajo si lo quieres. Los subtítulos generados automáticamente se reconstruyen en frases completas antes de traducirse. Si no tienen ninguna puntuación, se cortan donde el orador hace pausas de verdad, usando los tiempos por palabra de YouTube.
 - **Doblaje en directo que suena a persona.** Una voz árabe neuronal pronuncia cada frase al ritmo del orador, en árabe egipcio, saudí, emiratí, sirio, jordano, libanés, marroquí o iraquí. Ninguna frase se corta ni se salta. Con un orador rápido, el vídeo se ralentiza un poco mientras la voz lo alcanza, en lugar de que la voz se acelere; si ralentizas tú el vídeo, la voz aprovecha ese tiempo extra. Las palabras que se escriben igual pero se leen distinto se pronuncian según el sentido de la frase (الجُمَل «las frases», no الجَمَل «el camello»), a partir del original en inglés.
 - **MP4 doblado.** Exporta el vídeo con la locución en árabe. Puede eliminar la voz del orador original conservando la música y los efectos, asignar a cada orador una voz masculina o femenina acorde, e incrustar o grabar los subtítulos en la imagen.
-- **¿Sin subtítulos? No pasa nada.** Whisper transcribe el audio en tu ordenador y después se traduce la transcripción.
+- **¿Sin subtítulos? No pasa nada.** Whisper transcribe el audio en tu ordenador y después se traduce la transcripción. Ajustes → Transcripción analiza tu ordenador (memoria, tarjeta gráfica, procesador), te recomienda un modelo explicando por qué y te deja elegir un modelo distinto para las grabaciones, para los vídeos y para la escucha en directo. Para el árabe hablado hay un modelo entrenado con los dialectos (egipcio, del Golfo, levantino y otros), que se equivocó en muchas menos palabras que los modelos estándar en nuestra prueba con una nota de voz en egipcio. Puedes añadir una lista de palabras que debe reconocer bien (nombres, productos, términos en inglés dichos en árabe), con cómo debe escribirse cada una, y, si quieres, dejar que tu proveedor de IA corrija después la transcripción. Se puede añadir cualquier modelo de Whisper en formato CTranslate2, desde Hugging Face o desde una carpeta de tu ordenador, y los modelos descargados se pueden borrar para liberar espacio.
+- **Archivos de audio y notas de voz.** Sube un MP3, M4A, WAV, OGG, Opus, FLAC o una nota de voz de WhatsApp, o graba directamente desde tu micrófono. En lugar de un vídeo en blanco, muestra una forma de onda en movimiento con la transcripción sincronizada, y se exporta como subtítulos, como un M4A doblado o como un vídeo con la forma de onda y los subtítulos grabados, listo para compartir.
 - **Archivos de subtítulos.** Descarga SRT, VTT o texto plano, en árabe o bilingüe, o un MP4 subtitulado listo para compartir.
 - **Listas de reproducción completas.** Dale el enlace de una lista o de un canal para crear subtítulos, vídeos subtitulados o vídeos doblados de todos sus vídeos.
 - **Pregúntale al vídeo** (IA opcional). Obtén un resumen, los puntos clave, capítulos en los que hacer clic y respuestas que saltan al momento en que el vídeo trata tu pregunta. Funciona con Claude o con cualquier proveedor compatible con OpenAI (Gemini, Groq, OpenRouter, Ollama).
+- **Una página de reproducción a tu medida.** La transcripción junto al vídeo resalta cada palabra en el momento en que se dice, marca los cambios de orador y sonidos como [música], y permite buscar en ella; haz clic en cualquier línea para saltar allí. Los capítulos del propietario del vídeo (o del resumen de la IA) encabezan su parte de la transcripción y se marcan en la línea de tiempo. Una línea de tiempo bajo el vídeo muestra dónde están las líneas, una luz suave con los colores del propio vídeo brilla detrás del reproductor, y el modo cine (<kbd>T</kbd>) oscurece todo lo demás. Cada una de estas funciones se puede desactivar o ajustar en Ajustes → Reproducción. Teclado: <kbd>→</kbd> línea siguiente, <kbd>←</kbd> línea anterior, <kbd>R</kbd> repetir, <kbd>K</kbd> reproducir o pausar, <kbd>?</kbd> para la lista completa (también funcionan con la distribución de teclado árabe).
 - **Aprende inglés.** Toca cualquier palabra para ver su significado, guárdala con su frase, repásala más tarde y expórtala a Anki. También puedes repetir una frase, pausar tras cada línea o difuminar los subtítulos para ponerte a prueba.
-- **Extensión de navegador.** Usa los mismos subtítulos y el mismo doblaje en el propio YouTube, en sitios cuyo reproductor tiene subtítulos (Coursera, Udemy y otros), en sitios de películas y anime que incrustan su reproductor desde otro sitio o en cualquier otro sitio escuchando el audio de la pestaña.
+- **Extensión de navegador.** Usa los mismos subtítulos y el mismo doblaje en el propio YouTube, en vídeos de YouTube incrustados en otros sitios, en sitios cuyo reproductor tiene subtítulos (Coursera, Udemy y otros), en sitios de películas y anime que incrustan su reproductor desde otro sitio o en cualquier otro sitio escuchando el audio de la pestaña. En YouTube añade una transcripción junto al vídeo, el significado de cualquier palabra en la que hagas clic, atajos línea a línea y un botón para continuar en la aplicación.
 - **En tu móvil.** Abre la aplicación desde cualquier móvil conectado a la misma Wi-Fi.
 
-También funcionan otros idiomas: francés, español, alemán, turco e inglés vienen integrados como idiomas de destino.
+Se puede traducir y doblar a **74 idiomas**, cada uno con voces nativas (el japonés suena a japonés, el hindi suena a hindi), y todo puede funcionar sin internet:
+
+- **Traducción sin conexión:** descarga una vez el modelo de un idioma (Ajustes → Traducción sin conexión) y la traducción se hace en tu ordenador, cuando Google no está disponible o siempre.
+- **Voces sin conexión** en 31 idiomas que doblan en directo en un portátil corriente.
+- **Paquetes de voces**, que solo se instalan si los quieres: dobla un MP4 con **la propia voz del orador original** (experimental), o con **voces en dialectos árabes** (egipcio, iraquí, marroquí…) en un ordenador con una tarjeta gráfica potente.
 
 ## Capturas de pantalla
 
@@ -82,15 +88,30 @@ También funcionan otros idiomas: francés, español, alemán, turco e inglés v
 
 ### Instalador de Windows
 
-Descarga `Tarjuman-Setup-<version>.exe` desde la página de [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) y ejecútalo. Trae su propio Python, todos los paquetes, la aplicación web y la extensión de navegador, así que no necesitas ni Python ni Node.js. Pide permisos de administrador una sola vez, se instala en Program Files y no toca el cortafuegos. Después, Tarjuman se abre en una ventana propia, como cualquier aplicación de escritorio, sin ventana de consola ni pestaña del navegador; al cerrar la ventana, se detiene. (La ventana es Microsoft Edge en modo aplicación, que viene con todo Windows 10 y 11; no se instala nada más.)
+Descarga `Tarjuman-Setup-<version>.exe` desde la página de [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) y ejecútalo. Trae su propio Python, todos los paquetes, la aplicación web y la extensión de navegador, así que no necesitas ni Python ni Node.js. Pide permisos de administrador una sola vez, se instala en Program Files y no toca el cortafuegos. Después, Tarjuman se abre en una ventana propia, como cualquier aplicación de escritorio, sin ventana de consola ni pestaña del navegador. Por defecto, al cerrar la ventana se detiene; en Ajustes → Escritorio puedes, en cambio, mantenerlo en el área de notificación, dejar el motor en marcha para la extensión de navegador e iniciarlo con Windows. (La ventana es Microsoft Edge en modo aplicación, que viene con todo Windows 10 y 11; no se instala nada más.)
 
 - Si el instalador se detiene enseguida con «unable to create the directory ...\Temp\is-*.tmp, access is denied», el archivo del instalador está en una carpeta marcada con nivel de integridad bajo (algunas herramientas de aislamiento marcan así sus carpetas de trabajo; `icacls <file>` muestra entonces `Low Mandatory Level`). Windows ejecuta un archivo así con menos permisos. Cópialo a otra carpeta, como Descargas, y ejecuta la copia.
 - El instalador aún no está firmado digitalmente, así que Windows SmartScreen puede decir «editor desconocido»: elige *Más información → Ejecutar de todas formas*.
 - El primer inicio descarga en segundo plano la voz árabe sin conexión (unos 60 MB). El modelo de Whisper se descarga solo la primera vez que un vídeo lo necesita.
+- Actualizaciones: Ajustes → Actualizaciones muestra lo que añade y corrige una nueva versión, y la instala con un clic (o sola, si activas esa opción).
 - Tus vídeos, subtítulos, ajustes y el `.env` se guardan en `%LOCALAPPDATA%\Tarjuman`, aparte del programa. Una actualización los conserva; al desinstalar se te pregunta si quieres borrarlos.
 - El menú Inicio tiene un acceso directo a la carpeta de la extensión, para *Cargar descomprimida* en `chrome://extensions`.
 
 ¿Algo no funciona? Consulta [Solución de problemas](../troubleshooting.md). Los cambios de cada versión están en el [registro de cambios](../../CHANGELOG.md).
+
+### Linux (AppImage)
+
+Descarga `Tarjuman-<version>-x86_64.AppImage` desde la página de [Releases](https://github.com/MohamedElnagar94/tarjuman/releases), hazlo ejecutable y ejecútalo. Al igual que el instalador de Windows, trae su propio Python, todos los paquetes, la aplicación web y la extensión.
+
+```sh
+chmod +x Tarjuman-*-x86_64.AppImage
+./Tarjuman-*-x86_64.AppImage
+```
+
+- Se abre en una ventana propia si Chrome, Chromium o Edge están instalados, y si no, en tu navegador predeterminado (entonces sigue en marcha hasta que cierres la sesión, o hasta `pkill -f "tarjuman app"`).
+- Tus datos se guardan en `~/.local/share/Tarjuman`. Ajustes → Actualizaciones sustituye el AppImage por uno más reciente tras verificarlo; reinicia Tarjuman para usarlo.
+- Si dice que falta FUSE (en algunas distribuciones y en WSL), ejecútalo con `--appimage-extract-and-run` o instala `libfuse2`.
+- El icono del área de notificación y los ajustes de Escritorio solo están disponibles en Windows por ahora.
 
 ### Desde el código fuente
 
@@ -125,7 +146,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Comando | Qué hace |
 |---|---|
 | `python -m tarjuman` | Inicia la aplicación (`--port`, `--host 127.0.0.1` solo para este ordenador, `--no-open`) |
-| `python -m tarjuman app` | Inicia la aplicación en una ventana propia (Edge o Chrome en modo aplicación) en lugar de una pestaña del navegador; al cerrar la ventana, se detiene |
+| `python -m tarjuman app` | Inicia la aplicación en una ventana propia (Edge o Chrome en modo aplicación) en lugar de una pestaña del navegador; en Windows, con un icono en el área de notificación (`--background` la inicia ahí sin ventana) |
 | `python -m tarjuman subs <link>` | Escribe archivos de subtítulos en `data/output` (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Instala o repara todo |
 | `python -m tarjuman update` | Actualiza yt-dlp y el cliente de voz, si las descargas o las voces dejan de funcionar |
@@ -142,6 +163,16 @@ Instálala directamente desde la [Chrome Web Store](https://chromewebstore.googl
 1. Compílala una vez: `npm --prefix extension install && npm --prefix extension run build`.
 2. Abre `chrome://extensions` (o `edge://extensions`), activa el **Modo de desarrollador**, haz clic en **Cargar descomprimida** y elige `extension/dist`.
 3. Deja la aplicación en marcha, abre un vídeo y haz clic en el icono de Tarjuman, o pulsa <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
+4. Su página de opciones permite elegir la fuente de los subtítulos, el idioma de la extensión (el del navegador, árabe o inglés), los atajos de teclado y si se inicia sola en YouTube (nunca, siempre o solo en los canales que elijas).
+
+Mientras traduce:
+
+- **Transcripción junto al vídeo** en YouTube: todas las líneas, con la actual resaltada; haz clic en una línea para saltar a ella, o busca.
+- **Haz clic en una palabra** de la línea original para ver su significado, y guárdala con su frase en *Mis palabras* en la aplicación.
+- **Atajos:** <kbd>Alt</kbd>+<kbd>→</kbd> línea siguiente, <kbd>Alt</kbd>+<kbd>←</kbd> línea anterior, <kbd>Alt</kbd>+<kbd>↓</kbd> repetir, <kbd>Alt</kbd>+<kbd>S</kbd> subtítulos, <kbd>Alt</kbd>+<kbd>V</kbd> doblaje, <kbd>Alt</kbd>+<kbd>T</kbd> transcripción.
+- **Sincronía:** si las líneas aparecen antes o después de lo que se dice, muévelas con <kbd>Alt</kbd>+<kbd>[</kbd> y <kbd>Alt</kbd>+<kbd>]</kbd> (el doblaje se mueve con ellas).
+- **Abrir en la aplicación** en el mismo momento, para exportar y para la página de reproducción completa.
+- Sigue funcionando en el minirreproductor de YouTube, acompaña a un sitio de cursos a la siguiente lección y sigue mostrando la línea cuando un sitio pone solo el vídeo a pantalla completa.
 
 Si Chrome muestra *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, es porque el editor es nuevo en la Chrome Web Store: Chrome lo muestra para todo editor nuevo hasta que cumple las políticas de la tienda durante unos meses, y solo a quien activó la protección mejorada. La extensión superó la revisión de la tienda y su [código fuente](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) es abierto. Elige *Continue to install*.
 
@@ -160,12 +191,14 @@ Tarjuman funciona en local primero. Tus vídeos, subtítulos, palabras guardadas
 | Función | Qué sale de tu ordenador | Se envía a | Sin enviar nada |
 |---|---|---|---|
 | Subtítulos de YouTube | El enlace del vídeo | YouTube | Sube un archivo; se transcribe en local |
-| Traducción | Las frases del vídeo, como texto | Google Translate y, después, MyMemory | Nada por ahora; las frases guardadas siguen funcionando sin conexión |
-| Voz del doblaje | Cada frase traducida y el nombre de la voz | Voces de Microsoft Edge y, después, Google | Piper, la voz árabe local |
+| Traducción | Las frases del vídeo, como texto | Google Translate y, después, MyMemory | Modelos de traducción sin conexión (Ajustes → Traducción sin conexión) |
+| Voz del doblaje | Cada frase traducida y el nombre de la voz | Voces de Microsoft Edge y, después, Google | Las voces sin conexión (Supertonic, 31 idiomas; Piper para el árabe) y los paquetes de voces |
 | Descarga de vídeo | Una petición del vídeo | El sitio que lo aloja | Un archivo que ya está en tu ordenador |
 | IA (opcional, desactivada por defecto) | El texto del vídeo y tu pregunta | El proveedor que hayas elegido | Déjala desactivada o usa un servidor local como Ollama |
-| Descargas de modelos | Una petición de descarga, una sola vez | Hugging Face, GitHub | Nada después de la primera descarga |
-| Reconocimiento de voz, separación de música, tus archivos | Nada | – | Siempre en local |
+| Descargas de modelos | Una petición de descarga, una sola vez | Hugging Face, GitHub, la Universidad de Helsinki (modelos de traducción), PyTorch y PyPI (paquetes de voces) | Nada después de la primera descarga |
+| Comprobación de actualizaciones | Una petición de la lista de versiones más recientes, cada pocas horas | GitHub | Desactiva «Buscar actualizaciones automáticamente» en Ajustes → Actualizaciones |
+| Corrección de la transcripción (opcional, desactivada por defecto) | El texto de la transcripción | El proveedor de IA que hayas elegido | Déjala desactivada; la lista de palabras funciona sin ella |
+| Reconocimiento de voz, separación de música, tus archivos y grabaciones | Nada | – | Siempre en local |
 
 La misma tabla está en la aplicación, en Ajustes → Privacidad. La API rechaza las peticiones de otros sitios web, y los ajustes de IA solo se pueden cambiar desde el ordenador que ejecuta la aplicación.
 
@@ -178,7 +211,7 @@ Copia `.env.example` como `.env` en la carpeta del proyecto y edítalo; cada aju
 | `TARJUMAN_HOME` | carpeta del proyecto | Dónde se guarda `data/` |
 | `TARJUMAN_PORT` | `4318` | Primer puerto que se prueba (sube al siguiente si está ocupado; la extensión lo sigue) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Usa `127.0.0.1` para que la aplicación no sea accesible desde tu Wi-Fi |
-| `TARJUMAN_WHISPER_MODEL` | `base` | `small` o `medium` para una transcripción más precisa (más lenta) |
+| `TARJUMAN_WHISPER_MODEL` | (vacío) | Se elige en Ajustes → Transcripción, que recomienda uno para tu ordenador; un valor aquí se usa mientras ese ajuste esté en Automático |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Límite de tamaño de las voces de doblaje guardadas; se eliminan primero las usadas hace más tiempo |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Tamaño máximo del vídeo que puedes subir |
 | `TARJUMAN_PAIR_MINUTES` | `15` | Cuánto tiempo sirve un código de emparejamiento del móvil (el QR); `0` = hasta que generes uno nuevo |
@@ -225,6 +258,14 @@ iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Ta
 ```
 
 El flujo de trabajo *Windows installer* hace lo mismo en GitHub: ejecútalo desde la pestaña Actions, o sube una etiqueta como `v3.0.0` para adjuntar el instalador a una versión publicada. Antes de compilar, inicia la aplicación empaquetada y comprueba que responde.
+
+### Compilar el AppImage de Linux
+
+```sh
+installer/linux/build.sh   # build/linux/Tarjuman-<version>-x86_64.AppImage (needs curl, python3, Node.js 20+)
+```
+
+Incluye un Python reubicable de python-build-standalone. El mismo flujo de trabajo lo compila junto al instalador de Windows y publica ambos con una etiqueta `v*`.
 
 ## Hecho con
 

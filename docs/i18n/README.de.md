@@ -41,20 +41,26 @@
 
 ## Was es kann
 
-Füge einen YouTube-Link ein, lade ein Video von deinem Rechner hoch oder gib einen Link von fast jeder beliebigen Website an.
+Füge einen YouTube-Link ein, lade ein Video oder eine Audiodatei von deinem Rechner hoch, nimm deine eigene Stimme auf oder gib einen Link von fast jeder beliebigen Website an.
 
 - **Synchrone Untertitel.** Arabische Untertitel erscheinen Zeile für Zeile im Video, auf Wunsch mit der Originalsprache darunter. Automatisch erzeugte Untertitel werden vor der Übersetzung zu ganzen Sätzen zusammengesetzt. Haben sie gar keine Satzzeichen, werden sie anhand der Wort-Zeitstempel von YouTube dort getrennt, wo der Sprecher tatsächlich Pausen macht.
 - **Live-Synchronisation, die menschlich klingt.** Eine neuronale arabische Stimme spricht jeden Satz im Takt des Sprechers, auf Ägyptisch, Saudi-Arabisch, Emiratisch, Syrisch, Jordanisch, Libanesisch, Marokkanisch oder Irakisch. Kein Satz wird abgeschnitten oder übersprungen. Bei einem schnellen Sprecher wird das Video leicht verlangsamt, bis die Stimme aufgeholt hat, statt dass die Stimme hetzt; verlangsamst du das Video selbst, bekommt die Stimme diese zusätzliche Zeit. Wörter, die gleich geschrieben, aber unterschiedlich gelesen werden, werden so gesprochen, wie der Satz es meint (الجُمَل „Sätze“, nicht الجَمَل „das Kamel“) – entschieden anhand des englischen Originals.
 - **Synchronisiertes MP4.** Exportiere das Video mit arabischem Voice-over. Dabei lässt sich die Stimme des ursprünglichen Sprechers entfernen, während Musik und Effekte erhalten bleiben; jeder Sprecher bekommt eine passende männliche oder weibliche Stimme, und Untertitel können eingebettet oder eingebrannt werden.
-- **Keine Untertitel? Kein Problem.** Whisper transkribiert den Ton auf deinem Rechner, anschließend wird das Transkript übersetzt.
+- **Keine Untertitel? Kein Problem.** Whisper transkribiert den Ton auf deinem Rechner, anschließend wird das Transkript übersetzt. Einstellungen → Transkription prüft deinen Rechner (Arbeitsspeicher, Grafikkarte, Prozessor), empfiehlt ein Modell und begründet die Wahl, und du kannst für Aufnahmen, für Videos und für das Live-Mithören jeweils ein anderes Modell wählen. Für arabische Sprache gibt es ein Modell, das auf die Dialekte trainiert ist (Ägyptisch, Golf-Arabisch, Levantinisch und weitere) und in unserem Test mit einer ägyptischen Sprachnachricht deutlich weniger Wörter falsch erkannt hat als die Standardmodelle. Du kannst eine Liste von Wörtern hinzufügen, die es richtig erkennen soll (Namen, Produkte, englische Begriffe, die auf Arabisch gesagt werden), jeweils mit der gewünschten Schreibweise, und optional deinen KI-Anbieter das Transkript anschließend korrigieren lassen. Jedes Whisper-Modell im CTranslate2-Format lässt sich hinzufügen, von Hugging Face oder aus einem Ordner auf deinem Rechner, und heruntergeladene Modelle können gelöscht werden, um Platz freizugeben.
+- **Audiodateien und Sprachnachrichten.** Lade eine MP3-, M4A-, WAV-, OGG-, Opus- oder FLAC-Datei oder eine WhatsApp-Sprachnachricht hoch, oder nimm direkt mit deinem Mikrofon auf. Statt eines leeren Videos erscheint eine bewegte Wellenform, mit dem Transkript synchron dazu, und du kannst als Untertitel, als synchronisierte M4A oder als Video mit der Wellenform und eingebrannten Untertiteln zum Teilen exportieren.
 - **Untertiteldateien.** Lade SRT, VTT oder reinen Text herunter, auf Arabisch oder zweisprachig, oder ein untertiteltes MP4, das sich direkt teilen lässt.
 - **Ganze Playlists.** Gib einen Playlist- oder Kanal-Link an, um für jedes enthaltene Video Untertitel, untertitelte oder synchronisierte Videos zu erstellen.
 - **Frag das Video** (optionale KI). Erhalte eine Zusammenfassung, die wichtigsten Punkte, anklickbare Kapitel und Antworten, die direkt zu der Stelle springen, an der das Video deine Frage behandelt. Funktioniert mit Claude oder jedem OpenAI-kompatiblen Anbieter (Gemini, Groq, OpenRouter, Ollama).
+- **Eine Ansehseite, die du steuerst.** Das Transkript neben dem Video hebt jedes Wort hervor, sobald es gesprochen wird, markiert Sprecherwechsel und Geräusche wie [Musik] und lässt sich durchsuchen; klicke auf eine Zeile, um dorthin zu springen. Kapitel des Videobesitzers (oder aus der KI-Zusammenfassung) stehen als Überschrift über ihrem Teil des Transkripts und sind auf der Zeitleiste markiert. Eine Zeitleiste unter dem Video zeigt, wo die Zeilen liegen, ein sanftes Licht in den Farben des Videos leuchtet hinter dem Player, und der Kinomodus (<kbd>T</kbd>) dunkelt alles andere ab. Jede dieser Funktionen lässt sich unter Einstellungen → Ansehen ausschalten oder anpassen. Tastatur: <kbd>→</kbd> nächste Zeile, <kbd>←</kbd> vorherige Zeile, <kbd>R</kbd> wiederholen, <kbd>K</kbd> Wiedergabe oder Pause, <kbd>?</kbd> für die vollständige Liste (sie funktionieren auch mit arabischem Tastaturlayout).
 - **Englisch lernen.** Tippe auf ein Wort, um seine Bedeutung zu sehen, speichere es mit seinem Satz, wiederhole es später und exportiere es nach Anki. Du kannst auch einen Satz wiederholen, nach jeder Zeile pausieren oder die Untertitel verwischen, um dich selbst zu testen.
-- **Browser-Erweiterung.** Nutze dieselben Untertitel und dieselbe Synchronisation direkt auf YouTube, auf Websites, deren Player Untertitel hat (Coursera, Udemy und andere), auf Film- und Anime-Seiten, die ihren Player von einer anderen Website einbetten, oder auf jeder anderen Website, indem der Ton des Tabs mitgehört wird.
+- **Browser-Erweiterung.** Nutze dieselben Untertitel und dieselbe Synchronisation direkt auf YouTube, auf YouTube-Videos, die in andere Websites eingebettet sind, auf Websites, deren Player Untertitel hat (Coursera, Udemy und andere), auf Film- und Anime-Seiten, die ihren Player von einer anderen Website einbetten, oder auf jeder anderen Website, indem der Ton des Tabs mitgehört wird. Auf YouTube fügt sie ein Transkript neben dem Video hinzu, die Bedeutung jedes angeklickten Worts, Tastenkürzel für Zeile-für-Zeile und eine Schaltfläche, um in der App weiterzumachen.
 - **Auf dem Handy.** Öffne die App von jedem Handy im selben WLAN.
 
-Auch andere Sprachen funktionieren: Französisch, Spanisch, Deutsch, Türkisch und Englisch sind als Zielsprachen integriert.
+In **74 Sprachen** kann übersetzt und synchronisiert werden, jeweils mit muttersprachlichen Stimmen (Japanisch klingt japanisch, Hindi klingt nach Hindi), und alles kann ohne Internet funktionieren:
+
+- **Offline-Übersetzung:** Lade das Modell einer Sprache einmal herunter (Einstellungen → Offline-Übersetzung), und die Übersetzung läuft auf deinem Rechner – wenn Google nicht verfügbar ist, oder immer.
+- **Offline-Stimmen** in 31 Sprachen, die auf einem gewöhnlichen Laptop live synchronisieren.
+- **Stimmpakete**, die nur installiert werden, wenn du sie willst: Synchronisiere ein MP4 mit der **eigenen Stimme des ursprünglichen Sprechers** (experimentell) oder mit **arabischen Dialektstimmen** (Ägyptisch, Irakisch, Marokkanisch …) auf einem Rechner mit leistungsfähiger Grafikkarte.
 
 ## Screenshots
 
@@ -82,15 +88,30 @@ Auch andere Sprachen funktionieren: Französisch, Spanisch, Deutsch, Türkisch u
 
 ### Windows-Installer
 
-Lade `Tarjuman-Setup-<version>.exe` von der Seite [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) herunter und führe die Datei aus. Der Installer bringt sein eigenes Python, alle Pakete, die Web-App und die Browser-Erweiterung mit, du brauchst also weder Python noch Node.js. Er fragt einmal nach Administratorrechten, installiert nach Program Files und rührt die Firewall nicht an. Tarjuman öffnet sich danach in einem eigenen Fenster, wie jede Desktop-App, ohne Konsolenfenster und ohne Browser-Tab; schließt du das Fenster, wird Tarjuman beendet. (Das Fenster ist Microsoft Edge im App-Modus, das jedes Windows 10 und 11 mitbringt; es wird nichts Zusätzliches installiert.)
+Lade `Tarjuman-Setup-<version>.exe` von der Seite [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) herunter und führe die Datei aus. Der Installer bringt sein eigenes Python, alle Pakete, die Web-App und die Browser-Erweiterung mit, du brauchst also weder Python noch Node.js. Er fragt einmal nach Administratorrechten, installiert nach Program Files und rührt die Firewall nicht an. Tarjuman öffnet sich danach in einem eigenen Fenster, wie jede Desktop-App, ohne Konsolenfenster und ohne Browser-Tab. Standardmäßig wird Tarjuman beendet, wenn du das Fenster schließt; unter Einstellungen → Desktop kann es stattdessen im Infobereich bleiben, die Engine für die Browser-Erweiterung weiterlaufen lassen und mit Windows starten. (Das Fenster ist Microsoft Edge im App-Modus, das jedes Windows 10 und 11 mitbringt; es wird nichts Zusätzliches installiert.)
 
 - Bricht das Setup sofort mit „unable to create the directory ...\Temp\is-*.tmp, access is denied“ ab, liegt die Installer-Datei in einem Ordner, der mit niedriger Integritätsstufe gekennzeichnet ist (manche Sandboxing-Tools kennzeichnen ihre Arbeitsordner so; `icacls <file>` zeigt dann `Low Mandatory Level`). Windows führt eine solche Datei mit weniger Rechten aus. Kopiere sie in einen anderen Ordner, etwa Downloads, und führe die Kopie aus.
 - Der Installer ist noch nicht codesigniert, deshalb meldet Windows SmartScreen möglicherweise „Unbekannter Herausgeber“: Wähle *Weitere Informationen → Trotzdem ausführen*.
 - Beim ersten Start wird die arabische Offline-Stimme (etwa 60 MB) im Hintergrund heruntergeladen. Das Whisper-Modell lädt sich selbst herunter, sobald ein Video es zum ersten Mal braucht.
+- Updates: Einstellungen → Updates zeigt, was eine neue Version hinzufügt und behebt, und installiert sie mit einem Klick (oder von selbst, wenn du das aktivierst).
 - Deine Videos, Untertitel, Einstellungen und die `.env` liegen in `%LOCALAPPDATA%\Tarjuman`, getrennt vom Programm. Ein Update behält sie; bei der Deinstallation wirst du gefragt, ob sie gelöscht werden sollen.
 - Im Startmenü gibt es eine Verknüpfung zum Ordner der Erweiterung, für *Entpackte Erweiterung laden* in `chrome://extensions`.
 
 Etwas funktioniert nicht? Siehe [Fehlerbehebung](../troubleshooting.md). Was sich in jeder Version geändert hat, steht im [Changelog](../../CHANGELOG.md).
+
+### Linux (AppImage)
+
+Lade `Tarjuman-<version>-x86_64.AppImage` von der Seite [Releases](https://github.com/MohamedElnagar94/tarjuman/releases) herunter, mache die Datei ausführbar und starte sie. Wie der Windows-Installer bringt sie ihr eigenes Python, alle Pakete, die Web-App und die Erweiterung mit.
+
+```sh
+chmod +x Tarjuman-*-x86_64.AppImage
+./Tarjuman-*-x86_64.AppImage
+```
+
+- Sie öffnet sich in einem eigenen Fenster, wenn Chrome, Chromium oder Edge installiert ist, und sonst in deinem Standardbrowser (dann läuft sie weiter, bis du dich abmeldest, oder bis `pkill -f "tarjuman app"`).
+- Deine Daten liegen in `~/.local/share/Tarjuman`. Einstellungen → Updates ersetzt das AppImage nach einer Prüfung durch ein neueres; starte Tarjuman neu, um es zu verwenden.
+- Meldet sie, dass FUSE fehlt (bei manchen Distributionen und unter WSL), starte sie mit `--appimage-extract-and-run` oder installiere `libfuse2`.
+- Das Symbol im Infobereich und die Desktop-Einstellungen gibt es vorerst nur unter Windows.
 
 ### Aus dem Quellcode
 
@@ -125,7 +146,7 @@ PYTHONPATH=backend .venv/bin/python -m tarjuman           # Windows: set PYTHONP
 | Befehl | Funktion |
 |---|---|
 | `python -m tarjuman` | Startet die App (`--port`, `--host 127.0.0.1` nur für diesen Rechner, `--no-open`) |
-| `python -m tarjuman app` | Startet die App in einem eigenen Fenster (Edge oder Chrome im App-Modus) statt in einem Browser-Tab; schließt du das Fenster, wird sie beendet |
+| `python -m tarjuman app` | Startet die App in einem eigenen Fenster (Edge oder Chrome im App-Modus) statt in einem Browser-Tab; unter Windows mit einem Symbol im Infobereich (`--background` startet sie dort ohne Fenster) |
 | `python -m tarjuman subs <link>` | Schreibt Untertiteldateien nach `data/output` (`--lang`, `--format srt,vtt,txt`) |
 | `python -m tarjuman setup` | Installiert oder repariert alles |
 | `python -m tarjuman update` | Aktualisiert yt-dlp und den Sprach-Client, falls Downloads oder Stimmen nicht mehr funktionieren |
@@ -142,6 +163,16 @@ Installiere sie direkt aus dem [Chrome Web Store](https://chromewebstore.google.
 1. Einmal bauen: `npm --prefix extension install && npm --prefix extension run build`.
 2. Öffne `chrome://extensions` (oder `edge://extensions`), aktiviere den **Entwicklermodus**, klicke auf **Entpackte Erweiterung laden** und wähle `extension/dist`.
 3. Lass die App laufen, öffne ein Video und klicke auf das Tarjuman-Symbol oder drücke <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.
+4. Auf ihrer Optionsseite legst du die Untertitelschrift fest, die Sprache der Erweiterung (die des Browsers, Arabisch oder Englisch), die Tastenkürzel und ob sie auf YouTube von selbst startet (nie, immer oder nur auf Kanälen, die du auswählst).
+
+Während sie übersetzt:
+
+- **Transkript neben dem Video** auf YouTube: jede Zeile, die aktuelle hervorgehoben; klicke auf eine Zeile, um dorthin zu springen, oder suche darin.
+- **Klicke auf ein Wort** in der Originalzeile, um seine Bedeutung zu sehen, und speichere es mit seinem Satz unter *Meine Wörter* in der App.
+- **Tastenkürzel:** <kbd>Alt</kbd>+<kbd>→</kbd> nächste Zeile, <kbd>Alt</kbd>+<kbd>←</kbd> vorherige Zeile, <kbd>Alt</kbd>+<kbd>↓</kbd> wiederholen, <kbd>Alt</kbd>+<kbd>S</kbd> Untertitel, <kbd>Alt</kbd>+<kbd>V</kbd> Synchronisation, <kbd>Alt</kbd>+<kbd>T</kbd> Transkript.
+- **Timing:** Kommen die Zeilen vor oder nach dem Gesprochenen, verschiebe sie mit <kbd>Alt</kbd>+<kbd>[</kbd> und <kbd>Alt</kbd>+<kbd>]</kbd> (die Synchronisation wandert mit).
+- **In der App öffnen** an derselben Stelle, für Exporte und die vollständige Ansehseite.
+- Sie funktioniert auch im Miniplayer von YouTube weiter, folgt einer Kurs-Website zur nächsten Lektion und zeigt die Zeile weiterhin an, wenn eine Website das reine Video in den Vollbildmodus schaltet.
 
 Zeigt Chrome *Proceed with caution: this extension is not trusted by Enhanced Safe Browsing*, liegt das daran, dass der Herausgeber neu im Chrome Web Store ist: Chrome zeigt den Hinweis bei jedem neuen Herausgeber, bis er einige Monate lang die Richtlinien des Stores eingehalten hat, und nur Nutzern mit aktiviertem erweitertem Schutz. Die Erweiterung hat die Prüfung des Stores bestanden, und ihr [Quellcode](https://github.com/MohamedElnagar94/tarjuman/tree/main/extension) ist offen. Wähle *Continue to install*.
 
@@ -160,12 +191,14 @@ Tarjuman arbeitet lokal. Deine Videos, Untertitel, gespeicherten Wörter, Einste
 | Funktion | Was deinen Rechner verlässt | Gesendet an | Ohne etwas zu senden |
 |---|---|---|---|
 | YouTube-Untertitel | Der Videolink | YouTube | Lade eine Datei hoch; sie wird lokal transkribiert |
-| Übersetzung | Die Sätze des Videos, als Text | Google Translate, dann MyMemory | Noch nichts; gespeicherte Sätze funktionieren weiterhin offline |
-| Synchronstimme | Jeder übersetzte Satz und der Name der Stimme | Microsoft-Edge-Stimmen, dann Google | Piper, die lokale arabische Stimme |
+| Übersetzung | Die Sätze des Videos, als Text | Google Translate, dann MyMemory | Offline-Übersetzungsmodelle (Einstellungen → Offline-Übersetzung) |
+| Synchronstimme | Jeder übersetzte Satz und der Name der Stimme | Microsoft-Edge-Stimmen, dann Google | Die Offline-Stimmen (Supertonic, 31 Sprachen; Piper für Arabisch) und die Stimmpakete |
 | Video-Download | Eine Anfrage nach dem Video | Die Website, die es hostet | Eine Datei, die schon auf deinem Rechner liegt |
 | KI (optional, standardmäßig aus) | Der Text des Videos und deine Frage | Der von dir gewählte Anbieter | Lass sie aus oder nutze einen lokalen Server wie Ollama |
-| Modell-Downloads | Eine Download-Anfrage, einmalig | Hugging Face, GitHub | Nichts nach dem ersten Download |
-| Spracherkennung, Musiktrennung, deine Dateien | Nichts | – | Immer lokal |
+| Modell-Downloads | Eine Download-Anfrage, einmalig | Hugging Face, GitHub, die Universität Helsinki (Übersetzungsmodelle), PyTorch und PyPI (Stimmpakete) | Nichts nach dem ersten Download |
+| Update-Prüfungen | Alle paar Stunden eine Anfrage nach der Liste neuerer Versionen | GitHub | Schalte „Automatisch nach Updates suchen“ unter Einstellungen → Updates aus |
+| Transkript-Korrektur (optional, standardmäßig aus) | Der Text des Transkripts | Der von dir gewählte KI-Anbieter | Lass sie aus; die Wortliste funktioniert auch ohne sie |
+| Spracherkennung, Musiktrennung, deine Dateien und Aufnahmen | Nichts | – | Immer lokal |
 
 Dieselbe Tabelle findest du in der App unter Einstellungen → Datenschutz. Die API lehnt Anfragen von anderen Websites ab, und die KI-Einstellungen lassen sich nur an dem Rechner ändern, auf dem die App läuft.
 
@@ -178,7 +211,7 @@ Kopiere `.env.example` im Projektordner nach `.env` und bearbeite die Datei; jed
 | `TARJUMAN_HOME` | Projektordner | Wo `data/` liegt |
 | `TARJUMAN_PORT` | `4318` | Erster Port, der versucht wird (ist er belegt, wird der nächste genommen; die Erweiterung zieht mit) |
 | `TARJUMAN_HOST` | `0.0.0.0` | Mit `127.0.0.1` ist die App aus dem WLAN nicht erreichbar |
-| `TARJUMAN_WHISPER_MODEL` | `base` | `small` oder `medium` für genauere Transkription (langsamer) |
+| `TARJUMAN_WHISPER_MODEL` | (leer) | Wird unter Einstellungen → Transkription gewählt, das ein Modell für deinen Rechner empfiehlt; ein Wert hier wird verwendet, solange diese Einstellung auf Automatisch steht |
 | `TARJUMAN_VOICE_CACHE_GB` | `2` | Größenlimit für gespeicherte Synchronstimmen; die am längsten nicht genutzten werden zuerst gelöscht |
 | `TARJUMAN_MAX_UPLOAD_GB` | `8` | Größtes Video, das du hochladen kannst |
 | `TARJUMAN_PAIR_MINUTES` | `15` | Wie lange ein Kopplungscode fürs Handy (der QR-Code) gültig ist; `0` = bis du einen neuen erzeugst |
@@ -225,6 +258,14 @@ iscc /DAppVersion=3.0.0 installer\tarjuman.iss                # build\windows\Ta
 ```
 
 Der Workflow *Windows installer* erledigt dasselbe auf GitHub: Starte ihn im Tab Actions oder pushe ein Tag wie `v3.0.0`, um den Installer an ein Release anzuhängen. Vor dem Kompilieren startet er die gebündelte App und prüft, ob sie antwortet.
+
+### Das Linux-AppImage bauen
+
+```sh
+installer/linux/build.sh   # build/linux/Tarjuman-<version>-x86_64.AppImage (needs curl, python3, Node.js 20+)
+```
+
+Es bündelt ein verschiebbares Python aus python-build-standalone. Derselbe Workflow baut es neben dem Windows-Installer und veröffentlicht beide bei einem `v*`-Tag.
 
 ## Erstellt mit
 

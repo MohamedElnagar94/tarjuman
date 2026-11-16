@@ -49,7 +49,33 @@ jobs:
             if (-not $ok) { throw "The bundled app did not answer on /api/health" }
             $page = Invoke-WebRequest "http://127.0.0.1:4391/" -UseBasicParsing
             if ($page.Content -notmatch "<div id=`"app`"") { throw "The web app was not served" }
+
+            # 3.2: offline translation, offline voices and voice packs, on the bundled app itself.
+            $B = "http://127.0.0.1:4391"; $H = @{ Origin = $B }
+            $voices = Invoke-RestMethod "$B/api/voices?lang=ja"
+            if (-not ($voices.voices | Where-Object { $_.id -eq "st-F1" })) { throw "No offline Japanese voice offered" }
+            $wav = Invoke-WebRequest "$B/api/tts?text=%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF%E3%80%82&lang=ja&voice=st-F1" -UseBasicParsing -TimeoutSec 900
+            if ($wav.Headers["Content-Type"] -notmatch "audio/wav" -or $wav.RawContentLength -lt 10000) { throw "Supertonic did not speak" }
+            Write-Host "Supertonic: $($wav.RawContentLength) bytes of audio/wav"
+            Invoke-RestMethod -Method Post "$B/api/mt/install" -ContentType "application/json" -Body '{"pair":"en-af"}' -Headers $H | Out-Null
+            $ready = $false
+            foreach ($i in 1..120) {
+              $mt = Invoke-RestMethod "$B/api/mt"
+              if ($mt.installed -contains "en-af") { $ready = $true; break }
+              if ($mt.installs."en-af".status -eq "error") { throw "Offline model failed: $($mt.installs.'en-af'.error)" }
+              Start-Sleep 10
+            }
+            if (-not $ready) { throw "The offline translation model was not ready in 20 minutes" }
+            Invoke-RestMethod -Method Post "$B/api/mt" -ContentType "application/json" -Body '{"prefer":"offline"}' -Headers $H | Out-Null
+            $tr = Invoke-RestMethod -Method Post "$B/api/translate" -ContentType "application/json" -Body '{"texts":["Good morning, my friend."],"sl":"en","tl":"af"}' -Headers $H
+            $out = $tr.map."Good morning, my friend."
+            $health = Invoke-RestMethod "$B/api/health"
+            if (-not $out -or $health.providers.lastProvider -ne "local") { throw "Offline translation did not translate" }
+            Write-Host "Offline translation: $out"
           } finally { Stop-Process -Id $p.Id -Force }
+          # Voice packs: the embeddable Python has no venv, so a pack installs into a folder of its own.
+          & "$app\python\python.exe" -c "import pathlib, tempfile; from tarjuman.engines.packs import selftest; print(selftest(pathlib.Path(tempfile.mkdtemp())))"
+          if ($LASTEXITCODE -ne 0) { throw "A voice pack could not be installed on the bundled Python" }
 
       - name: Compile the installer
         shell: pwsh
@@ -98,7 +124,26 @@ jobs:
           for i in $(seq 60); do curl -fs http://127.0.0.1:4391/api/health > /dev/null && break; sleep 1; done
           curl -fs http://127.0.0.1:4391/api/health | grep -q '"app":"tarjuman"'
           curl -fs http://127.0.0.1:4391/ | grep -q '<div id="app"'
+
+          # 3.2: offline translation, offline voices and voice packs, on the bundled app itself.
+          B=http://127.0.0.1:4391 PY="$app/python/bin/python3"
+          curl -fs "$B/api/voices?lang=ja" | grep -q '"st-F1"'
+          curl -fs -o /tmp/st.wav -D /tmp/st.h --max-time 900 "$B/api/tts?text=%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF%E3%80%82&lang=ja&voice=st-F1"
+          grep -qi 'content-type: audio/wav' /tmp/st.h && [ "$(stat -c %s /tmp/st.wav)" -gt 10000 ]
+          echo "Supertonic: $(stat -c %s /tmp/st.wav) bytes of audio/wav"
+          curl -fs -X POST "$B/api/mt/install" -H "Content-Type: application/json" -H "Origin: $B" -d '{"pair":"en-af"}' > /dev/null
+          for i in $(seq 120); do
+            curl -fs "$B/api/mt" | "$PY" -c 'import json,sys; d=json.load(sys.stdin); e=(d["installs"].get("en-af") or {}); sys.exit(0 if "en-af" in d["installed"] else 2 if e.get("status")=="error" else 1)' && break
+            [ $? -eq 2 ] && { echo "Offline model failed"; exit 1; }
+            sleep 10
+          done
+          curl -fs "$B/api/mt" | grep -q '"en-af"'
+          curl -fs -X POST "$B/api/mt" -H "Content-Type: application/json" -H "Origin: $B" -d '{"prefer":"offline"}' > /dev/null
+          curl -fs -X POST "$B/api/translate" -H "Content-Type: application/json" -H "Origin: $B" -d '{"texts":["Good morning, my friend."],"sl":"en","tl":"af"}' | tee /tmp/tr.json
+          curl -fs "$B/api/health" | grep -q '"lastProvider":"local"'
           kill $pid
+          # Voice packs: their own environment, made with the bundled Python.
+          PYTHONPATH="$app/backend" "$PY" -c "import pathlib, tempfile; from tarjuman.engines.packs import selftest; print(selftest(pathlib.Path(tempfile.mkdtemp())))"
 
       - uses: actions/upload-artifact@v4
         with:
