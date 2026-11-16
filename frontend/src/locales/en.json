@@ -321,7 +321,10 @@
     "backToNow": "Back to the current line",
     "chapter": "Chapter {n}: {title}",
     "chapterAi": "Suggested by the AI summary",
-    "chapters": "Chapters"
+    "chapters": "Chapters",
+    "editSrc": "Correct the original words (what Whisper wrote)",
+    "editSrcLabel": "Correct the original words",
+    "editSrcHint": "Kept with the file and used for the translation, downloads and the dub. Enter saves, Esc cancels."
   },
   "dub": {
     "voice": "Voice",

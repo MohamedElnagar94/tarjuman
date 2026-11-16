@@ -166,6 +166,33 @@ async def media_retranscribe(request: Request):
     return ok()
 
 
+@router.post("/api/media/segment")
+async def media_segment(request: Request):
+    """Corrects one line of a file's transcript (what Whisper wrote), kept with the file for good: the
+    subtitles, downloads and the dub use the corrected words from now on."""
+    s = services(request)
+    b = await body(request)
+    m = s.media.get(str(b.get("id") or ""))
+    if not m or not m.segments:
+        return fail("NO_MEDIA", status=404)
+    try:
+        i = int(b.get("index"))
+    except (TypeError, ValueError):
+        return fail("BAD_REQUEST", status=400)
+    text = " ".join(str(b.get("text") or "").split())[:2000]
+    if not 0 <= i < len(m.segments) or not text:
+        return fail("BAD_REQUEST", status=400)
+    seg = dict(m.segments[i])
+    if seg.get("text") != text:
+        # The first correction keeps what Whisper heard, so it can be told apart (and restored).
+        seg.setdefault("asrText", seg.get("text", ""))
+        seg["text"] = text
+        m.segments = [*m.segments[:i], seg, *m.segments[i + 1 :]]
+        s.media.save()
+        s.captions.forget(m.link)
+    return ok(index=i, text=text, edited=seg.get("asrText", text) != text)
+
+
 @router.get("/api/media/info")
 async def media_info(request: Request, id: str = ""):
     s = services(request)

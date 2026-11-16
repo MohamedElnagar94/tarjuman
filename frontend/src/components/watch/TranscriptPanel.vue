@@ -16,6 +16,7 @@ import {
   PhPencilSimple,
   PhRepeatOnce,
   PhSlidersHorizontal,
+  PhTextAa,
   PhSmiley,
   PhX,
 } from "@phosphor-icons/vue";
@@ -23,7 +24,8 @@ import SegmentedControl from "@/components/ui/SegmentedControl.vue";
 import ToggleSwitch from "@/components/ui/ToggleSwitch.vue";
 import { openLookup } from "@/composables/lookup";
 import { T_SIZE, usePrefs } from "@/composables/prefs";
-import { chapters, cues, editLine, edited, seekTo, seekToCue, session, tr } from "@/composables/session";
+import { chapters, cues, editLine, editSource, edited, seekTo, seekToCue, session, tr } from "@/composables/session";
+import { isMediaId } from "@/lib/links";
 import { chapterAt, chapterHeads, type Chapter } from "@/lib/chapters";
 import { toast } from "@/composables/toast";
 import { litWords, pieces, speakers, startsTurn, type Piece, type SoundKind } from "@/lib/cueText";
@@ -51,7 +53,11 @@ const matches = computed(() => {
   });
   return set;
 });
+/* Two corrections: the translation (anything translated), and what Whisper wrote (a file from this
+   computer: an Arabic voice note watched in Arabic has only that). */
 const canEdit = computed(() => !session.already);
+const canEditSrc = computed(() => isMediaId(session.link));
+const editKind = ref<"tr" | "src">("tr");
 const trDir = computed(() => (isRtl(session.tl) ? "rtl" : "ltr"));
 // The original's direction follows its own language (an Arabic recording reads right to left).
 const srcDir = computed(() => (isRtl(session.srcLang) ? "rtl" : session.srcLang === "auto" ? "auto" : "ltr"));
@@ -197,9 +203,10 @@ async function copyLine(i: number) {
   }
 }
 
-async function startEdit(i: number) {
+async function startEdit(i: number, kind: "tr" | "src" = "tr") {
   editing.value = i;
-  draft.value = tr.value[i] || "";
+  editKind.value = kind;
+  draft.value = kind === "src" ? cues.value[i]?.src || "" : tr.value[i] || "";
   await nextTick();
   const el = editor.value?.[0];
   el?.focus();
@@ -211,7 +218,7 @@ function cancelEdit() {
 async function saveEdit() {
   const i = editing.value;
   editing.value = -1;
-  if (i >= 0) await editLine(i, draft.value);
+  if (i >= 0) await (editKind.value === "src" ? editSource(i, draft.value) : editLine(i, draft.value));
 }
 function onEditKey(e: KeyboardEvent) {
   e.stopPropagation();
@@ -321,7 +328,7 @@ defineExpose({ focusSearch: () => search.value?.focus() });
             {{ formatTime(c.start) }}
           </button>
           <div class="tx">
-            <p v-if="showSrc" class="src" :class="{ main: !showTr }" :dir="srcDir" :lang="session.srcLang === 'auto' ? undefined : session.srcLang">
+            <p v-if="showSrc && !(editing === i && editKind === 'src')" class="src" :class="{ main: !showTr }" :dir="srcDir" :lang="session.srcLang === 'auto' ? undefined : session.srcLang">
               <template v-if="needle">
                 <template v-for="(p, k) in highlight(c.src, q)" :key="k"><mark v-if="p.hit">{{ p.text }}</mark><template v-else>{{ p.text }}</template></template>
               </template>
@@ -337,12 +344,12 @@ defineExpose({ focusSearch: () => search.value?.focus() });
               </template>
             </p>
             <div v-if="editing === i" class="edit-box">
-              <label class="sr-only" :for="'ed' + i">{{ t("transcript.editLabel") }}</label>
-              <textarea :id="'ed' + i" ref="editor" v-model="draft" class="textarea" :dir="trDir" rows="2" @keydown="onEditKey"></textarea>
+              <label class="sr-only" :for="'ed' + i">{{ editKind === "src" ? t("transcript.editSrcLabel") : t("transcript.editLabel") }}</label>
+              <textarea :id="'ed' + i" ref="editor" v-model="draft" class="textarea" :dir="editKind === 'src' ? srcDir : trDir" rows="2" @keydown="onEditKey"></textarea>
               <div class="edit-actions">
                 <button type="button" class="btn btn--primary btn--sm" @click="saveEdit"><PhCheck :size="14" />{{ t("common.save") }}</button>
                 <button type="button" class="btn btn--quiet btn--sm" @click="cancelEdit"><PhX :size="14" />{{ t("common.cancel") }}</button>
-                <span class="hint">{{ t("transcript.editHint") }}</span>
+                <span class="hint">{{ editKind === "src" ? t("transcript.editSrcHint") : t("transcript.editHint") }}</span>
               </div>
             </div>
             <p v-else-if="showTr" class="tr" :class="{ pending: !tr[i] }" :dir="trDir">
@@ -371,6 +378,9 @@ defineExpose({ focusSearch: () => search.value?.focus() });
             </button>
             <button type="button" class="btn btn--quiet btn--icon btn--sm" :aria-label="t('transcript.copy')" :title="t('transcript.copy')" @click.stop="copyLine(i)">
               <PhCopy :size="15" />
+            </button>
+            <button v-if="canEditSrc && c.src" type="button" class="btn btn--quiet btn--icon btn--sm" :aria-label="t('transcript.editSrc')" :title="t('transcript.editSrc')" @click.stop="startEdit(i, 'src')">
+              <PhTextAa :size="15" />
             </button>
             <button v-if="canEdit && c.src" type="button" class="btn btn--quiet btn--icon btn--sm" :aria-label="t('transcript.edit')" :title="t('transcript.edit')" @click.stop="startEdit(i)">
               <PhPencilSimple :size="15" />

@@ -4,6 +4,7 @@ Notable changes to Tarjuman. Versions follow the number in `backend/tarjuman/__i
 
 ## Unreleased
 
+- **Correct a recording's transcript.** On a file from your computer, each line has a button to correct the original words (what Whisper wrote). The correction is kept with the file and used for the translation (made again for that line), downloads and the dub; what Whisper heard is kept too. An Arabic voice note watched in Arabic can now be corrected at all: it has no translation, so there was nothing to edit before.
 - **74 languages to translate and dub into**, every language Microsoft's neural voices speak, each with native voices (a man and a woman, and two regions where it matters: Brazilian and European Portuguese, mainland and Taiwan Chinese). Every voice was checked, and the speaking speed of each language was measured to time the dub. Language menus show the names in the interface's language.
   - If a voice fails, another of the same accent speaks instead (an Egyptian voice for an Egyptian one), and the failing one is tried last for ten minutes.
   - Burned-in subtitles use a font with the language's letters (Japanese, Korean, Hindi…); sentence ends of Chinese, Japanese and Hindi are recognised.

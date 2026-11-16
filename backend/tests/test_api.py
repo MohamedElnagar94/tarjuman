@@ -514,3 +514,19 @@ def test_voice_packs_api_refuses_xtts_without_the_licence(client):
     r = client.post("/api/packs/install", json={"name": "xtts"})
     assert r.status_code == 400 and r.json()["code"] == "LICENCE_NOT_ACCEPTED"
     assert client.post("/api/packs/install", json={"name": "nope"}).status_code == 404
+
+
+def test_a_line_of_a_files_transcript_can_be_corrected_and_stays_corrected(client, services):
+    item = services.media.new_item("Voice note", "m4a", "upload")
+    item.path.write_bytes(b"x")
+    item.segments = [{"start": 0.0, "end": 2.0, "text": "بص يا نجار"}, {"start": 2.0, "end": 4.0, "text": "الأرقام جاية"}]
+    item.lang = "ar"
+    services.media.save()
+    link = item.link
+    assert client.get("/api/cues", params={"url": link, "tl": "ar"}).json()["cues"][0]["src"] == "بص يا نجار"
+    r = client.post("/api/media/segment", json={"id": item.id, "index": 0, "text": "  بص يا  نجّار "}).json()
+    assert r["ok"] and r["text"] == "بص يا نجّار" and r["edited"]
+    assert client.get("/api/cues", params={"url": link, "tl": "ar"}).json()["cues"][0]["src"] == "بص يا نجّار"
+    assert services.media.get(item.id).segments[0]["asrText"] == "بص يا نجار", "what Whisper heard is kept"
+    assert client.post("/api/media/segment", json={"id": item.id, "index": 9, "text": "x"}).status_code == 400
+    assert client.post("/api/media/segment", json={"id": item.id, "index": 1, "text": "  "}).status_code == 400

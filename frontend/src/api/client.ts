@@ -266,6 +266,8 @@ export const api = {
   packs: () => get<PacksState>("/api/packs"),
   installPack: (name: string, accept = false) => post<PacksState>("/api/packs/install", { name, accept }),
   deletePack: (name: string) => post<PacksState>("/api/packs/delete", { name }),
+  editSegment: (id: string, index: number, text: string) =>
+    post<{ ok: true; index: number; text: string; edited: boolean }>("/api/media/segment", { id, index, text }),
   mt: () => get<MtState>("/api/mt"),
   setMt: (prefer: "online" | "offline") => post<MtState>("/api/mt", { prefer }),
   installMt: (pair: string) => post<MtState>("/api/mt/install", { pair }),

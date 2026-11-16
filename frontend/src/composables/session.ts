@@ -329,6 +329,35 @@ export async function editLine(i: number, text: string): Promise<void> {
   }
 }
 
+/** Corrects what Whisper wrote for a line of a file from this computer; kept with the file. Its
+ *  translation is made again from the corrected words (or is the same words, when no translation). */
+export async function editSource(i: number, text: string): Promise<void> {
+  const c = cues.value[i];
+  if (!c || !isMediaId(session.link)) return;
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (!clean || clean === c.src) return;
+  const id = session.link.slice("media:".length);
+  const before = cues.value;
+  const beforeTr = tr.value[i] || "";
+  const next = [...cues.value];
+  next[i] = Object.freeze({ ...c, src: clean });
+  cues.value = Object.freeze(next) as Cue[];
+  tr.value[i] = session.sameLang ? clean : "";
+  try {
+    await api.editSegment(id, i, clean);
+    edited.add(i);
+    toast(t("watch.edit.saved"), { tone: "ok" });
+    if (!session.sameLang) {
+      const r = await api.translate([clean], session.srcLang || "auto", session.tl);
+      tr.value[i] = r.map[clean] || beforeTr;
+    }
+  } catch (e) {
+    cues.value = before;
+    tr.value[i] = beforeTr;
+    toast(t("watch.edit.failed") + " " + errText(errorCode(e)), { tone: "danger" });
+  }
+}
+
 /* ---------------- player ---------------- */
 
 /** Called by the player stage once a player (YouTube or HTML5) is ready. */

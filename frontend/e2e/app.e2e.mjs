@@ -241,3 +241,26 @@ test("chapters from the AI summary appear in the transcript and on the timeline"
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+test("a line of a recording's transcript can be corrected, is translated again and stays corrected", async () => {
+  const { ctx, page, errors } = await open(watchOf(voice));
+  const row = page.locator('.tp__lines .row[data-i="0"]');
+  await row.locator(".src").waitFor();
+  await row.hover();
+  await row.getByRole("button", { name: /صحّح النص الأصلي/ }).click();
+  const box = row.locator("textarea");
+  await box.fill("This is the very start of my voice note.");
+  await box.press("Enter");
+  await row.locator(".src", { hasText: "This is the very start of my voice note." }).waitFor();
+  await row.locator(".tr", { hasText: "ترجمة: This is the very start of my voice note." }).waitFor();
+  await page.reload();
+  await page.locator('.tp__lines .row[data-i="0"] .src', { hasText: "very start" }).waitFor();
+  // Put it back, so a rerun starts from the same words.
+  await fetch(base + "/api/media/segment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: voice.id, index: 0, text: "This is the start of my voice note." }),
+  });
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
