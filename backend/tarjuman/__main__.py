@@ -22,7 +22,6 @@ import time
 import webbrowser
 
 from . import __version__, config
-from .core.net import lan_ip
 
 
 def _free_port(host: str, start: int) -> int:
@@ -40,6 +39,7 @@ def serve(args: argparse.Namespace) -> None:
     import uvicorn
 
     from .api.app import create_app
+    from .core.net import lan_ip
 
     host = args.host
     port = _free_port(host, args.port)
